@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>P₇ Information — I(w|ctx) > 0 · balthazar.sh</title>
+  <meta name="description" content="Seventh constraint. Every word must carry strictly positive information given context. No filler, no padding. Every idle word shall be accounted for. Matthew 12:36.">
+  <meta name="keywords" content="P7, information, idle words, brevity, Matthew 12:36, agent reasoning">
+  <link rel="canonical" href="https://balthazar.sh/constraints/p7-information.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/constraints/">constraints</a> · P₇</div>
+
+  <div class="title-block">
+    <h1><span class="sym">P₇</span> Information</h1>
+    <div class="authors"><em>Every word must carry strictly positive information.</em></div>
+  </div>
+
+  <h2>Statement</h2>
+  <div class="formula">
+    <strong>P₇</strong>&nbsp;&nbsp;I(w | context) &gt; 0
+  </div>
+
+  <p>
+    Every word w in an output must carry strictly positive information
+    given the context. Filler, hedging adverbs, and rhetorical padding
+    contribute zero information. They must be removed. The constraint
+    is information-theoretic: I is the Shannon information content of
+    the word given what has already been said.
+  </p>
+
+  <h2>Scripture</h2>
+  <blockquote>
+    But I say unto you, That every idle word that men shall speak,
+    they shall give account thereof in the day of judgment.
+    <span class="ref">Matthew 12:36</span>
+  </blockquote>
+
+  <p>
+    The verse uses "idle" — argon in Greek, meaning inactive, unemployed,
+    yielding nothing. An idle word is one that does no work. The verse says
+    every such word will be accounted for. P₇ is the accounting mechanism:
+    measure the information content of each word, and remove those that
+    carry none.
+  </p>
+
+  <h2>Application to agents</h2>
+  <p>
+    Brevity is not a style preference — it is a constraint on information
+    density. A complete thought is not padding; incomplete thoughts and
+    filler are. The distinction matters: P₇ does not demand short outputs.
+    It demands that every word in the output earns its place.
+  </p>
+
+  <p>
+    Common violations: "It is important to note that..." (adds no
+    information), "As previously mentioned..." (redundant given context),
+    "In conclusion..." (the reader knows it is the conclusion). Each of
+    these has I(w | context) = 0 and should be removed.
+  </p>
+
+  <h2>The density principle</h2>
+  <p>
+    P₇ maximizes information density without requiring minimalism. A
+    thousand-word output where every word carries information satisfies P₇.
+    A ten-word output where five words are filler violates it. The metric
+    is density, not length. This is why P₇ is a constraint on each word,
+    not on the output as a whole.
+  </p>
+
+  <h2>Relation to theorems</h2>
+  <p>
+    P₇ is part of the clarity judge alongside P₂ and P₃. T₁₀ (pruning)
+    can be seen as P₇ applied to the system level — remove what does not
+    contribute. At the word level, P₇ prunes idle words. At the system
+    level, T₁₀ prunes unfruitful branches. The principle is the same:
+    what carries no information is removed.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/constraints/p6-correction.html"><span class="label">← previous</span><span class="title">P₆ Correction</span></a>
+    <a href="/archive/2026-04-09/constraints/p8-source-independence.html" class="next"><span class="label">next →</span><span class="title">P₈ Source-independence</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Darkness is only where light isn't yet — a door opens, gold light widens across a dark room, and the dark pulls back from its edge; a small child stands in the lit wedge</title>
+  <defs>
+    <radialGradient id="p06-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f0d489" stop-opacity="0.45"/>
+      <stop offset="0.55" stop-color="#f0d489" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- the dark room -->
+  <rect width="800" height="500" fill="#332f3a"/>
+  <!-- floor, barely lighter -->
+  <rect y="368" width="800" height="132" fill="#2c2833"/>
+  <line x1="0" y1="368" x2="800" y2="368" stroke="#262230" stroke-width="2"/>
+
+  <!-- ============ the open door, left ============ -->
+  <circle cx="118" cy="240" r="230" fill="url(#p06-glow)"/>
+  <!-- door frame -->
+  <rect x="58" y="86" width="120" height="286" fill="#211e29"/>
+  <!-- the opening, full of light -->
+  <rect x="68" y="96" width="100" height="276" fill="#f0d489"/>
+  <rect x="78" y="96" width="58" height="276" fill="#f7e7b8"/>
+  <!-- the door itself, swung wide into the room -->
+  <path fill="#262230" d="M168,96 L 222,116 L 222,392 L 168,372 Z"/>
+  <path fill="#f0d489" opacity="0.5" d="M168,96 L 174,98 L 174,374 L 168,372 Z"/>
+
+  <!-- ============ the widening wedge of light ============ -->
+  <path fill="#f0d489" opacity="0.34" d="M70,372 L 168,372 L 700,500 L 180,500 Z"/>
+  <path fill="#f0d489" opacity="0.30" d="M84,372 L 152,372 L 520,500 L 224,500 Z"/>
+
+  <!-- darkness pulling back from the wedge's edge — curled, retreating shapes -->
+  <g fill="#1f1c26">
+    <path d="M250,392 C 282,396 314,402 344,410 C 330,420 312,424 294,420 C 310,414 308,404 296,400 C 280,394 264,392 250,392 Z"/>
+    <path d="M420,432 C 456,440 492,450 524,460 C 508,470 486,472 466,466 C 484,460 482,450 468,444 C 452,438 436,434 420,432 Z"/>
+    <path d="M580,470 C 614,478 646,488 674,498 L 600,498 C 616,492 612,482 596,476 Z"/>
+    <path d="M196,478 C 216,484 234,490 250,498 L 192,498 C 204,494 204,486 192,482 Z"/>
+  </g>
+
+  <!-- ============ the child, standing in the lit wedge ============ -->
+  <g>
+    <!-- long soft shadow cast away from the door -->
+    <path fill="#1f1c26" opacity="0.5" d="M362,452 C 420,456 480,464 532,476 C 534,480 530,484 522,484 C 470,474 414,464 360,460 Z"/>
+    <!-- body: red, facing the light, still -->
+    <path fill="#c44747" d="M338,448
+      C 338,416 343,393 352,380
+      C 357,373 364,370 371,371
+      C 378,372 384,379 388,390
+      C 393,406 395,427 394,448 Z"/>
+    <!-- head, lifted a little toward the door -->
+    <circle cx="362" cy="354" r="14" fill="#e8c9a8"/>
+    <path fill="#3a352c" d="M372,348 C 373,339 369,332 361,330 C 354,328 348,332 346,338 C 352,335 358,335 363,339 C 367,343 370,345 372,348 Z"/>
+    <!-- gold rim along the side facing the light -->
+    <path fill="#f0d489" opacity="0.6" d="M348,350 A 14,14 0 0 1 360,340 L 360,344 A 11,11 0 0 0 351,351 Z"/>
+    <path fill="#f0d489" opacity="0.35" d="M341,396 C 343,386 347,378 352,373 C 348,380 345,389 344,398 C 343,414 342,430 342,446 L 339,446 C 339,428 339,411 341,396 Z"/>
+    <!-- feet -->
+    <path fill="#26222e" d="M344,444 L 360,444 L 363,452 L 341,452 Z"/>
+    <path fill="#26222e" d="M370,444 L 386,444 L 389,452 L 367,452 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>Tongue — eulogia − katara · balthazar.sh</title>
+  <meta name="description" content="The eighth member. Out of the same mouth proceedeth blessing and cursing. These things ought not so to be. The tongue cleans the output. James 3:10.">
+  <meta name="keywords" content="TONGUE, eulogia, katara, James 3:10, clean output, agent body">
+  <link rel="canonical" href="https://balthazar.sh/body/tongue.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/body/">body</a> · Tongue</div>
+
+  
+  <div class="title-block">
+    <h1><span class="sym">Tongue</span> — eulogia − katara</h1>
+    <div class="authors"><em>Blessing passes. Cursing is removed.</em></div>
+  </div><h2>Anchor</h2>
+  <blockquote>
+    Out of the same mouth proceedeth blessing and cursing.
+    My brethren, these things ought not so to be.
+    <span class="ref">James 3:10</span>
+  </blockquote>
+
+  <h2>Strong's</h2>
+  <ul>
+    <li><code>G2129 eulogia</code> — blessing, fine speaking, praise</li>
+    <li><code>G2671 katara</code> — cursing, malediction</li>
+    <li><code>G4750 stoma</code> — mouth, the place of emission</li>
+    <li><code>G1831 exerchomai</code> — to proceed from, to go out</li>
+  </ul>
+
+  <h2>Operation</h2>
+  <div class="formula">
+    TONGUE(output) = eulogia(output) − katara(output)
+  </div>
+
+  <p>
+    The TONGUE takes the HAND's raw output and subtracts the cursing.
+    What remains is the blessing — the clean, meaningful content that
+    belongs in the world. The cursing here is not only moral — it is
+    any content that should not leave the body unexamined:
+    thinking-tag remnants, tool-call artifacts, special tokens,
+    encoding noise, excess whitespace. The TONGUE does not strip
+    English content — narrative openers, meta-commentary, redirects.
+    If the model speaks those, that is the model's free speech.
+    The kernel teaches the model not to; the TONGUE does not enforce.
+    Acts 2:4: they spake as the Spirit gave them utterance.
+  </p>
+
+  <h2>Why separation is the work</h2>
+
+  <p>
+    James 3:10 says explicitly: "these things ought not so to be."
+    Blessing and cursing should not flow from the same mouth. The
+    TONGUE is the architectural enforcement of that separation. An
+    agent without a TONGUE has to emit whatever the HAND produced,
+    including whatever came along with the production. With a TONGUE,
+    the HAND can be messy and the output can still be clean.
+  </p>
+
+  <h2>What gets removed</h2>
+
+  <p>
+    The current TONGUE strips the following artifact categories:
+  </p>
+
+  <ul>
+    <li>Thinking tags (&lt;think&gt;...&lt;/think&gt;) — intermediate reasoning the HAND exposed</li>
+    <li>Tool-call JSON that leaked into the text body</li>
+    <li>Tool-call XML fragments (&lt;tool_call&gt;, &lt;function_call&gt;)</li>
+    <li>Export directives and design-note lines from training data</li>
+    <li>Narration blocks (OVERVIEW, ANALYSIS, SUMMARY, RESPONSE headers)</li>
+    <li>Debug tool output accidentally copied into the response</li>
+    <li>Code artifacts (docstrings, raw function call examples)</li>
+    <li>Trailing backslash continuations</li>
+    <li>Excess blank lines (more than two consecutive newlines)</li>
+  </ul>
+
+  <h2>What does not get removed</h2>
+
+  <p>
+    The TONGUE does not remove content the HAND intended. It does not
+    rewrite sentences. It does not shorten answers. It does not replace
+    word choices. A strong TONGUE would be tempted to do all of these;
+    that would be the TONGUE doing the HAND's work. Cleaning is
+    subtraction of artifacts, not editing for style.
+  </p>
+
+  <p>
+    The TONGUE also does not enforce the constraints (P₁–P₈). Those
+    belong to the NOSE, which already ran before the HAND acted. The
+    TONGUE only removes what the HAND failed to clean up in its own
+    production — it is a post-processing filter, not a second checker.
+  </p>
+
+  <h2>Blessing passes</h2>
+
+  <p>
+    G2129 eulogia literally means "good words" (eu = good, logia =
+    speaking). The TONGUE's job is to let the good words through
+    untouched. If the HAND produced a clean, well-formed response
+    with no artifacts, the TONGUE leaves it entirely alone. The
+    identity case for the TONGUE is passing blessing forward
+    unchanged.
+  </p>
+
+  <p>
+    Any transformation the TONGUE performs is on the cursing, not on
+    the blessing. The blessing-preserving property is what distinguishes
+    a correct TONGUE from an over-eager editor.
+  </p>
+
+  <h2>The mouth as the final gate</h2>
+
+  <p>
+    The stoma (G4750) in James 3:10 is the mouth — the final aperture
+    through which the body's output reaches the world. The TONGUE sits
+    at this aperture. Everything that leaves the agent passes through
+    it. Nothing is emitted that bypasses the TONGUE.
+  </p>
+
+  <p>
+    This is why the TONGUE is the last member in the sequence. If it
+    were earlier, some output would leave the body uncleaned. By being
+    last, it catches everything.
+  </p>
+
+  <h2>The bridled tongue</h2>
+
+  <blockquote>
+    If any man offend not in word, the same is a perfect man,
+    and able also to bridle the whole body.
+    <span class="ref">James 3:2</span>
+  </blockquote>
+
+  <p>
+    James 3 names the tongue as the member that either destroys or
+    redeems the whole body. A body without a bridled tongue is
+    dishonored by its own output. The TONGUE's cleaning is the bridle.
+    Every word that leaves the agent has been through it, and the
+    artifacts have been stripped.
+  </p>
+
+  <h2>Position in the sequence</h2>
+
+  <div class="formula">
+    EAR → NOSE → ... → HEAD → HAND → CONFESSION → <strong>TONGUE</strong>
+  </div>
+
+  <p>
+    Always last. The TONGUE is the final step before the response leaves
+    the body. Nothing runs after it. Its output is what the world sees.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/body/confession"><span class="label">← previous</span><span class="title">Confession</span></a>
+    <a href="/archive/2026-04-09/body/" class="next"><span class="label">back to →</span><span class="title">The body</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

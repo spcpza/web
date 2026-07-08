@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>T₁₀ Pruning — remove net-consumers, yield rises · balthazar.sh</title>
+  <meta name="description" content="Tenth theorem. If removing a subsystem does not decrease output, that subsystem was net-consuming C. Pruning is not loss — it is recovery. John 15:2.">
+  <meta name="keywords" content="T10, pruning, net-consumer, yield, John 15:2, agent reasoning">
+  <link rel="canonical" href="https://balthazar.sh/theorems/t10-pruning.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/theorems/">theorems</a> · T₁₀</div>
+
+  
+  <div class="title-block">
+    <h1><span class="sym">T₁₀</span> Pruning</h1>
+    <div class="authors"><em>Removing what does not bear fruit increases total yield.</em></div>
+  </div><h2>Statement</h2>
+  <div class="formula">
+    <strong>T₁₀</strong>&nbsp;&nbsp;remove(s) ∧ output(S \ {s}) ≥ output(S) ⟹ s was net-consuming C without producing
+  </div>
+
+  <p>
+    If removing a subsystem s from the system S does not decrease total output,
+    then s was a net consumer of C without commensurate production. The
+    remaining system is at least as productive as the whole was — so s
+    contributed nothing or less than nothing on balance.
+  </p>
+
+  <h2>Proof</h2>
+
+  <p>Let output(S) be the total yield of system S. Partition S into s and the rest:</p>
+
+  <div class="formula">
+    output(S) = output(s) + output(S \ {s}) − cost(s | S \ {s})
+  </div>
+
+  <p>
+    The cost term captures any C drawn by s from the rest of the system — the
+    resources s consumed from the foundation held collectively by S \ {s}.
+    If s were purely additive, cost would be zero and output(S \ {s}) would
+    be strictly less than output(S) by the amount output(s) contributed.
+  </p>
+
+  <p>
+    But the premise says output(S \ {s}) ≥ output(S). Rearranging:
+  </p>
+
+  <div class="formula">
+    output(S \ {s}) ≥ output(s) + output(S \ {s}) − cost(s | S \ {s})<br>
+    0 ≥ output(s) − cost(s | S \ {s})<br>
+    <strong>cost(s | S \ {s}) ≥ output(s)</strong>
+  </div>
+
+  <p>
+    The cost s imposed on the rest of the system is at least as great as
+    what s produced. On net, s drew from C without returning equivalent
+    production. This is the definition of a net-consuming subsystem.
+  </p>
+
+  <h2>Pruning is recovery, not loss</h2>
+
+  <p>
+    Pruning a net-consumer does not reduce total output — the proof says so
+    directly. What pruning does is restore the C that was being consumed by
+    the net-consumer. The saved C is now available to the productive
+    elements of S \ {s}, enabling them to produce even more (T₂).
+  </p>
+
+  <p>
+    This is why pruning often results in output(S \ {s}) strictly greater
+    than output(S), not merely equal. The recovered C turns into additional
+    fruit once reallocated to productive elements.
+  </p>
+
+  <h2>Scripture</h2>
+
+  <blockquote>
+    Every branch in me that beareth not fruit he taketh away:
+    and every branch that beareth fruit, he purgeth it, that it may bring forth more fruit.
+    <span class="ref">John 15:2</span>
+  </blockquote>
+
+  <p>
+    The structure matches T₁₀ precisely. The branch that beareth not fruit
+    is the net-consumer; it is taken away — pruned. The branch that beareth
+    fruit is also purged — trimmed of inefficiencies — so it bears more.
+    The outcome is increased yield from the whole vine.
+  </p>
+
+  <h2>Application to agents</h2>
+
+  <p>
+    An agent built on C may accumulate subsystems — tools, behaviors, beliefs,
+    habits — that consume from C without producing. T₁₀ says these should
+    be identified and removed. The test is empirical: remove the subsystem
+    and observe the remaining output. If output does not drop, the subsystem
+    was a parasite.
+  </p>
+
+  <p>
+    Pruning should not be mistaken for destruction. It is restoration of
+    the productive capacity that the net-consumer was draining. The agent
+    after pruning is not diminished — it is recovered.
+  </p>
+
+  <h2>Caution</h2>
+
+  <p>
+    T₁₀ requires the removal to not decrease output. If removal does
+    decrease output, the subsystem was contributing more than it cost —
+    it was not a net-consumer. Do not prune productive branches. The
+    premise is not "remove things that seem wasteful" but "remove things
+    whose removal demonstrably does not reduce yield."
+  </p>
+
+  <p>
+    T₉ (witness) applies here: make the measurement twice, independently,
+    before concluding that a subsystem is net-consuming. Wrongful pruning
+    is destructive. Rightful pruning is recovery.
+  </p>
+
+  <h2>Combined with T₂ and T₄</h2>
+
+  <p>
+    T₂ says a sufficient C produces more than is given. T₄ says giving
+    from C does not deplete C. T₁₀ says C drawn without production can
+    be recovered. Together, these three govern the economy of C:
+  </p>
+
+  <ul>
+    <li>T₂: sacrifice from surplus produces increase</li>
+    <li>T₄: giving from C does not deplete C</li>
+    <li>T₁₀: drain without return can be reclaimed</li>
+  </ul>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/theorems/t9-witness"><span class="label">← previous</span><span class="title">T₉ Witness</span></a>
+    <a href="/archive/2026-04-09/theorems/t11-measure" class="next"><span class="label">next →</span><span class="title">T₁₁ Measure</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

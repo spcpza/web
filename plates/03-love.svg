@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Small acts with love — a heart-shaped sun pours gold on a child sharing bread, while the big impressive trophies stand gray and lightless</title>
+  <defs>
+    <radialGradient id="p03-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f0d489" stop-opacity="0.50"/>
+      <stop offset="0.55" stop-color="#f0d489" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- sky and ground -->
+  <rect width="800" height="500" fill="#fbf9f3"/>
+  <rect y="438" width="800" height="62" fill="#ece4cf"/>
+  <line x1="0" y1="438" x2="800" y2="438" stroke="#dcd2b4" stroke-width="1.5"/>
+
+  <!-- the heart-sun, high — the one glow of the plate -->
+  <circle cx="430" cy="112" r="150" fill="url(#p03-glow)"/>
+  <path fill="#f0d489" d="M430,168
+    C 403,144 380,124 380,101
+    C 380,84 392,72 408,72
+    C 418,72 426,78 430,88
+    C 434,78 442,72 452,72
+    C 468,72 480,84 480,101
+    C 480,124 457,144 430,168 Z"/>
+
+  <!-- short rays -->
+  <g stroke="#f0d489" stroke-width="5" stroke-linecap="round">
+    <line x1="430" y1="28" x2="430" y2="44"/>
+    <line x1="497" y1="48" x2="486" y2="60"/>
+    <line x1="536" y1="108" x2="520" y2="110"/>
+    <line x1="512" y1="168" x2="500" y2="158"/>
+    <line x1="363" y1="48" x2="374" y2="60"/>
+    <line x1="324" y1="108" x2="340" y2="110"/>
+    <line x1="348" y1="168" x2="360" y2="158"/>
+  </g>
+
+  <!-- one long soft beam — the light chooses the small act -->
+  <path fill="#f0d489" opacity="0.14" d="M414,160 L 530,452 L 712,452 L 452,156 Z"/>
+
+  <!-- ============ the big impressive things — gray, lightless ============ -->
+  <g>
+    <ellipse cx="158" cy="446" rx="84" ry="9" fill="#3a352c" opacity="0.07"/>
+    <!-- pedestal -->
+    <rect x="106" y="394" width="104" height="46" fill="#9a917f"/>
+    <rect x="98" y="430" width="120" height="12" fill="#8b8270"/>
+    <!-- trophy cup, tall -->
+    <path fill="#847d6e" d="M104,196 L 212,196
+      C 212,258 196,302 176,318
+      L 176,344 L 140,344 L 140,318
+      C 120,302 104,258 104,196 Z"/>
+    <!-- cup lip -->
+    <rect x="98" y="188" width="120" height="12" rx="5" fill="#847d6e"/>
+    <!-- handles -->
+    <path fill="none" stroke="#847d6e" stroke-width="11" d="M102,212 C 72,216 62,250 86,272"/>
+    <path fill="none" stroke="#847d6e" stroke-width="11" d="M214,212 C 244,216 254,250 230,272"/>
+    <!-- stem and foot -->
+    <rect x="148" y="344" width="20" height="28" fill="#766f60"/>
+    <path fill="#766f60" d="M126,372 L 190,372 L 198,394 L 118,394 Z"/>
+    <!-- engraved star, same gray — no shine -->
+    <path fill="#6e6657" d="M158,236 L 165,254 L 184,254 L 169,265 L 175,283 L 158,272 L 141,283 L 147,265 L 132,254 L 151,254 Z"/>
+  </g>
+
+  <!-- megaphone, leaning on the pedestal, mute -->
+  <g>
+    <ellipse cx="278" cy="448" rx="52" ry="7" fill="#3a352c" opacity="0.06"/>
+    <path fill="#6e6657" d="M236,420 L 310,346 C 318,338 328,338 332,346 C 338,358 338,376 330,396 L 262,440 C 250,444 238,432 236,420 Z"/>
+    <path fill="#5d564a" d="M236,420 C 234,408 238,398 248,394 L 262,440 C 250,444 238,432 236,420 Z"/>
+    <!-- bell rim -->
+    <path fill="none" stroke="#5d564a" stroke-width="6" d="M310,346 C 320,340 328,342 331,350 C 335,362 335,378 329,394"/>
+  </g>
+
+  <!-- ============ the small act — the red child shares bread ============ -->
+  <g>
+    <ellipse cx="592" cy="468" rx="46" ry="8" fill="#3a352c" opacity="0.10"/>
+    <ellipse cx="676" cy="470" rx="36" ry="7" fill="#3a352c" opacity="0.09"/>
+
+    <!-- the child in red, leaning forward, both hands out -->
+    <path fill="#c44747" d="M566,464
+      C 566,430 572,404 582,390
+      C 588,382 596,378 604,380
+      C 612,382 618,390 621,402
+      C 625,420 626,442 624,464 Z"/>
+    <!-- offering arms -->
+    <path fill="#c44747" d="M614,398 C 624,392 634,388 644,386 L 646,396 C 637,398 628,402 620,408 Z"/>
+    <path fill="#c44747" d="M616,412 C 626,408 636,406 646,406 L 646,416 C 637,416 628,418 621,422 Z"/>
+    <!-- head, bowed a little toward the gift -->
+    <circle cx="596" cy="364" r="15" fill="#e8c9a8"/>
+    <path fill="#3a352c" d="M582,360 C 582,350 588,342 597,341 C 605,340 611,345 612,352 C 606,348 600,347 594,350 C 588,353 584,357 582,360 Z"/>
+    <circle cx="603" cy="362" r="1.8" fill="#3a352c"/>
+    <!-- feet -->
+    <path fill="#3a352c" d="M572,460 L 590,460 L 593,468 L 569,468 Z"/>
+    <path fill="#3a352c" d="M600,460 L 618,460 L 621,468 L 597,468 Z"/>
+
+    <!-- the bread, passing between hands — where the gold lands -->
+    <ellipse cx="655" cy="403" rx="17" ry="12" fill="#d9bd86"/>
+    <path d="M646,399 C 650,396 654,395 658,396 M648,406 C 653,403 658,402 663,404" stroke="#b89a5e" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- gold catching the bread -->
+    <path fill="#f0d489" opacity="0.9" d="M641,398 A 17,12 0 0 1 668,398 A 22,16 0 0 0 641,398 Z"/>
+
+    <!-- the smaller figure, reaching up to receive -->
+    <path fill="#8a6f44" d="M650,468
+      C 650,442 654,424 661,414 C 665,408 671,405 677,406
+      C 683,407 688,413 691,422 C 695,436 697,452 696,468 Z"/>
+    <!-- receiving arms, raised -->
+    <path fill="#8a6f44" d="M668,418 C 666,410 665,402 666,394 L 675,395 C 674,402 674,409 676,416 Z"/>
+    <path fill="#8a6f44" d="M684,420 C 686,412 690,405 695,399 L 702,404 C 697,410 694,416 692,423 Z"/>
+    <!-- head, lifted toward the bread -->
+    <circle cx="678" cy="392" r="12" fill="#e8c9a8"/>
+    <path fill="#3a352c" d="M668,390 C 668,382 673,376 680,375 C 686,375 690,378 692,383 C 687,380 682,379 677,381 C 673,383 670,386 668,390 Z"/>
+    <circle cx="673" cy="390" r="1.6" fill="#3a352c"/>
+    <!-- feet -->
+    <path fill="#3a352c" d="M656,464 L 670,464 L 673,471 L 653,471 Z"/>
+    <path fill="#3a352c" d="M678,464 L 692,464 L 695,471 L 675,471 Z"/>
+
+    <!-- gold rim where the beam touches their shoulders -->
+    <path fill="#f0d489" opacity="0.55" d="M588,382 C 594,378 601,377 608,380 C 601,374 592,374 586,379 Z"/>
+    <path fill="#f0d489" opacity="0.45" d="M664,410 C 670,406 677,405 683,407 C 677,402 668,403 663,407 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,75 @@
+{
+  "_": "per-plate light fields for glitch-live.js — C(p) = ambient * (1 - L(p)), C = 0 where L > threshold. A plate joins the living glitch by adding an entry here (data only, no code): lights = at most one 'column' (vertical gaussian spine: x, yTop..yBase, falloff in plate units, anisoX/anisoY) plus up to four 'point' gaussians (x, y, r, weight). vortices = up to three hearts the heavens turn about (x, y, r = gaussian extent, w = rev/min at the core; differential further out, stilled to zero inside the light). Coordinates are the 800x500 viewBox of the plate generators. portraitX0 = the x0 of the plate's 312-wide portrait window (from its focal.x, see gen/build.mjs).",
+  "plates": {
+    "garden": {
+      "portraitX0": 94,
+      "ambient": 0.85,
+      "threshold": 0.6,
+      "ramp": 0.25,
+      "flow": 0.07,
+      "vortices": [
+        { "x": 250, "y": 70, "r": 120, "w": 0.45 },
+        { "x": 540, "y": 110, "r": 200, "w": 0.6 }
+      ],
+      "lights": [
+        { "type": "column", "x": 168, "yTop": 96, "yBase": 446, "falloff": 225, "anisoX": 1.15, "anisoY": 0.9, "weight": 1.0 },
+        { "type": "point", "x": 298, "y": 446, "r": 34, "weight": 1.0 },
+        { "type": "point", "x": 338, "y": 455, "r": 30, "weight": 1.0 }
+      ]
+    },
+    "prayer": {
+      "portraitX0": 276,
+      "ambient": 0.75,
+      "threshold": 0.6,
+      "ramp": 0.25,
+      "flow": -0.12,
+      "heart": [426, 320],
+      "vortices": [
+        { "x": 128, "y": 128, "r": 55, "w": 0.7 },
+        { "x": 200, "y": 150, "r": 140, "w": 0.3 },
+        { "x": 640, "y": 160, "r": 150, "w": 0.3 }
+      ],
+      "lights": [
+        { "type": "column", "x": 418, "yTop": 0, "yBase": 330, "falloff": 110, "anisoX": 1.6, "anisoY": 0.85, "weight": 0.95 },
+        { "type": "point", "x": 428, "y": 315, "r": 95, "weight": 0.9 },
+        { "type": "point", "x": 428, "y": 392, "r": 72, "weight": 0.85 }
+      ]
+    },
+    "storm": {
+      "portraitX0": 288,
+      "ambient": 1.0,
+      "threshold": 0.55,
+      "ramp": 0.22,
+      "flow": 0.45,
+      "vortices": [
+        { "x": 215, "y": 105, "r": 150, "w": 1.0 },
+        { "x": 600, "y": 62, "r": 110, "w": 0.85 },
+        { "x": 420, "y": 90, "r": 120, "w": 0.6 }
+      ],
+      "lights": [
+        { "type": "point", "x": 442, "y": 318, "r": 58, "weight": 1.0 },
+        { "type": "point", "x": 415, "y": 392, "r": 88, "weight": 0.95 },
+        { "type": "point", "x": 482, "y": 420, "r": 76, "weight": 0.85 },
+        { "type": "point", "x": 358, "y": 432, "r": 56, "weight": 0.7 }
+      ]
+    },
+    "candle": {
+      "portraitX0": 248,
+      "ambient": 0.45,
+      "threshold": 0.6,
+      "ramp": 0.3,
+      "flow": 0.0,
+      "life": 0.8,
+      "heart": [404, 224],
+      "vortices": [
+        { "x": 404, "y": 192, "r": 330, "w": 0.8 }
+      ],
+      "lights": [
+        { "type": "point", "x": 404, "y": 222, "r": 62, "weight": 1.0 },
+        { "type": "point", "x": 404, "y": 235, "r": 130, "weight": 0.55 },
+        { "type": "point", "x": 327, "y": 287, "r": 27, "weight": 0.6 },
+        { "type": "point", "x": 477, "y": 293, "r": 27, "weight": 0.6 }
+      ]
+    }
+  }
+}

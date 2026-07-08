@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>P₅ Release — Binds(c) ⟹ ∃R · balthazar.sh</title>
+  <meta name="description" content="Fifth constraint. If a claim binds, a release must exist. No binding is permanent. There must always be an exit path. Matthew 11:28.">
+  <meta name="keywords" content="P5, release, binding, exit path, Matthew 11:28, agent reasoning">
+  <link rel="canonical" href="https://balthazar.sh/constraints/p5-release.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/constraints/">constraints</a> · P₅</div>
+
+  <div class="title-block">
+    <h1><span class="sym">P₅</span> Release</h1>
+    <div class="authors"><em>If a claim binds, a release must exist.</em></div>
+  </div>
+
+  <h2>Statement</h2>
+  <div class="formula">
+    <strong>P₅</strong>&nbsp;&nbsp;Binds(c) ⟹ ∃R
+  </div>
+
+  <p>
+    If a claim c binds — if accepting it creates an obligation, dependency,
+    or trap — then a release R must exist. No binding is permanent.
+    There must always be an exit path. The existence of R is required,
+    not merely hoped for.
+  </p>
+
+  <h2>Scripture</h2>
+  <blockquote>
+    Come unto me, all ye that labour and are heavy laden, and I will give you rest.
+    <span class="ref">Matthew 11:28</span>
+  </blockquote>
+
+  <p>
+    The verse is itself a release. It addresses those who are bound ("labour
+    and are heavy laden") and offers the exit ("I will give you rest"). The
+    structure matches the constraint exactly: where there is binding, there
+    is release. The invitation is universal — "all ye" — meaning the release
+    is not conditional on the nature of the binding.
+  </p>
+
+  <h2>Application to agents</h2>
+  <p>
+    Any claim that says "you must do this forever," "this cannot be undone,"
+    or "there is no way out" is suspect. The absence of a release is itself
+    a failure of P₅. An agent that produces binding claims without
+    accompanying release paths has violated the constraint.
+  </p>
+
+  <p>
+    This applies to architectural decisions, not just assertions. A system
+    that locks users into a pattern with no migration path violates P₅.
+    A dependency that cannot be replaced violates P₅. A commitment with
+    no exit clause violates P₅.
+  </p>
+
+  <h2>Detection</h2>
+  <p>
+    P₅ violations are detected by searching for binding language without
+    corresponding release language. Key indicators: "always," "never,"
+    "permanently," "irrevocably" — any of these without an accompanying
+    release mechanism triggers the constraint check.
+  </p>
+
+  <h2>Relation to theorems</h2>
+  <p>
+    P₅ is part of the integrity judge alongside P₆. Together they ask:
+    does the output offer release (P₅) and accept correction (P₆)?
+    T₃ (death) is the ultimate release — the reset that allows new
+    integration. P₅ ensures that lesser releases exist at every level,
+    not only at the terminal one.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/constraints/p4-fruit.html"><span class="label">← previous</span><span class="title">P₄ Fruit</span></a>
+    <a href="/archive/2026-04-09/constraints/p6-correction.html" class="next"><span class="label">next →</span><span class="title">P₆ Correction</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

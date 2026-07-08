@@ -1,0 +1,14 @@
+{
+  "names": {
+    "balthazar": "61f975e6280a48b222cccca89f715b09af39d4023fbcfe4bf686c617210bff27",
+    "_": "61f975e6280a48b222cccca89f715b09af39d4023fbcfe4bf686c617210bff27"
+  },
+  "relays": {
+    "61f975e6280a48b222cccca89f715b09af39d4023fbcfe4bf686c617210bff27": [
+      "wss://relay.damus.io",
+      "wss://nos.lol",
+      "wss://relay.primal.net",
+      "wss://relay.nostr.band"
+    ]
+  }
+}

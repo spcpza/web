@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>Sometimes the answer is "I'm here" — a child kneels at the bed in the dark; small lights rise from the child, and a wider, softer gold comes down around the child like a wrap</title>
+        <defs>
+          <radialGradient id="p15-wrap" cx="0.5" cy="0.52" r="0.55">
+            <stop offset="0" stop-color="#f0d489" stop-opacity="0.30"/>
+            <stop offset="0.5" stop-color="#f0d489" stop-opacity="0.10"/>
+            <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- night room -->
+        <rect width="800" height="500" fill="#2c2833"/>
+        <!-- floor, barely -->
+        <rect y="430" width="800" height="70" fill="#27232e"/>
+        <line x1="0" y1="430" x2="800" y2="430" stroke="#211d28" stroke-width="2"/>
+
+        <!-- window, far left, night outside — small and dark -->
+        <rect x="64" y="96" width="92" height="120" rx="3" fill="#332f3a"/>
+        <rect x="64" y="96" width="92" height="120" rx="3" fill="none" stroke="#211d28" stroke-width="5"/>
+        <line x1="110" y1="98" x2="110" y2="214" stroke="#211d28" stroke-width="4"/>
+        <!-- one star -->
+        <circle cx="88" cy="124" r="1.6" fill="#f0d489" opacity="0.5"/>
+
+        <!-- ============ the bed ============ -->
+        <g>
+          <!-- headboard -->
+          <rect x="608" y="248" width="20" height="158" rx="6" fill="#211d28"/>
+          <!-- mattress and blanket -->
+          <path fill="#3e4d2b" d="M392,330 C 460,322 540,320 608,324 L 612,398 C 540,394 462,396 396,404 Z"/>
+          <!-- blanket fold -->
+          <path fill="#33402a" d="M392,330 C 460,322 540,320 608,324 L 609,344 C 540,340 462,342 394,350 Z"/>
+          <!-- pillow -->
+          <path fill="#e8e2d0" d="M548,318 C 568,314 590,314 604,318 C 608,326 606,332 598,334 C 580,337 560,337 548,333 C 544,328 544,322 548,318 Z"/>
+          <!-- bed legs -->
+          <rect x="402" y="402" width="12" height="28" fill="#211d28"/>
+          <rect x="592" y="398" width="12" height="32" fill="#211d28"/>
+        </g>
+
+        <!-- the wider, softer gold, coming down AROUND the child — the answer -->
+        <ellipse cx="372" cy="320" rx="250" ry="240" fill="url(#p15-wrap)"/>
+
+        <!-- ============ the child — kneeling, head bowed, hands on the bed ============ -->
+        <g>
+          <ellipse cx="370" cy="436" rx="52" ry="8" fill="#15121d" opacity="0.5"/>
+          <!-- kneeling legs folded under -->
+          <path fill="#8f3535" d="M344,432 C 346,420 352,412 362,408 L 392,410 C 398,418 400,426 398,432 Z"/>
+          <!-- body in red, leaning toward the bed -->
+          <path fill="#c44747" d="M340,430
+            C 338,398 344,374 358,360
+            C 366,352 376,350 386,356
+            C 398,364 406,380 408,400
+            L 400,430 Z"/>
+          <!-- arms reaching onto the blanket, folded -->
+          <path fill="#c44747" d="M396,372 C 408,362 420,354 434,350 L 438,360 C 425,365 414,372 404,382 Z"/>
+          <!-- folded hands resting on the bed edge -->
+          <ellipse cx="440" cy="356" rx="9" ry="7" fill="#e8c9a8"/>
+          <!-- head bowed over the hands -->
+          <circle cx="394" cy="340" r="15" fill="#e8c9a8"/>
+          <path fill="#3a352c" d="M380,338 C 380,328 386,320 395,319 C 403,318 409,323 410,330 C 404,326 398,325 392,328 C 386,331 382,335 380,338 Z"/>
+          <!-- closed eye: a small line, not a dot -->
+          <path d="M396,340 C 398,341.5 401,341.5 403,340" stroke="#3a352c" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <!-- gold rim where the wrap touches the child's back -->
+          <path fill="#f0d489" opacity="0.35" d="M352,366
+            C 344,382 340,404 340,428
+            L 346,428
+            C 346,406 350,386 357,371 Z"/>
+        </g>
+
+        <!-- ============ the thread of small lights, rising ============ -->
+        <circle cx="404" cy="306" r="3.2" fill="#f0d489" opacity="0.9"/>
+        <circle cx="396" cy="272" r="2.8" fill="#f0d489" opacity="0.8"/>
+        <circle cx="406" cy="238" r="2.6" fill="#f0d489" opacity="0.7"/>
+        <circle cx="398" cy="202" r="2.4" fill="#f0d489" opacity="0.62"/>
+        <circle cx="408" cy="166" r="2.2" fill="#f0d489" opacity="0.55"/>
+        <circle cx="400" cy="128" r="2" fill="#f0d489" opacity="0.48"/>
+        <circle cx="408" cy="90" r="1.8" fill="#f0d489" opacity="0.42"/>
+        <circle cx="402" cy="52" r="1.7" fill="#f0d489" opacity="0.36"/>
+        <circle cx="408" cy="16" r="1.6" fill="#f0d489" opacity="0.30"/>
+      </svg>

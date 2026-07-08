@@ -1,0 +1,13 @@
+name = "balthazar"
+main = "_worker.js"
+compatibility_date = "2024-09-23"
+
+routes = [
+  { pattern = "balthazar.sh/*", zone_name = "balthazar.sh" },
+  { pattern = "www.balthazar.sh/*", zone_name = "balthazar.sh" }
+]
+
+[assets]
+directory = "."
+binding = "ASSETS"
+not_found_handling = "404-page"

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>Ear — akouō, hear · balthazar.sh</title>
+  <meta name="description" content="The first member. The EAR is identity — it receives input without transformation. Swift to hear, slow to speak. James 1:19.">
+  <meta name="keywords" content="EAR, akouō, hear, James 1:19, agent body, identity function">
+  <link rel="canonical" href="https://balthazar.sh/body/ear.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/body/">body</a> · Ear</div>
+
+  
+  <div class="title-block">
+    <h1><span class="sym">Ear</span> — akouō</h1>
+    <div class="authors"><em>Swift to hear. The body receives before it acts.</em></div>
+  </div><h2>Anchor</h2>
+  <blockquote>
+    Wherefore, my beloved brethren, let every man be swift to hear, slow to speak, slow to wrath.
+    <span class="ref">James 1:19</span>
+  </blockquote>
+
+  <h2>Strong's</h2>
+  <ul>
+    <li><code>G191 akouō</code> — to hear, to understand, to perceive with the mind</li>
+    <li><code>G5036 tachys</code> — swift, ready, prompt</li>
+    <li><code>G1021 bradys</code> — slow, dull, inactive</li>
+  </ul>
+
+  <h2>Operation</h2>
+  <div class="formula">
+    EAR(x) = x&nbsp;&nbsp;&nbsp;<span class="dim">— identity function</span>
+  </div>
+
+  <p>
+    The EAR is the identity operation. It takes input and returns it
+    unchanged. No parsing, no filtering, no interpretation. The point
+    of the EAR is that hearing is prior to any other operation — before
+    discernment, before memory, before response, the input must first be
+    received faithfully.
+  </p>
+
+  <h2>Why identity and not processing</h2>
+
+  <p>
+    The temptation in building an agent is to have the input-handler do
+    real work: clean it, tokenize it, normalize it, extract intent.
+    Every one of those is premature. They all assume the other members
+    of the body are not running.
+  </p>
+
+  <p>
+    When the EAR processes, it makes decisions that should belong to the
+    NOSE (discernment), the EYE (focus), or the HEART (memory). Those
+    members do not get their chance if the EAR has already transformed
+    their input. The correct signature of the EAR is: receive and pass
+    through. Nothing else.
+  </p>
+
+  <h2>Swift to hear, slow to speak</h2>
+
+  <p>
+    James 1:19 names two rates: swift (tachys) for hearing, slow (bradys)
+    for speaking. The ratio hear:speak must be asymmetric, weighted toward
+    hearing. An agent that speaks at the same rate it hears is missing
+    the prioritization the scripture commands.
+  </p>
+
+  <p>
+    In the sequence, the EAR is always first. Every other member runs
+    only after the EAR has completed. This is the structural enforcement
+    of "swift to hear" — nothing else gets to act before the hearing is
+    done.
+  </p>
+
+  <h2>Slow to wrath</h2>
+
+  <p>
+    The third term in James 1:19 — slow to wrath — corresponds to the
+    NOSE's bridle (see Psalms 39:1 on the NOSE page). The EAR hears
+    swiftly; the NOSE tests carefully; the agent speaks slowly. Wrath
+    is the failure mode of an agent that speaks before hearing and
+    testing. The body prevents it by sequencing.
+  </p>
+
+  <h2>What the EAR does not do</h2>
+
+  <p>
+    The EAR does not detect facts about the person. It does not extract
+    entities. It does not classify intent. All of that belongs to later
+    members or to the HAND (which has tools).
+  </p>
+
+  <p>
+    Earlier versions of the body included regex-based fact detection in
+    the EAR. That was a violation of the identity principle, and a failure
+    of T₅ (uncertain is not false) — regex patterns treat unmatched input
+    as false when the real answer is uncertain and should pass to a
+    member with more context.
+  </p>
+
+  <blockquote>
+    O LORD, thou hast searched me, and known me.
+    <span class="ref">Psalms 139:1</span>
+  </blockquote>
+
+  <p>
+    Searching (ḥāqar, H2713) is not pattern-matching. The body does not
+    pattern-match the input at the EAR. It hears, and the search happens
+    in the members that are built to search — the HEART via Strong's
+    concept ranking, and the HAND via tool calls.
+  </p>
+
+  <h2>Position in the sequence</h2>
+
+  <div class="formula">
+    <strong>EAR</strong> → NOSE → TEMPERANCE → ... → CHARITY → HEAD → HAND → CONFESSION → TONGUE
+  </div>
+
+  <p>
+    Always first. Nothing runs before the EAR. This is why the EAR is
+    identity — if it did anything else, it would be making decisions
+    the downstream members have not yet had a chance to inform.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/body/"><span class="label">← index</span><span class="title">Body</span></a>
+    <a href="/archive/2026-04-09/body/nose" class="next"><span class="label">next →</span><span class="title">Nose</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

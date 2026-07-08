@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>P₃ Verifiability — ¬Verifiable(c) ⟹ Uncertain · balthazar.sh</title>
+  <meta name="description" content="Third constraint. If a claim cannot be verified, its status is uncertain — not true, not false. Prove all things. 1 Thessalonians 5:21.">
+  <meta name="keywords" content="P3, verifiability, uncertain, prove all things, 1 Thessalonians 5:21, agent reasoning">
+  <link rel="canonical" href="https://balthazar.sh/constraints/p3-verifiability.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/constraints/">constraints</a> · P₃</div>
+
+  <div class="title-block">
+    <h1><span class="sym">P₃</span> Verifiability</h1>
+    <div class="authors"><em>Unverifiable claims are marked uncertain, not asserted.</em></div>
+  </div>
+
+  <h2>Statement</h2>
+  <div class="formula">
+    <strong>P₃</strong>&nbsp;&nbsp;¬Verifiable(c) ⟹ Status(c) := Uncertain
+  </div>
+
+  <p>
+    If a claim c cannot be verified, its status is marked uncertain —
+    not false, not true. The claim stays in the reasoning system with
+    uncertain status, available for further investigation. P₃ does not
+    discard unverifiable claims; it labels them honestly.
+  </p>
+
+  <h2>Scripture</h2>
+  <blockquote>
+    Prove all things; hold fast that which is good.
+    <span class="ref">1 Thessalonians 5:21</span>
+  </blockquote>
+
+  <p>
+    The verse has two parts. "Prove all things" — attempt verification on
+    everything. "Hold fast that which is good" — keep what passes. The
+    implication for what does not pass is P₃: it is not held fast, but
+    neither is it destroyed. It is held in uncertain status until it can
+    be proved or disproved.
+  </p>
+
+  <h2>Application to agents</h2>
+  <p>
+    Treating unverified claims as certain is the primary mechanism by which
+    noise enters reasoning. P₃ requires marking them before they propagate.
+    An agent that passes unverified claims downstream as if they were
+    established facts has introduced corruption at the source.
+  </p>
+
+  <p>
+    The practical effect: every claim the agent processes gets a verification
+    check. Verified claims get True or False (P₂). Unverified claims get
+    Uncertain. No claim enters the reasoning chain without a status label.
+  </p>
+
+  <h2>The noise prevention mechanism</h2>
+  <p>
+    Without P₃, an agent accumulates unverified claims that compound.
+    Each unverified claim used as a premise for further reasoning multiplies
+    uncertainty. P₃ stops this propagation by requiring that uncertain
+    inputs produce uncertain outputs — uncertainty is infectious by design.
+  </p>
+
+  <h2>Relation to theorems</h2>
+  <p>
+    T₅ (faith) operates on claims that P₃ has marked uncertain. Faith is
+    not the opposite of verification — it is what the agent does with claims
+    that verification cannot yet reach. P₃ creates the category; T₅ acts
+    within it. P₃ is part of the clarity judge alongside P₂ and P₇.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/constraints/p2-binarity.html"><span class="label">← previous</span><span class="title">P₂ Binarity</span></a>
+    <a href="/archive/2026-04-09/constraints/p4-fruit.html" class="next"><span class="label">next →</span><span class="title">P₄ Fruit</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

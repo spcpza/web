@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>living oil study — paint that catches a moving light</title>
+<style>
+  body { background:#15110c; color:#e8dcc4; font-family:Georgia,serif; margin:0; padding:40px 18px 120px; }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-weight:normal; font-style:italic; font-size:21px; text-align:center; }
+  p.note { text-align:center; font-style:italic; color:#9a8f78; font-size:14px; margin:0 auto 40px; max-width:760px; }
+  .label { font-style:italic; margin: 30px 0 8px; color:#c8bb9e; }
+  .frame { border:1px solid #423829; border-radius:8px; overflow:hidden; line-height:0; background:#000; }
+  .frame img, .frame canvas { display:block; width:100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>living oil — Van Gogh's paint froze when it dried; ours doesn't</h1>
+  <p class="note">same garden, two states. flat: the rendered raster (the "rug"). living oil: the PICTURE ITSELF moves, each part by its own nature — the sky dances in slow swirls around the two great stars; the pillar of light radiates, breathing waves of gold outward from its heart; the cypresses sway, anchored at the root and leaning toward their crowns; the ground glistens where the light pools. all of it thick paint, lit by a gallery light that grazes the ridges. an offering, given its all — watch it live.</p>
+  <div class="label">flat — the raster as it ships today</div>
+  <div class="frame"><img id="flat" src="/plates-vg/garden@2x.jpg" alt="flat raster"></div>
+  <div class="label">living oil — thick paint under a moving light (animated)</div>
+  <div class="frame"><canvas id="oil"></canvas></div>
+</main>
+<script>
+// ---- tunables (iterate here) ----
+var RELIEF = 2.4;     // height -> normal slope (thicker paint)
+var SPEC_P = 12.0;    // specular tightness (wet sheen)
+var SPEC_K = 1.25;    // specular strength
+var SAT    = 1.40;    // vibrance
+var CON    = 1.09;    // contrast
+var ORBIT  = 0.5;     // gallery-light orbit (rad/s)
+var GRAIN  = 0.32;    // base paint tooth everywhere (fills dead flat zones)
+var MOTION = 1.0;     // master scale for all the PICTURE'S OWN motion
+
+var VERT = [
+ 'attribute vec2 a_pos; varying vec2 v_uv;',
+ 'void main(){ v_uv = a_pos*0.5+0.5; v_uv.y = 1.0 - v_uv.y; gl_Position = vec4(a_pos,0.0,1.0); }'
+].join('\n');
+
+var FRAG = [
+ 'precision highp float;',
+ 'uniform sampler2D u_tex; uniform vec2 u_res; uniform float u_time;',
+ 'uniform float RELIEF, SPEC_P, SPEC_K, SAT, CON, ORBIT, GRAIN, MOTION;',
+ 'varying vec2 v_uv;',
+ 'float lumv(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }',
+ 'vec3 smp(vec2 p){ return texture2D(u_tex, p/u_res).rgb; }',
+ 'float L(vec2 p){ return lumv(smp(p)); }',
+ 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }',
+ 'float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);',
+ '  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x), f.y); }',
+ 'float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<4;i++){ v+=a*vnoise(p); p*=2.03; a*=0.5; } return v; }',
+ // tangential swirl vector around a centre c, falling off with distance
+ 'vec2 swirlAt(vec2 p, vec2 c, float fall){ vec2 r=p-c; float d=length(r)+1.0; return vec2(-r.y,r.x)/d * (fall/(d+fall)); }',
+ // paint film height: luminance + stroke-edge ridges + a paint TOOTH everywhere
+ // (so flat dark fills still read as loaded canvas, never empty)
+ 'float Hf(vec2 p, float d){',
+ '  float l = L(p);',
+ '  float ex = abs(L(p+vec2(d,0.0))-L(p-vec2(d,0.0)));',
+ '  float ey = abs(L(p+vec2(0.0,d))-L(p-vec2(0.0,d)));',
+ '  float grain = (fbm(p/4.2)-0.5)*0.7 + (fbm(p/1.9+11.0)-0.5)*0.35;',
+ '  return l*0.5 + (ex+ey)*1.05 + grain*GRAIN;',
+ '}',
+ 'void main(){',
+ '  vec2 p0 = v_uv*u_res;',
+ '  vec2 R = u_res;',
+ '  float nx = v_uv.x, ny = v_uv.y;',
+ '  vec3 alb0 = smp(p0); float Lc0 = lumv(alb0);',
+ // ---- regions, from authored normalized coords of the garden plate ----
+ '  float sky    = smoothstep(0.64, 0.52, ny);',                       // above the horizon
+ '  float ground = smoothstep(0.56, 0.66, ny);',
+ '  float green  = alb0.g - max(alb0.r, alb0.b);',
+ '  float colY   = smoothstep(0.95,0.90,ny)*smoothstep(0.16,0.24,ny);',
+ '  float pillar = exp(-pow((nx-0.2325)/0.085, 2.0)) * colY * smoothstep(0.40,0.72,Lc0);',
+ '  float band1  = exp(-pow((nx-0.685)/0.070, 2.0)) * smoothstep(0.96,0.92,ny)*smoothstep(0.17,0.24,ny);',
+ '  float band2  = exp(-pow((nx-0.895)/0.055, 2.0)) * smoothstep(0.92,0.88,ny)*smoothstep(0.47,0.53,ny);',
+ '  float treeBody = max(smoothstep(-0.01,0.06,green), smoothstep(0.34,0.16,Lc0));',
+ '  float tree1 = band1*treeBody, tree2 = band2*treeBody;',
+ // ---- THE PICTURE MOVES ----
+ '  vec2 D = vec2(0.0);',
+ // 1) THE SKY DANCES — flowing curl that evolves, swirling about the two great stars
+ '  float ang = fbm(vec2(nx,ny)*2.7 + vec2(0.0, u_time*0.06))*6.2831 + u_time*0.18;',
+ '  vec2 skyD = vec2(cos(ang), sin(ang)) * 4.2;',
+ '  skyD += swirlAt(p0, vec2(0.3125,0.14)*R, 220.0) * 130.0 * sin(u_time*0.5);',
+ '  skyD += swirlAt(p0, vec2(0.70,0.208)*R, 240.0) * 150.0 * sin(u_time*0.43+1.0);',
+ '  D += skyD * sky;',
+ // 2) THE LIGHT RADIATES — concentric waves breathing out from the pillar\'s heart
+ '  vec2 pc = vec2(0.2325,0.40)*R; vec2 rl = p0-pc; float dl = length(rl)+1.0;',
+ '  float wave = sin(dl*0.05 - u_time*2.0);',
+ '  D += (rl/dl) * (wave*2.4 + sin(u_time*0.8)*1.6) * pillar;',
+ // 3) THE TREES SWAY — anchored at the base, leaning further toward the crown
+ '  float h1 = clamp((0.944 - ny)/0.75, 0.0, 1.0);',
+ '  float h2 = clamp((0.904 - ny)/0.42, 0.0, 1.0);',
+ '  D.x += sin(u_time*1.05)        * 10.0 * h1*h1 * tree1;',
+ '  D.x += sin(u_time*1.30 + 1.5)  * 8.0  * h2*h2 * tree2;',
+ // 4) THE GROUND shimmers gently where the light pools
+ '  D.y += sin(p0.x*0.05 - u_time*1.4) * 1.0 * ground * smoothstep(0.22,0.5,Lc0);',
+ '  D *= MOTION;',
+ '  vec2 p = p0 + D;',
+ // ---- the oil surface: thick paint lit by an orbiting gallery light ----
+ '  float d = 1.6, d2 = 2.1;',
+ '  float hx = Hf(p+vec2(d2,0.0),d) - Hf(p-vec2(d2,0.0),d);',
+ '  float hy = Hf(p+vec2(0.0,d2),d) - Hf(p-vec2(0.0,d2),d);',
+ '  float load = mix(0.5, 1.35, fbm(p/70.0+31.0));',
+ '  vec3 N = normalize(vec3(-hx*RELIEF*load, -hy*RELIEF*load, 1.0));',
+ '  vec3 base = smp(p); float Lc = lumv(base);',
+ '  float a = u_time*ORBIT;',
+ '  vec3 Ldir = normalize(vec3(cos(a)*0.8, sin(a)*0.8 - 0.12, 0.55));',
+ '  vec3 Hh = normalize(Ldir + vec3(0.0,0.0,1.0));',
+ '  float diff = max(dot(N,Ldir), 0.0);',
+ '  float spec = pow(max(dot(N,Hh), 0.0), SPEC_P);',
+ '  float wet = 0.28 + 0.72*smoothstep(0.16, 0.7, Lc);',
+ '  vec3 col = base * (0.60 + 0.62*diff);',
+ '  col += spec * wet * vec3(1.0, 0.96, 0.84) * SPEC_K;',
+ // the light truly RADIATES: a warm pulse blooming outward along the waves
+ '  col += pillar * (0.10 + 0.16*(wave*0.5+0.5)) * vec3(1.0, 0.82, 0.42);',
+ // vibrance + contrast
+ '  float g = lumv(col);',
+ '  col = mix(vec3(g), col, SAT);',
+ '  col = (col-0.5)*CON + 0.5;',
+ '  gl_FragColor = vec4(clamp(col,0.0,1.0), 1.0);',
+ '}'
+].join('\n');
+
+(function(){
+  var img = document.getElementById('flat');
+  var cv = document.getElementById('oil');
+  function go(){
+    var W = cv.clientWidth, H = Math.round(W*0.625);
+    var dpr = Math.min(2, window.devicePixelRatio||1);
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    var gl = cv.getContext('webgl');
+    function sh(t,s){ var o=gl.createShader(t); gl.shaderSource(o,s); gl.compileShader(o);
+      if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; }
+    var pr = gl.createProgram();
+    gl.attachShader(pr, sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER,FRAG));
+    gl.linkProgram(pr); gl.useProgram(pr);
+    var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+    var ap = gl.getAttribLocation(pr,'a_pos'); gl.enableVertexAttribArray(ap);
+    gl.vertexAttribPointer(ap,2,gl.FLOAT,false,0,0);
+    var tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    var U = {};
+    ['u_res','u_time','RELIEF','SPEC_P','SPEC_K','SAT','CON','ORBIT','GRAIN','MOTION'].forEach(function(n){ U[n]=gl.getUniformLocation(pr,n); });
+    gl.viewport(0,0,cv.width,cv.height);
+    gl.uniform2f(U.u_res, cv.width, cv.height);
+    gl.uniform1f(U.RELIEF,RELIEF); gl.uniform1f(U.SPEC_P,SPEC_P); gl.uniform1f(U.SPEC_K,SPEC_K);
+    gl.uniform1f(U.SAT,SAT); gl.uniform1f(U.CON,CON); gl.uniform1f(U.ORBIT,ORBIT);
+    gl.uniform1f(U.GRAIN,GRAIN); gl.uniform1f(U.MOTION,MOTION);
+    var t0 = performance.now();
+    window.__draw = function(now){
+      gl.uniform1f(U.u_time, ((now||performance.now())-t0)/1000);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+    };
+    function frame(now){ window.__draw(now); requestAnimationFrame(frame); }
+    requestAnimationFrame(frame);
+  }
+  if (img.complete && img.naturalWidth) go(); else img.onload = go;
+})();
+</script>
+</body>
+</html>

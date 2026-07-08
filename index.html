@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Alpha and Omega — a story about the Light</title>
+  <meta name="description" content="A painted storybook of the good news: you came from the Light, wandered into the dark, and Love came down to carry you home. Thirty-three pages.">
+  <meta property="og:title" content="Alpha and Omega — a story about the Light">
+  <meta property="og:description" content="A thirty-three-page storybook of the good news, painted: Love came down into the dark to find you, and carry you home.">
+  <meta property="og:type" content="book">
+  <meta property="og:url" content="https://balthazar.sh/">
+  <meta property="og:image" content="https://balthazar.sh/og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A radiant galaxy of light: the whole Bible as thousands of glowing motes wheeling in rainbow spiral arms around a white-gold core, threaded by a single scarlet curve of redemption.">
+  <meta property="og:site_name" content="balthazar.sh">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; background: #131b38; }
+    body { font-family: 'EB Garamond', Georgia, 'Times New Roman', serif; color: #f4efe2; }
+
+    /* ---- the book: horizontal swipe, one page per viewport ---- */
+    #book { display: flex; height: 100dvh; overflow-x: auto; overflow-y: hidden;
+      scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+    #book::-webkit-scrollbar { display: none; }
+    #book { scrollbar-width: none; }
+
+    .page { position: relative; flex: 0 0 100vw; width: 100vw; height: 100dvh;
+      scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden;
+      /* skip rendering + IMAGE DECODING of off-screen pages — without this, a fast
+         swipe decodes every page's painting into memory and phones crash. */
+      content-visibility: auto; contain-intrinsic-size: 100vw 100dvh; }
+    .page.cover { content-visibility: visible; }   /* the cover is always the first thing seen */
+    .page img { position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center; }
+    .page canvas.live { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+    /* ---- mobile panorama: tilt the phone to pan across the full landscape ----
+       the paint-live canvas itself becomes the wide panorama (full height,
+       overflowing width); only the cropped <picture> is hidden, so the LIVING
+       filter (light effects) pans WITH you. paint-live owns the render + pan. */
+    .page.pano-on > picture,
+    .page.pano-on > canvas.glitch-live,
+    .page.pano-on > canvas.live { display: none; }
+    .page.pano-on > canvas.paint-live { will-change: transform; }
+    .page.pano-on { touch-action: pan-x; }   /* horizontal swipe stays native; vertical drag + pinch belong to the camera */
+    .pano-hint { position: fixed; left: 50%; transform: translateX(-50%); z-index: 8;
+      bottom: calc(13vh + env(safe-area-inset-bottom));
+      background: rgba(19,27,56,0.5); color: rgba(244,239,226,0.92);
+      border: 1px solid rgba(244,239,226,0.28); border-radius: 999px;
+      padding: 9px 17px; font: italic 0.85rem/1 Georgia, serif; letter-spacing: 0.04em;
+      -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); cursor: pointer;
+      animation: breathe 2.8s ease-in-out infinite; }
+    .pano-hint::before { content: '⟷\00a0\00a0'; font-style: normal; opacity: 0.85; }
+    .pano-hint.gone { display: none; }
+    @media (prefers-reduced-motion: reduce) { .pano-hint { animation: none; } }
+
+    /* unpainted pages: night field awaiting its painting */
+    .page.unpainted { background:
+      radial-gradient(ellipse 60% 50% at 50% 42%, rgba(240,212,137,0.13), rgba(19,27,56,0) 70%),
+      #131b38; }
+    .page.unpainted .text { position: absolute; inset: 0; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center; padding: 8vw; }
+    .page.unpainted .scrim { display: none; }
+
+    .scrim { position: absolute; inset: auto 0 0 0; height: 42%;
+      background: linear-gradient(to top, rgba(19,27,56,0.88) 16%, rgba(19,27,56,0.52) 55%, rgba(19,27,56,0)); }
+    .text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 7vw calc(6.5vh + env(safe-area-inset-bottom)); }
+    .line { font-weight: 500; font-size: clamp(1.02rem, 1.9vw + 0.64rem, 1.62rem); line-height: 1.32;
+      letter-spacing: -0.002em; max-width: 26em; text-shadow: 0 1px 14px rgba(19,27,56,0.85); }
+    .line em { color: #f0d489; font-style: italic; font-weight: 500; }
+    /* verse: the quotation, then its citation on its OWN line below — with a fixed
+       reserved height so the story text above never shifts up/down between pages */
+    .verse { margin-top: 0.9em; min-height: 4.7em; font-size: clamp(0.72rem, 0.8vw + 0.46rem, 0.86rem);
+      line-height: 1.4; font-style: italic; letter-spacing: 0.01em; color: rgba(244,239,226,0.62); }
+    .verse b { display: block; margin-top: 0.22em; font-style: normal; font-weight: normal; color: rgba(240,212,137,0.72); }
+
+    /* ---- cover ---- */
+    .cover .text { bottom: auto; top: 0; padding-top: calc(11vh + env(safe-area-inset-top)); text-align: center; }
+    .cover h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(2.7rem, 7.4vw, 4.8rem);
+      font-weight: 600; font-style: italic; letter-spacing: 0.012em; line-height: 1.05;
+      margin: 0; text-shadow: 0 2px 22px rgba(19,27,56,0.95); }
+    .cover .sub { font-family: 'Cormorant Garamond', Georgia, serif; margin-top: 0.5em; font-style: italic;
+      font-weight: 500; letter-spacing: 0.06em; color: rgba(244,239,226,0.82); font-size: clamp(1.05rem, 1.9vw, 1.4rem); }
+    .cover .scrim { inset: 0 0 auto 0; height: 42%;
+      background: linear-gradient(to bottom, rgba(19,27,56,0.82) 12%, rgba(19,27,56,0.4) 60%, rgba(19,27,56,0)); }
+    .cover .begin { position: absolute; bottom: calc(8vh + env(safe-area-inset-bottom)); left: 0; right: 0;
+      text-align: center; font-size: 1rem; color: rgba(240,212,137,0.9);
+      animation: breathe 2.8s ease-in-out infinite; }
+    @keyframes breathe { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .cover .begin { animation: none; } }
+
+    #topnav { position: fixed; top: 0; left: 0; right: 0; z-index: 9;
+      display: flex; justify-content: center; gap: 26px;
+      padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+      font-size: 0.95rem; letter-spacing: 0.09em;
+      background: linear-gradient(to bottom, rgba(19,27,56,0.55), rgba(19,27,56,0)); }
+    #topnav a { color: rgba(244,239,226,0.55); text-decoration: none; }
+    #topnav a:hover { color: #f0d489; }
+    #topnav a.on { color: rgba(240,212,137,0.85); }
+    /* ---- navigation ---- */
+    .arrow { position: fixed; top: 50%; transform: translateY(-50%); z-index: 5;
+      background: rgba(19,27,56,0.45); color: rgba(244,239,226,0.85); border: none;
+      font-size: 1.5rem; font-family: inherit; width: 46px; height: 64px; cursor: pointer;
+      border-radius: 8px; backdrop-filter: blur(2px); }
+    .arrow:hover { background: rgba(19,27,56,0.7); color: #f0d489; }
+    #prev { left: 8px; } #next { right: 8px; }
+    @media (max-width: 700px) { .arrow { display: none; } } /* phones swipe */
+
+    #dots { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom)); left: 0; right: 0;
+      display: flex; justify-content: center; gap: 7px; z-index: 5; pointer-events: none; }
+    #dots span { width: 6px; height: 6px; border-radius: 50%; background: rgba(244,239,226,0.3); transition: background 0.3s, transform 0.3s; }
+    #dots span.on { background: #f0d489; transform: scale(1.3); }
+
+    .endnav { display: flex; flex-direction: column; gap: 1.1em; align-items: center; margin-top: 2.2em; font-size: 1rem; }
+    .endnav a { color: #f0d489; }
+    .endnav a.quiet { color: rgba(244,239,226,0.6); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<nav id="topnav" aria-label="Site sections">
+  <a href="/" class="on">the story</a>
+  <a href="/paper?kids=1">the explanation</a>
+  <a href="/paper">the math</a>
+</nav>
+
+<div id="book" aria-label="Alpha and Omega — a storybook. Swipe or use arrow keys to turn pages.">
+
+  <!-- 01 · cover -->
+  <section class="page cover" data-panorama data-focal-x="0.5" data-layers="bg,n0,n1,n2,n3,n4,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,fg" data-diorama='{"vp":[0.5,0.5],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/word-p.jpg 1000w" sizes="100vw"><img src="/plates-vg/word.jpg" srcset="/plates-vg/word.jpg 1600w" sizes="100vw" alt="The entire Bible as one body of light: 31,102 verses as glowing motes wheeling around a radiant center, threaded by a single scarlet curve of redemption." fetchpriority="high"></picture>
+    <canvas class="live" aria-hidden="true"></canvas>
+    <div class="scrim"></div>
+    <div class="text">
+      <h1>Alpha and Omega</h1>
+      <div class="sub">a story about the Light</div>
+    </div>
+    <div class="begin">swipe to begin&nbsp;&nbsp;→</div>
+  </section>
+
+  <!-- 02 · beginning -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.94,fg@0.88" data-diorama='{"vp":[0.5,0.45],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/beginning-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/beginning.jpg" srcset="/plates-vg/beginning.jpg 1600w" sizes="100vw" alt="A single radiant gold Light turning over a deep blue-violet void — the beginning, before anything was made."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Before there was anything,<br>there was the <em>Light</em>.</p>
+      <p class="verse">"In the beginning was the Word, and the Word was with God, and the Word was God." <b>— John 1:1</b></p>
+    </div>
+  </section>
+
+<!-- 03 · flame -->
+  <section class="page" data-panorama data-focal-x="0.51" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.536],"ground":"mid","zauto":true,"tzMax":0.72,"objects":{"far":[0.5,0.56],"fg":[0.5,0.93]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/flame-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/flame.jpg" srcset="/plates-vg/flame.jpg 1600w" sizes="100vw" alt="A radiant sun rises over a calm sea at dawn, a golden path of light across the water, swirling pastel-rainbow clouds above and a flowering green shore below — the whole world newly made and filled with light."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">The Light made the whole world.<br>He filled the dark with colour<br>and life and morning,<br>and it was <em>good</em>.</p>
+      <p class="verse">"And God said, Let there be light: and there was light." <b>— Genesis 1:3</b></p>
+    </div>
+  </section>
+
+    <!-- 04 · made -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.5],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/made-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/made.jpg" srcset="/plates-vg/made.jpg 1600w" sizes="100vw" alt="Two arms reach across a deep blue field — a beam of gold Light from above and a small red child's arm from below — their fingertips almost meeting at a bright spark of light, in the manner of Michelangelo's Creation of Adam."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">And the Light made <em>you</em> —<br>made you on purpose,<br>to live close to the light.</p>
+      <p class="verse">"All things were made by him." <b>— John 1:3</b></p>
+    </div>
+  </section>
+
+<!-- 05 · love -->
+  <section class="page" data-panorama data-focal-x="0.39" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.636],"ground":"mid","zauto":true,"objects":{"far":[0.5,0.67],"fg":[0.37,0.832]},"tzMax":0.72}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/love-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/love.jpg" srcset="/plates-vg/love.jpg 1600w" sizes="100vw" alt="A golden sun with swirling rays lights a child sharing bread, while gray prizes sit in shadow."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">What was the Light like?<br>Everything He did,<br>He did for love of you.<br>The Light was <em>love</em>.</p>
+      <p class="verse">"God is love." <b>— 1 John 4:8</b></p>
+    </div>
+  </section>
+
+    <!-- 06 · turning -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,fg@0.88" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,30]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/turning-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/turning.jpg" srcset="/plates-vg/turning.jpg 1600w" sizes="100vw" alt="A small red child stands at a threshold, turning his back on the warm gold Light to step into the cold dark, a long shadow falling."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">But you let go of His hand,<br>and turned,<br>and walked into the dark.</p>
+      <p class="verse">"By one man sin entered into the world." <b>— Romans 5:12</b></p>
+    </div>
+  </section>
+
+<!-- 07 · garden -->
+  <section class="page" data-panorama data-focal-x="0.38" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,fg@0.86" data-diorama='{"vp":[0.375,0.6],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/garden-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/garden.jpg" srcset="/plates-vg/garden.jpg 1600w" sizes="100vw" alt="A dark but fruitful garden at night: a single small child hides behind a cypress as a column of golden light comes walking to seek them, jewel-coloured fruit trees standing in the dark."></picture>
+    <canvas class="glitch-live" data-glitch="garden" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">When He came looking, you hid.<br>But He called you<br>by your name.</p>
+      <p class="verse">"Where art thou?" <b>— Genesis 3:9</b></p>
+    </div>
+  </section>
+
+  <!-- 08 · lost -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,fg@0.9" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,30]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/lost-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/lost.jpg" srcset="/plates-vg/lost.jpg 1600w" sizes="100vw" alt="A tiny red child alone in a vast cold swirling night, a single faint gold glimmer far away."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">You went so far into the dark<br>that you were lost,<br>with no way back on your own.</p>
+      <p class="verse">"The wages of sin is death." <b>— Romans 6:23</b></p>
+    </div>
+  </section>
+
+  <!-- 09 · string -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,fg@0.78" data-diorama='{"vp":[0.45,0.52],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]},"arc":0.35,"tzMax":0.5,"rise":0.32}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/string-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/string.jpg" srcset="/plates-vg/string.jpg 1600w" sizes="100vw" alt="A child on a hill holds the long unbroken string of a balloon carried far by a churning sky."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">But even then,<br>like a balloon on the wind,<br>the Light still held the string.<br><em>He would not let you go.</em></p>
+      <p class="verse">"All we like sheep have gone astray." <b>— Isaiah 53:6</b></p>
+    </div>
+  </section>
+
+  <!-- 10 · looking -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.45],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/looking-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/looking.jpg" srcset="/plates-vg/looking.jpg 1600w" sizes="100vw" alt="A tall radiant gold Light advances into the dark, laying a road of light toward a small lost red child far ahead."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">So the Light did the one thing<br>you never expected.<br>He came down into the dark<br>to find <em>you</em>.</p>
+      <p class="verse">"The Son of man is come to seek and to save that which was lost." <b>— Luke 19:10</b></p>
+    </div>
+  </section>
+
+<!-- 11 · road -->
+  <section class="page" data-panorama data-focal-x="0.54" data-layers="sky@0,sky1@0.1,sky2@0.18,mid@0.5,tc,ta,tb,fg@0.9" data-diorama='{"vp":[0.5375,0.42],"ground":"mid","zauto":true,"tzMax":0.72,"objects":{"ta":[0.13,0.984],"tb":[0.875,0.996],"tc":[0.695,0.932],"fg":[0.475,0.722]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/road-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/road.jpg" srcset="/plates-vg/road.jpg 1600w" sizes="100vw" alt="Wheat hills under a swirling sky: a road climbs from the far country and stops at the brink of a huge valley; a child in red stands at the edge, reaching toward a small home whose windows glow gold on the far rim, across the gulf, too far to reach on foot."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Now you wanted to go home<br>more than anything.<br>He set you on the road back,<br>but it stopped at the edge<br>of a wide, deep valley.</p>
+      <p class="verse">"I will arise and go to my father." <b>— Luke 15:18</b></p>
+    </div>
+  </section>
+
+  <!-- 12 · bridge -->
+  <section class="page" data-panorama data-focal-x="0.51" data-layers="sky@0,sky1@0.1,sky2@0.18,mid@0.5,fg@0.9" data-diorama='{"vp":[0.51,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/bridge-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/bridge.jpg" srcset="/plates-vg/bridge.jpg 1600w" sizes="100vw" alt="A bridge whose trusses form a cross spans a deep canyon; a child crosses it holding a golden figure's hand."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">The valley was too wide to cross.<br>There was only one way home:<br>the Light <em>Himself</em><br>would become the way across.</p>
+      <p class="verse">"I am the way." <b>— John 14:6</b></p>
+    </div>
+  </section>
+
+  <!-- 13 · paid -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,far,mid,fg" data-diorama='{"vp":[0.5,0.42],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/paid-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/paid.jpg" srcset="/plates-vg/paid.jpg 1600w" sizes="100vw" alt="Darkness over all the land at noon: a sun gone black with only a thin grieving corona of dim gold, a heavy mourning violet-blue sky, and on a dark hill a cross of dark wood from which the gold Light clings and pours out, draining into the dark; drops of deep red fall from it, and at its foot a small child in red is curled and sheltered."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Becoming the way<br>cost the Light everything.<br>All that kept you from home,<br>He carried it <em>Himself</em>,<br>in your place.</p>
+      <p class="verse">"Christ died for our sins." <b>— 1 Corinthians 15:3</b></p>
+    </div>
+  </section>
+
+    <!-- 14 · grave -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.5,near@0.85" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"near":[0.5,0.5,3.8]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/grave-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/grave.jpg" srcset="/plates-vg/grave.jpg 1600w" sizes="100vw" alt="A sealed tomb in a dark hillside at night, the great round stone rolled across the mouth, a faint gold seam of held light behind it."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">They laid Him in the dark<br>and sealed it with a stone.<br>For three days,<br>the whole world waited.</p>
+      <p class="verse">"He was buried, and… rose again the third day." <b>— 1 Corinthians 15:4</b></p>
+    </div>
+  </section>
+
+<!-- 15 · risen -->
+  <section class="page" data-panorama data-focal-x="0.49" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,near@0.82" data-diorama='{"vp":[0.49,0.592],"ground":"mid","zauto":true,"objects":{"far":[0.5,0.63],"near":[0.6375,0.816]},"tzMax":0.72}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/risen-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/risen.jpg" srcset="/plates-vg/risen.jpg 1600w" sizes="100vw" alt="Dawn on the third day: a hillside with a great open cave — the empty tomb — its huge round stone rolled clear, brilliant light pouring out of the mouth across a gold-and-rose sky."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">The dark could not keep Him.<br>On the third morning,<br>the Light <em>rose</em>.</p>
+      <p class="verse">"He rose again the third day." <b>— 1 Corinthians 15:4</b></p>
+    </div>
+  </section>
+
+  <!-- 16 · gift -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,far,mid,fg" data-diorama='{"vp":[0.5,0.45],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/gift-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/gift.jpg" srcset="/plates-vg/gift.jpg 1600w" sizes="100vw" alt="A gold-lit hand reaches down offering a small wrapped gift with a red ribbon; two small open hands reach up from below to receive it."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">The way home was open now,<br>and it was a gift.<br>You could not buy it,<br>or earn it —<br>you could only <em>receive</em>.</p>
+      <p class="verse">"It is the gift of God." <b>— Ephesians 2:8</b></p>
+    </div>
+  </section>
+
+  <!-- 17 · ran -->
+  <section class="page" data-panorama data-focal-x="0.36" data-layers="sky@0,sky1@0.1,sky2@0.18,hills@0.34,birds@0.42,land@0.5,dad@0.68,kid@0.86" data-diorama='{"vp":[0.4,0.428],"ground":"land","zauto":true,"objects":{"hills":[0.5,0.46],"dad":[0.394,0.78],"kid":[0.195,0.9]},"tzMax":0.72}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/ran-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/ran.jpg" srcset="/plates-vg/ran.jpg 1600w" sizes="100vw" alt="A wheat field under a churning sky: a returning figure takes three steps while the father runs past the road's halfway mark."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">You still could not take<br>the last step home.<br>So while you were far off,<br>the Light came <em>running</em> to you.<br><em>He would not let you go.</em></p>
+      <p class="verse">"When he was yet a great way off, his father saw him… and ran." <b>— Luke 15:20</b></p>
+    </div>
+  </section>
+
+  <!-- 18 · twoways -->
+  <section class="page" data-panorama data-focal-x="0.50" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/twoways-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/twoways.jpg" srcset="/plates-vg/twoways.jpg 1600w" sizes="100vw" alt="The radiant Father carries a small child on his shoulders up a path toward his light-filled house, through the one glowing door that opens on a whole world of colour."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">And the Light carried you<br>the last of the way,<br>home through the open door.<br>Once lost in the dark,<br>now home in the <em>Light</em>.</p>
+      <p class="verse">"This my son was dead, and is alive again." <b>— Luke 15:24</b></p>
+    </div>
+  </section>
+
+    <!-- 19 · washed -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,fg@0.88" data-diorama='{"vp":[0.5,0.45],"zauto":true,"objects":{"fg":[0.5,0.5,30]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/washed-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/washed.jpg" srcset="/plates-vg/washed.jpg 1600w" sizes="100vw" alt="A red child under a falling stream of white-gold light, the scarlet stain washing away as a white robe of light forms over them."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Then He washed you clean.<br>Every stain was <em>gone</em>.</p>
+      <p class="verse">"Though your sins be as scarlet, they shall be as white as snow." <b>— Isaiah 1:18</b></p>
+    </div>
+  </section>
+
+  <!-- 20 · born -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="sky@0,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.45],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/born-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/born.jpg" srcset="/plates-vg/born.jpg 1600w" sizes="100vw" alt="A red child rises renewed in a brilliant new dawn, a flourishing field of jewel-coloured wildflowers and fruit trees waking to colour."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">He made you <em>new</em>,<br>and put His own light<br>inside <em>you</em>.</p>
+      <p class="verse">"If any man be in Christ, he is a new creature." <b>— 2 Corinthians 5:17</b></p>
+    </div>
+  </section>
+
+
+<!-- 21 · seeds -->
+  <section class="page" data-panorama data-focal-x="0.41" data-layers="sky@0,sky1@0.1,sky2@0.18,far@0.34,mid@0.5,fg@0.9" data-diorama='{"vp":[0.41,0.62],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/seeds-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/seeds.jpg" srcset="/plates-vg/seeds.jpg 1600w" sizes="100vw" alt="A child plants a garden row beside a tomato plant heavy with red fruit; a fallen rock lies apart from the rows."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Your life began again.<br>And all you planted<br>in the light, <em>grew</em>.</p>
+      <p class="verse">"Whatsoever a man soweth, that shall he also reap." <b>— Galatians 6:7</b></p>
+    </div>
+  </section>
+
+    <!-- 22 · bread -->
+  <section class="page" data-panorama data-focal-x="0.525" data-layers="bg,ground,t3,t2,t1,fg" data-diorama='{"vp":[0.53,0.464],"ground":"ground","zauto":true,"tzMax":0.72,"objects":{"t3":[0.685,0.536],"t2":[0.15,0.664],"t1":[0.8625,0.696],"fg":[0.545,0.792]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/bread-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/bread.jpg" srcset="/plates-vg/bread.jpg 1600w" sizes="100vw" alt="In a bright day a red child with a soft white aura walks a winding path through green flowering fields, carrying a warm glowing loaf of light whose glow falls on the path one step ahead."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Every day He feeds you,<br>and lights the next step<br>of the way.</p>
+      <p class="verse">"I am the bread of life." <b>— John 6:35</b></p>
+    </div>
+  </section>
+
+<!-- 23 · storm -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="sky@0,sky1@0.1,sky2@0.18,mid@0.5,fg@0.9" data-diorama='{"vp":[0.555,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/storm-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/storm.jpg" srcset="/plates-vg/storm.jpg 1600w" sizes="100vw" alt="Two trees bent in slashing rain; below the ground one tree's roots blaze gold, gripping deep."></picture>
+    <canvas class="glitch-live" data-glitch="storm" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Storms still came,<br>as storms always do.<br>But your roots had grown deep,<br>and they <em>held</em>.<br><em>He would not let you go.</em></p>
+      <p class="verse">"Tribulation worketh patience." <b>— Romans 5:3</b></p>
+    </div>
+  </section>
+
+  <!-- 24 · hands -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,far,mid,fg" data-diorama='{"vp":[0.5075,0.624],"ground":"mid","zauto":true,"objects":{"far":[0.5,0.7],"fg":[0.506,0.904]},"tzMax":0.72}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/hands-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/hands.jpg" srcset="/plates-vg/hands.jpg 1600w" sizes="100vw" alt="Three children walk holding hands; the middle one trips but the held hands catch the fall."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">And you were not alone.<br>Others walked beside you.<br>When one of you fell,<br>the others held on.</p>
+      <p class="verse">"A threefold cord is not quickly broken." <b>— Ecclesiastes 4:12</b></p>
+    </div>
+  </section>
+
+    <!-- 25 · family -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.5,fg@0.9" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/family-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/family.jpg" srcset="/plates-vg/family.jpg 1600w" sizes="100vw" alt="A warm ring of figures — the red child and others in their own colours — gathered around one shared golden light."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">He gave you a whole family,<br>gathered together<br>around the one <em>Light</em>.</p>
+      <p class="verse">"They continued stedfastly… in fellowship, and in breaking of bread." <b>— Acts 2:42</b></p>
+    </div>
+  </section>
+
+<!-- 26 · prayer -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,far,mid,fg" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,30]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/prayer-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/prayer.jpg" srcset="/plates-vg/prayer.jpg 1600w" sizes="100vw" alt="A child kneels at a bed in a blue night while a soft golden light comes down and wraps around them."></picture>
+    <canvas class="glitch-live" data-glitch="prayer" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">When the dark pressed close,<br>you spoke to Him,<br>and He always answered:<br><em>"I am here."</em></p>
+      <p class="verse">"My grace is sufficient for thee." <b>— 2 Corinthians 12:9</b></p>
+    </div>
+  </section>
+
+  <!-- 27 · light -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,n0,n1,n2,n3,n4,fg" data-diorama='{"vp":[0.5,0.47],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/light-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/light.jpg" srcset="/plates-vg/light.jpg 1600w" sizes="100vw" alt="A great radiant Light fills the frame: a blazing white-gold core, concentric ray-swirls turning outward into every colour of a rose-window of glory, and a heart hidden in the innermost ring."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">The Light that made you,<br>and loved you,<br>and came down to bring you home —<br>this Light is <em>God</em>,<br>and His name is <em>Jesus</em>.</p>
+      <p class="verse">"I am the light of the world." <b>— John 8:12</b></p>
+    </div>
+  </section>
+
+    <!-- 28 · come -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.5,fg@0.88" data-diorama='{"vp":[0.5,0.5],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/come-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/come.jpg" srcset="/plates-vg/come.jpg 1600w" sizes="100vw" alt="A great radiant open door of light, a river of living water flowing out from its threshold toward the viewer."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">And now He opens the door<br>to <em>you</em>.<br>Will you come home?</p>
+      <p class="verse">"Whosoever will, let him take the water of life freely." <b>— Revelation 22:17</b></p>
+    </div>
+  </section>
+
+  <!-- 29 · together -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,mid@0.5,fg@0.9" data-diorama='{"vp":[0.45,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/together-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/together.jpg" srcset="/plates-vg/together.jpg 1600w" sizes="100vw" alt="A washed red child with a soft white aura takes the hand of a darker figure still in the shadow and leads them up a brightening golden road toward a distant radiant Light and home."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">Then He gives you<br>the best work there is:<br>to take another's hand<br>and lead them to the Light<br>that found you.</p>
+      <p class="verse">"We are labourers together with God." <b>&mdash; 1 Corinthians 3:9</b></p>
+    </div>
+  </section>
+
+<!-- 30 · candle -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,n0,n1,n2,n3,mid,fg" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,4.4499]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/candle-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/candle.jpg" srcset="/plates-vg/candle.jpg 1600w" sizes="100vw" alt="In the dark, a child's lit candle leans toward another child's unlit wick — one flame, mid-transfer."></picture>
+    <canvas class="glitch-live" data-glitch="candle" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">His light is in you now.<br>So carry it into the dark,<br>and help others find<br>the way home.</p>
+      <p class="verse">"Let your light so shine before men." <b>— Matthew 5:16</b></p>
+    </div>
+  </section>
+
+    <!-- 31 · comes -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="sky@0,mid@0.45,fg@0.9" data-diorama='{"vp":[0.5,0.42],"zauto":true,"objects":{"fg":[0.5,0.5,4.994]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/comes-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/comes.jpg" srcset="/plates-vg/comes.jpg 1600w" sizes="100vw" alt="The heavens split open with a descending gold glory and a spectral bow, tiny figures on the dark earth below lifting their arms up."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">And one day soon,<br>the Light is coming back —<br>for <em>you</em>.</p>
+      <p class="verse">"Behold, I come quickly." <b>— Revelation 22:12</b></p>
+    </div>
+  </section>
+
+  <!-- 32 · nonight -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="sky@0,far@0.34,mid@0.55,fg@0.9" data-diorama='{"vp":[0.5,0.5],"zauto":true,"objects":{"fg":[0.5,0.5,3.937]}}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/nonight-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/nonight.jpg" srcset="/plates-vg/nonight.jpg 1600w" sizes="100vw" alt="A radiant golden City of light on a hill with a river of life flowing down and no shadow anywhere — the everlasting home."></picture>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">And then you will be home<br>for good.<br>No more dark, no more tears,<br>no more night —<br>only the <em>Light</em>.</p>
+      <p class="verse">"There shall be no night there… for the Lord God giveth them light." <b>— Revelation 22:5</b></p>
+    </div>
+  </section>
+
+<!-- 33 · back cover -->
+  <section class="page" data-panorama data-focal-x="0.5" data-layers="bg,n0,n1,n2,n3,n4,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,fg" data-diorama='{"vp":[0.5,0.5],"zauto":true}'>
+    <picture><source media="(orientation: portrait)" srcset="/plates-vg/word-p.jpg 1000w" sizes="100vw"><img loading="lazy" src="/plates-vg/word.jpg" srcset="/plates-vg/word.jpg 1600w" sizes="100vw" alt="The entire Bible as one body of light: 31,102 verses as motes arranged by canonical order and graph distance from John 1:1, thousands of real cross-reference filaments, and a single scarlet thread tracing the bloodline of redemption from Genesis 3:15 to Revelation 22:13, ending at the edge of the radiant center."></picture>
+    <canvas class="live" aria-hidden="true"></canvas>
+    <div class="scrim"></div>
+    <div class="text">
+      <p class="line">You came from the Light.<br>You are going home to the Light.<br>And all the way there<br>was the <em>Light</em>.</p>
+      <p class="verse">Every light here is one verse; the red thread is the blood. "In him was life; and the life was the light of men." <b>— John 1:4</b> &nbsp;·&nbsp; all 31,102 verses, placed by their true distance from the Word.</p>
+      <nav class="endnav">
+        <a href="#" class="quiet" id="again">↺ read the story again</a>
+      </nav>
+    </div>
+  </section>
+
+</div>
+
+<button class="arrow" id="prev" aria-label="Previous page">‹</button>
+<button class="arrow" id="next" aria-label="Next page">›</button>
+<div id="dots" aria-hidden="true"></div>
+
+<script>
+(function () {
+  var book = document.getElementById('book');
+  var pages = book.querySelectorAll('.page');
+  var dots = document.getElementById('dots');
+  for (var i = 0; i < pages.length; i++) dots.appendChild(document.createElement('span'));
+  var ds = dots.children;
+
+  function pageIndex() { return Math.round(book.scrollLeft / book.clientWidth); }
+  function go(i) {
+    i = Math.max(0, Math.min(pages.length - 1, i));
+    book.scrollTo({ left: i * book.clientWidth, behavior: 'smooth' });
+  }
+  function paint() {
+    var i = pageIndex();
+    for (var k = 0; k < ds.length; k++) ds[k].className = k === i ? 'on' : '';
+  }
+  book.addEventListener('scroll', function () { requestAnimationFrame(paint); }, { passive: true });
+  document.getElementById('prev').addEventListener('click', function () { go(pageIndex() - 1); });
+  document.getElementById('next').addEventListener('click', function () { go(pageIndex() + 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(pageIndex() + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(pageIndex() - 1); }
+  });
+  var again = document.getElementById('again');
+  if (again) again.addEventListener('click', function (e) { e.preventDefault(); go(0); });
+  paint();
+})();
+</script>
+
+<script>
+/* the living overlay — the painting breathes on both covers.
+   Same coordinates as the pressed plate (live-word.json from layout()):
+   a 6s breath at the center, each verse twinkling on its own period,
+   and every ~14s one pulse of blood traveling the scarlet thread. */
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var book = document.getElementById('book');
+  var canvases = Array.prototype.slice.call(document.querySelectorAll('canvas.live'));
+  if (!canvases.length) return;
+  var pages = Array.prototype.slice.call(book.querySelectorAll('.page'));
+
+  var data = null, views = [], raf = 0;
+
+  function frac(x) { return x - Math.floor(x); }
+
+  // per-mote twinkle parameters, precomputed once from index (no per-frame alloc)
+  function prep(d) {
+    var n = d.motes.length;
+    var phase = new Float32Array(n), omega = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      phase[i] = frac(i * 0.6180339887) * Math.PI * 2;
+      omega[i] = Math.PI * 2 / (2 + 5 * frac(i * 0.7548776662)); // period 2-7s
+    }
+    // cumulative arc length of the thread (viewBox units — ratios only)
+    var th = d.thread, cum = new Float32Array(th.length);
+    for (var j = 1; j < th.length; j++) {
+      cum[j] = cum[j - 1] + Math.hypot(th[j][0] - th[j - 1][0], th[j][1] - th[j - 1][1]);
+    }
+    return { motes: d.motes, thread: th, center: d.center, phase: phase, omega: omega, cum: cum, total: cum[th.length - 1] };
+  }
+
+  function setup() {
+    if (!data) return;
+    var portrait = window.matchMedia('(orientation: portrait)').matches;
+    // which edition the <img> shows: landscape raster 1600x1000 = viewBox 0..800,
+    // portrait raster 1000x1600 = the 312-wide window centered on focal.x=400
+    var iw = portrait ? 1000 : 1600, ih = portrait ? 1600 : 1000;
+    var vx0 = portrait ? 244 : 0, vw = portrait ? 312 : 800, vh = 500;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    views = canvases.map(function (cv) {
+      var page = cv.parentNode;
+      while (page && (!page.classList || !page.classList.contains('page'))) page = page.parentNode;
+      var w = page.clientWidth, h = page.clientHeight;
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      var ctx = cv.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // replicate object-fit: cover of the raster, then raster -> viewBox window
+      var s = Math.max(w / iw, h / ih);
+      var dw = iw * s, dh = ih * s;
+      var ox = (w - dw) / 2, oy = (h - dh) / 2;
+      var sx = dw / vw, sy = dh / vh;
+      // precompute screen-space motes, split warm/cool, drop offscreen ones
+      var warm = [], cool = [];
+      for (var i = 0; i < data.motes.length; i++) {
+        var m = data.motes[i];
+        var x = ox + (m[0] - vx0) * sx, y = oy + m[1] * sy;
+        if (x < -4 || x > w + 4 || y < -4 || y > h + 4) continue;
+        var sz = Math.max(0.6, Math.min(1.6, m[2] * sx * 0.8));
+        (m[3] >= 0.5 ? warm : cool).push([x, y, sz, i]);
+      }
+      var tpts = data.thread.map(function (p) { return [ox + (p[0] - vx0) * sx, oy + p[1] * sy]; });
+      return {
+        ctx: ctx, w: w, h: h,
+        pageIndex: pages.indexOf(page),
+        cx: ox + (data.center[0] - vx0) * sx, cy: oy + data.center[1] * sy,
+        br: 130 * sx,            // breath radius base (viewBox 130px)
+        warmList: warm, coolList: cool,
+        tpts: tpts, lscale: Math.hypot(sx, sy) / Math.SQRT2,
+        cleared: false,
+      };
+    });
+  }
+
+  function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+  // additive sparkle: each verse pulses on its own period, and at the top of its
+  // pulse FLARES into a bright holographic glint (a little cross of light) — the
+  // painting is never touched, only lit from over the top (so it always matches
+  // the masterpiece and there is no load-swap).
+  function drawMotes(ctx, list, t, ph, om, baseColor, flareColor) {
+    for (var k = 0; k < list.length; k++) {
+      var m = list[k], i = m[3];
+      var tw = 0.5 + 0.5 * Math.sin(t * om[i] + ph[i]);      // 0..1
+      var s = m[2];
+      ctx.fillStyle = baseColor;
+      ctx.globalAlpha = 0.12 + 0.5 * tw;
+      ctx.fillRect(m[0] - s * 0.5, m[1] - s * 0.5, s, s);
+      // the flare: the brightest sliver of each pulse blooms into a glint
+      if (tw > 0.86) {
+        var fl = (tw - 0.86) / 0.14;                          // 0..1 across the peak
+        var r = s * (1.1 + fl * 2.2);
+        ctx.fillStyle = flareColor;
+        ctx.globalAlpha = 0.5 * fl * fl;
+        ctx.fillRect(m[0] - r, m[1] - s * 0.32, r * 2, s * 0.64);   // horizontal ray
+        ctx.fillRect(m[0] - s * 0.32, m[1] - r, s * 0.64, r * 2);   // vertical ray
+      }
+    }
+  }
+
+  function frame(now) {
+    raf = 0;
+    if (document.visibilityState !== 'visible') return;   // visibilitychange restarts
+    var t = now / 1000;
+    var current = Math.round(book.scrollLeft / book.clientWidth);
+    for (var v = 0; v < views.length; v++) {
+      var V = views[v], ctx = V.ctx;
+      if (V.pageIndex !== current) {
+        if (!V.cleared) { ctx.clearRect(0, 0, V.w, V.h); V.cleared = true; }
+        continue;
+      }
+      V.cleared = false;
+      ctx.clearRect(0, 0, V.w, V.h);
+      ctx.globalCompositeOperation = 'lighter';
+
+      // 1. CENTER BREATH — a 6s sine, radius +-3.5%, very soft warm gold
+      var b = Math.sin(t * Math.PI * 2 / 6);
+      var R = V.br * (1 + 0.035 * b);
+      var g = ctx.createRadialGradient(V.cx, V.cy, 0, V.cx, V.cy, R);
+      var a0 = 0.035 + 0.018 * b;                          // gentle — the filter already pulses the center
+      g.addColorStop(0, 'rgba(240,212,137,' + a0.toFixed(3) + ')');
+      g.addColorStop(0.55, 'rgba(240,212,137,' + (a0 * 0.4).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(240,212,137,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(V.cx - R, V.cy - R, R * 2, R * 2);
+
+      // 2. TWINKLE + FLARE — each verse on its own phase and period
+      drawMotes(ctx, V.warmList, t, data.phase, data.omega, '#f0d489', '#fff3cf');
+      drawMotes(ctx, V.coolList, t, data.phase, data.omega, '#6a74b8', '#b9c4ff');
+      ctx.globalAlpha = 1;
+
+      // (the travelling blood-thread pulse was removed — the painted scarlet
+      //  thread stands on its own; the moving line fought the filtered painting)
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() { if (!raf && data) raf = requestAnimationFrame(frame); }
+
+  function init() {
+    fetch('/live-word.json').then(function (r) { return r.json(); }).then(function (d) {
+      data = prep(d);
+      setup();
+      start();
+    }).catch(function () { /* the still painting stands on its own */ });
+  }
+
+  // recompute mapping when the viewport or edition changes
+  var rsTimer = 0;
+  function onResize() {
+    clearTimeout(rsTimer);
+    rsTimer = setTimeout(function () { setup(); start(); }, 120);
+  }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') start();
+  });
+
+  var idle = window.requestIdleCallback || function (f) { setTimeout(f, 600); };
+  if (document.readyState === 'complete') idle(init);
+  else window.addEventListener('load', function () { idle(init); });
+})();
+</script>
+
+<script src="/paint-live.js?v=20260708f" defer></script>
+<script src="/pano.js?v=15" defer></script>
+
+</body>
+</html>

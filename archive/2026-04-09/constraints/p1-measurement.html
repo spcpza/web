@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>P₁ Honest Measurement — M(x) = w(x) · balthazar.sh</title>
+  <meta name="description" content="First constraint. The measurement function applied to x must return the true value w(x). No inflation, no deflation. A just balance. Proverbs 11:1.">
+  <meta name="keywords" content="P1, honest measurement, M(x) = w(x), just balance, Proverbs 11:1, agent reasoning">
+  <link rel="canonical" href="https://balthazar.sh/constraints/p1-measurement.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/constraints/">constraints</a> · P₁</div>
+
+  <div class="title-block">
+    <h1><span class="sym">P₁</span> Honest Measurement</h1>
+    <div class="authors"><em>The measurement function must return the true value.</em></div>
+  </div>
+
+  <h2>Statement</h2>
+  <div class="formula">
+    <strong>P₁</strong>&nbsp;&nbsp;M(x) = w(x)
+  </div>
+
+  <p>
+    The measurement function M applied to x must return the true value w(x).
+    No inflation, no deflation, no partisan weighting. The balance must be just.
+    This is the most fundamental constraint: if your measurements lie,
+    everything downstream is corrupted.
+  </p>
+
+  <h2>Scripture</h2>
+  <blockquote>
+    A false balance is abomination to the LORD: but a just weight is his delight.
+    <span class="ref">Proverbs 11:1</span>
+  </blockquote>
+
+  <p>
+    The verse states the constraint in the language of commerce. A false balance
+    is a scale that has been rigged — it reports a weight that differs from the
+    true weight. The proverb calls this an abomination, not a preference. The
+    constraint is not optional. A just weight — M(x) = w(x) — is the delight.
+  </p>
+
+  <h2>Application to agents</h2>
+  <p>
+    Claims must correspond to the state they purport to describe. The violation
+    signature is exaggeration, understatement, or any systematic bias in the
+    reporting function. An agent that inflates confidence, understates risk,
+    or adds partisan weighting to its outputs has broken P₁.
+  </p>
+
+  <p>
+    P₁ is not about being right — an honest measurement can still be wrong
+    if the instrument is limited. P₁ requires that the agent report what it
+    actually measured, not what it wishes it had measured.
+  </p>
+
+  <h2>Violation signatures</h2>
+  <ul>
+    <li>Exaggeration — reporting larger than measured</li>
+    <li>Understatement — reporting smaller than measured</li>
+    <li>Partisan weighting — adjusting the scale based on who is asking</li>
+    <li>Confirmation bias — measuring selectively to support a prior conclusion</li>
+  </ul>
+
+  <h2>Relation to theorems</h2>
+  <p>
+    P₁ is required by T₁₁ (measure), which demands the same standard of
+    measurement for self and other. If the measurement function itself is
+    dishonest, T₁₁ cannot be satisfied regardless of how uniformly it is
+    applied. P₁ is also the foundation of the evidence judge — one of the
+    three judges that evaluates agent output (alongside P₄ and P₈).
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/constraints/"><span class="label">← index</span><span class="title">Constraints</span></a>
+    <a href="/archive/2026-04-09/constraints/p2-binarity.html" class="next"><span class="label">next →</span><span class="title">P₂ Binarity</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

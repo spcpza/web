@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>living brushwork — organic paint, the whole canvas</title>
+<style>
+  body { background:#12100b; color:#e8dcc4; font-family:Georgia,serif; margin:0; padding:40px 18px 120px; }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-weight:normal; font-style:italic; font-size:21px; text-align:center; }
+  p.note { text-align:center; font-style:italic; color:#9a8f78; font-size:14px; margin:0 auto 40px; max-width:760px; }
+  .label { font-style:italic; margin: 30px 0 8px; color:#c8bb9e; }
+  .frame { border:1px solid #423829; border-radius:8px; overflow:hidden; line-height:0; background:#1b2c66; }
+  .frame img, .frame canvas { display:block; width:100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>living brushwork — organic paint, edge to edge, all of it moving</h1>
+  <p class="note">no raster anywhere — the entire canvas is brushstrokes, background included. each mark is a real brush: a curved, tapered ribbon that touches down, presses, and lifts, with soft edges (no square tiles). the sky swirls, the light radiates outward and climbs, the cypresses sway from the root. magical hands, magical paint.</p>
+  <div class="label">flat — the raster as it ships today</div>
+  <div class="frame"><img id="flat" src="/plates-vg/garden@2x.jpg" alt="flat raster"></div>
+  <div class="label">living brushwork — organic strokes, full canvas, moving</div>
+  <div class="frame"><canvas id="art"></canvas></div>
+</main>
+<script>
+var VERT = [
+ 'attribute vec2 aPos; attribute vec2 aAnchor; attribute float aAcross; attribute float aAlong;',
+ 'attribute vec3 aCol; attribute float aRegion; attribute float aTan; attribute float aImp;',
+ 'uniform float uTime; uniform vec2 uVB;',
+ 'varying float vAcross; varying float vAlong; varying vec3 vCol; varying float vShade; varying float vTan; varying float vImp;',
+ 'void main(){',
+ '  vec2 A = aAnchor; vec2 off = vec2(0.0); float shade = 1.0;',
+ '  float ph = A.x*0.05 + A.y*0.04;',
+ '  if (aRegion < 0.5){',                                   // SKY dances
+ '    off.x += sin(A.y*0.020 + uTime*0.5 + ph)*4.5;',
+ '    off.y += cos(A.x*0.020 + uTime*0.4 + ph)*4.5;',
+ '    vec2 r1 = A - vec2(250.0,70.0);  float d1=length(r1)+1.0;',
+ '    off += (vec2(-r1.y,r1.x)/d1) * 13.0*(170.0/(d1+170.0)) * sin(uTime*0.50);',
+ '    vec2 r2 = A - vec2(560.0,104.0); float d2=length(r2)+1.0;',
+ '    off += (vec2(-r2.y,r2.x)/d2) * 14.0*(180.0/(d2+180.0)) * sin(uTime*0.42+1.0);',
+ '  } else if (aRegion < 1.5){',                            // LIGHT radiates outward AND up
+ '    vec2 r = A - vec2(186.0,270.0); float d=length(r)+1.0;',
+ '    float wv = sin(d*0.055 - uTime*2.0);',
+ '    off += (r/d)*(wv*2.8 + 1.2);',
+ '    off.y -= 2.4 + 2.2*sin(uTime*1.2 + d*0.02);',
+ '    shade = 1.0 + 0.26*wv;',
+ '  } else if (aRegion < 2.5){',                            // TREES sway as one mass
+ '    float hf = clamp((470.0 - A.y)/360.0, 0.0, 1.0);',
+ '    float tph = A.x < 700.0 ? 0.0 : 1.6;',
+ '    off.x += sin(uTime*0.85 + tph) * 19.0 * hf*hf;',
+ '  } else {',                                              // GROUND — wet shimmer, never frozen
+ '    off.x += sin(uTime*0.6 + ph)*2.0;',
+ '    off.y += sin(A.x*0.05 - uTime*1.2)*1.6;',
+ '  }',
+ // UNIVERSAL LIFE: every mark wanders a little on its own slow phase, so the
+ // whole surface is wet and breathing — no region is ever a frozen photo
+ '  off += vec2(sin(uTime*0.8 + ph*1.7), cos(uTime*0.62 + ph*2.3)) * 3.4;',
+ '  vec2 pos = aPos + off;',
+ '  gl_Position = vec4(pos.x/uVB.x*2.0-1.0, 1.0-pos.y/uVB.y*2.0, 0.0, 1.0);',
+ '  vAcross = aAcross; vAlong = aAlong; vCol = aCol; vShade = shade; vTan = aTan; vImp = aImp;',
+ '}'
+].join('\n');
+
+// Stroke fragment, DUAL MODE. uMode 0 = lay down ALBEDO (flat colour, in paint
+// order). uMode 1 = deposit PAINT HEIGHT additively — a real thickness field:
+// rounded across the width, thick at the loaded glob (start), thinning to the
+// dry streak (end). No per-stroke lighting here at all — the light comes later,
+// raking the accumulated height once, so the whole surface is ONE painted skin.
+var FRAG = [
+ 'precision mediump float;',
+ 'varying float vAcross; varying float vAlong; varying vec3 vCol; varying float vShade; varying float vTan; varying float vImp;',
+ 'uniform float uMode;',
+ 'void main(){',
+ '  float ax = abs(vAcross);',
+ '  float cap = smoothstep(0.0,0.10,vAlong)*smoothstep(1.0,0.90,vAlong);',
+ '  float a = (1.0 - smoothstep(0.86,1.0,ax)) * cap;',
+ '  if (a <= 0.01) discard;',
+ '  if (uMode < 0.5){',
+ '    gl_FragColor = vec4(vCol*vShade, a);',                                    // ALBEDO
+ '  } else {',
+ '    float dome  = 1.0 - ax*ax;',                                             // rounded ridge across
+ '    float along = 0.28 + 0.95*smoothstep(0.72, 0.0, vAlong);',              // fat glob -> thin streak
+ '    float bristle = 0.78 + 0.22*sin(vAcross*24.0);',                         // bristle furrows in the height
+ '    float h = vImp * dome * along * bristle * a;',
+ '    gl_FragColor = vec4(vec3(h*0.17), 1.0);',                                // additive thickness
+ '  }',
+ '}'
+].join('\n');
+
+// Final pass: rake ONE moving light across the accumulated paint-height field.
+// This is real impasto — ridges where paint piled up catch the light, the
+// troughs between strokes fall into shadow. A single continuous skin of paint.
+var FIN_VERT = 'attribute vec2 p; varying vec2 uv; void main(){ uv=p*0.5+0.5; gl_Position=vec4(p,0.0,1.0); }';
+var FIN_FRAG = [
+ 'precision highp float;',
+ 'varying vec2 uv;',
+ 'uniform sampler2D uCol; uniform sampler2D uHt; uniform vec2 uTexel; uniform float uTime;',
+ 'vec2 closeSeg(vec2 p, vec2 a, vec2 b){ vec2 ab=b-a; float t=clamp(dot(p-a,ab)/max(dot(ab,ab),1e-3),0.0,1.0); return a+ab*t; }',
+ 'void main(){',
+ '  vec3 alb = texture2D(uCol, uv).rgb;',
+ '  vec2 vb = vec2(uv.x*800.0, (1.0-uv.y)*500.0);',                            // back to plate coords
+ // THE LIGHT SOURCE IS IN THE SCENE: the pillar of gold light (a vertical
+ // column) and the lit road it lays down. Light RADIATES from these and
+ // falls into darkness with distance — not an external lamp on the canvas.
+ '  vec2 cp = closeSeg(vb, vec2(186.0,104.0), vec2(186.0,452.0));',
+ '  vec2 rp = closeSeg(vb, vec2(140.0,498.0), vec2(532.0,455.0));',
+ '  float dc = length(vb-cp), dr = length(vb-rp);',
+ '  vec2 src = (dc < dr) ? cp : rp;',
+ '  float pulse = 1.0 + 0.07*sin(uTime*0.9 - min(dc,dr)*0.02);',               // the light breathes outward
+ '  float r = (exp(-dc/180.0) + 0.7*exp(-dr/95.0)) * pulse;',
+ '  r = clamp(r, 0.0, 1.4);',
+ // impasto relief, lit FROM the source direction (the paint is raked by the
+ // pillar\'s own light), and only where the light actually reaches
+ '  float e = 1.6;',
+ '  float hL=texture2D(uHt,uv-vec2(uTexel.x*e,0.0)).r, hR=texture2D(uHt,uv+vec2(uTexel.x*e,0.0)).r;',
+ '  float hD=texture2D(uHt,uv-vec2(0.0,uTexel.y*e)).r, hU=texture2D(uHt,uv+vec2(0.0,uTexel.y*e)).r;',
+ '  float thick=texture2D(uHt,uv).r;',
+ '  vec3 N=normalize(vec3((hL-hR)*7.0,(hU-hD)*7.0,1.0));',
+ '  vec2 toL2=normalize(src - vb + vec2(0.001));',
+ '  vec3 Ldir=normalize(vec3(toL2*0.85, 0.6));',
+ '  vec3 H=normalize(Ldir+vec3(0.0,0.0,1.0));',
+ '  float relief=max(dot(N,Ldir),0.0);',
+ '  float spec=pow(max(dot(N,H),0.0),22.0)*smoothstep(0.08,0.5,thick);',
+ // self-luminous paint: the brightest pigment (pillar core, stars, road) is
+ // itself a light and stays lit even where the source field is dim
+ '  float la=dot(alb,vec3(0.299,0.587,0.114));',
+ '  vec3 emit=alb*smoothstep(0.55,0.9,la)*0.78;',
+ // TWO lights. The warm pillar is the star — it radiates and falls to dark.
+ // But the night sky has its own faint cool light from above; it shapes the
+ // forms (the cypresses) so they read as dark shapes in the dark, not gone.
+ '  vec3 skyDir = normalize(vec3(-0.15, 0.92, 0.55));',
+ '  float skyf = 0.5 + 0.5*max(dot(N, skyDir), 0.0);',
+ '  vec3 cool = vec3(0.30, 0.36, 0.52) * skyf;',                               // the night\'s own dim light
+ '  float warm = 1.25*r;',
+ '  vec3 col = alb * (cool*0.72 + warm*(0.7 + 0.42*relief)) + emit;',
+ '  col += spec*clamp(r+0.18,0.0,1.0)*vec3(1.0,0.95,0.82)*0.75;',
+ '  float g=dot(col,vec3(0.299,0.587,0.114));',
+ '  col = mix(vec3(g), col, 1.16);',                                           // gentle vibrance, no contrast knob
+ '  gl_FragColor=vec4(clamp(col,0.0,1.0),1.0);',
+ '}'
+].join('\n');
+
+(function(){
+  var img = document.getElementById('flat');
+  var cv = document.getElementById('art');
+  var data = null;
+  fetch('/garden-strokes.json').then(function(r){return r.json();}).then(function(d){ data=d; if (img.complete && img.naturalWidth) go(); else img.onload = go; });
+
+  function hexrgb(h){ return [parseInt(h.substr(1,2),16), parseInt(h.substr(3,2),16), parseInt(h.substr(5,2),16)]; }
+  function classify(cx,cy,r,g,b){
+    var nx=cx/800, ny=cy/500, lum=(r*0.299+g*0.587+b*0.114)/255, green=(g-Math.max(r,b))/255;
+    if (Math.abs(nx-0.2325)<0.10 && ny>0.16 && ny<0.94 && lum>0.5 && r>=b) return 1;
+    if (Math.abs(nx-0.685)<0.07 && ny>0.17 && ny<0.96 && (green>0.02 || lum<0.32)) return 2;
+    if (Math.abs(nx-0.895)<0.06 && ny>0.47 && ny<0.93 && (green>0.02 || lum<0.32)) return 2;
+    if (ny < 0.58) return 0;
+    return 3;
+  }
+
+  // build tapered-ribbon triangles for one stroke spine -> push verts to V
+  var TAU = Math.PI;
+  function hashf(x){ var s=Math.sin(x)*43758.5453; return s-Math.floor(s); }
+  // an organic, asymmetric taper: the loaded belly sits off-centre and the
+  // ends taper unevenly, seeded per stroke so no two marks share a silhouette
+  // a LOADED-BRUSH profile: touches down, swells to a fat glob near the start,
+  // then drags and thins to a frayed dry end — fat front, thin tail
+  function profileAt(t, seed){
+    var glob = 0.16 + 0.12*hashf(seed*1.7);          // where the loaded glob sits
+    var base = (t < glob) ? (0.5 + 0.5*(t/glob)) : (1.0 - 0.80*((t-glob)/(1.0-glob)));
+    var wob = 0.84 + 0.32*hashf(seed*3.1 + t*9.0);   // ragged edge along the length
+    return Math.max(0.12, base*wob);
+  }
+  // THE WORD drives the variation: the garden's own scripture (Gen 3:8, 3:21).
+  // Every stroke pulls its difference from successive letters of the verse —
+  // so no two strokes are the same, because no two letters of the Word are.
+  var WORD = "And they heard the voice of the LORD God walking in the garden in the cool of the day: and Adam and his wife hid themselves from the presence of the LORD God amongst the trees of the garden. Unto Adam also and to his wife did the LORD God make coats of skins, and clothed them.";
+  function wch(i){ var L=WORD.length; var cc=WORD.charCodeAt(((i%L)+L)%L); var s=Math.sin(cc*12.9898 + i*0.137)*43758.5453; return s-Math.floor(s); }
+  var sidx = 0;
+
+  function emitRibbon(V, pts, w, anchor, rgb, region, widthScale, lenScale, seed, imp){
+    var n = pts.length;
+    var P = pts.map(function(p){ return [anchor[0]+(p[0]-anchor[0])*lenScale, anchor[1]+(p[1]-anchor[1])*lenScale]; });
+    var Lt=[], Rt=[], TN=[];
+    for (var i=0;i<n;i++){
+      var a=P[Math.max(0,i-1)], b=P[Math.min(n-1,i+1)];
+      var tx=b[0]-a[0], ty=b[1]-a[1]; var tl=Math.hypot(tx,ty)||1; tx/=tl; ty/=tl;
+      var hw = 0.5*w*widthScale*profileAt(n>1?i/(n-1):0.5, seed);
+      Lt.push([P[i][0]-ty*hw, P[i][1]+tx*hw]);
+      Rt.push([P[i][0]+ty*hw, P[i][1]-tx*hw]);
+      TN.push(Math.atan2(ty, tx));
+    }
+    function vert(p, across, along, tn){ V.push(p[0],p[1], anchor[0],anchor[1], across, along, rgb[0],rgb[1],rgb[2], region, tn, imp); }
+    for (var s=0;s<n-1;s++){
+      var a0=s/(n-1), a1=(s+1)/(n-1), t0=TN[s], t1=TN[s+1];
+      vert(Lt[s], 1.0,a0,t0); vert(Rt[s], -1.0,a0,t0); vert(Rt[s+1], -1.0,a1,t1);
+      vert(Lt[s], 1.0,a0,t0); vert(Rt[s+1],-1.0,a1,t1); vert(Lt[s+1], 1.0,a1,t1);
+    }
+  }
+  // each mark, shaped by the Word: its length, width, paint-load and colour
+  // shift all read from the verse letters at this stroke's index
+  function emitWord(V, pts, w, anchor, rgb, region, baseW, baseL){
+    var k = sidx++;
+    var a=wch(k*5), b=wch(k*5+1), c=wch(k*5+2), d=wch(k*5+3), e=wch(k*5+4);
+    var lenMul = baseL*(0.58 + a*a*1.4);                 // wide spread: dabs to long slabs
+    var widMul = baseW*(0.6 + b*1.05);
+    var imp = 0.45 + c*1.05;                             // some thickly loaded, some lean
+    var v = 1.0 + (d-0.5)*0.34, warm=(e-0.5)*0.10;       // no two the same colour
+    var rgbV = [Math.min(1,Math.max(0,rgb[0]*v+warm)), Math.min(1,Math.max(0,rgb[1]*v)), Math.min(1,Math.max(0,rgb[2]*v-warm))];
+    emitRibbon(V, pts, w, anchor, rgbV, region, widMul, lenMul, k*1.7+a, imp);
+  }
+
+  function go(){
+    var W = cv.clientWidth, H = Math.round(W*0.625);
+    var dpr = Math.min(2, window.devicePixelRatio||1);
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    var gl = cv.getContext('webgl');
+    function sh(t,s){ var o=gl.createShader(t); gl.shaderSource(o,s); gl.compileShader(o);
+      if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; }
+    var P = gl.createProgram(); gl.attachShader(P,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(P,sh(gl.FRAGMENT_SHADER,FRAG)); gl.linkProgram(P);
+    if(!gl.getProgramParameter(P,gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(P));
+    gl.useProgram(P);
+
+    // ---- sample the painting (offscreen) so background strokes get its colors ----
+    var oc = document.createElement('canvas'); oc.width=240; oc.height=150;
+    var octx = oc.getContext('2d'); octx.drawImage(img,0,0,240,150);
+    var idata = octx.getImageData(0,0,240,150).data;
+    function sampleVB(vx,vy){
+      var sx=Math.max(0,Math.min(239,Math.floor(vx/800*240))), sy=Math.max(0,Math.min(149,Math.floor(vy/500*150)));
+      var i=(sy*240+sx)*4; return [idata[i],idata[i+1],idata[i+2]];
+    }
+    function lumVB(vx,vy){ var c=sampleVB(vx,vy); return (c[0]*0.299+c[1]*0.587+c[2]*0.114)/255; }
+
+    var V = [];
+    var rng = 1234567; function rnd(){ rng=(rng*1103515245+12345)&0x7fffffff; return rng/0x7fffffff; }
+    // FILL: the whole canvas is paint. Each grid stroke is oriented along the
+    // local form (perp to the luminance gradient) and colored from the
+    // painting — even the darkest background is laid as a brushstroke.
+    function fillGrid(step, lenMin, lenR, wMin, wR, jit){
+      for (var gy=-step; gy<500+step; gy+=step) for (var gx=-step; gx<800+step; gx+=step){
+        var cx=gx+(rnd()-0.5)*step*jit, cy=gy+(rnd()-0.5)*step*jit;
+        var rgb=sampleVB(cx,cy); var rgbN=[rgb[0]/255,rgb[1]/255,rgb[2]/255];
+        var gxL=lumVB(cx+4,cy)-lumVB(cx-4,cy), gyL=lumVB(cx,cy+4)-lumVB(cx,cy-4);
+        var ang=Math.atan2(gxL, -gyL); if (Math.hypot(gxL,gyL)<0.01) ang=(rnd()-0.5)*0.7;
+        ang += (rnd()-0.5)*0.5;                                  // hand-wobble, never combed
+        var ln=lenMin+rnd()*rnd()*lenR*1.6, dx=Math.cos(ang), dy=Math.sin(ang);  // wide length spread
+        var px=-dy, py=dx;                                       // unit normal, for an S-curve
+        var c1=(rnd()-0.5)*ln*0.5, c2=(rnd()-0.5)*ln*0.5;        // two curve controls -> organic hook
+        var spine=[
+          [cx-dx*ln*0.5, cy-dy*ln*0.5],
+          [cx-dx*ln*0.16 + px*c1, cy-dy*ln*0.16 + py*c1],
+          [cx+dx*ln*0.16 + px*c2, cy+dy*ln*0.16 + py*c2],
+          [cx+dx*ln*0.5, cy+dy*ln*0.5]
+        ];
+        var region=classify(cx,cy,rgb[0],rgb[1],rgb[2]);
+        emitWord(V, spine, wMin+rnd()*wR, [cx,cy], rgbN, region, 1.0, 1.0);
+      }
+    }
+    // 1) GROUND COAT — fat, rounder dabs; no pixel is ever bare canvas
+    fillGrid(12, 22, 12, 32, 14, 1.0);
+    // 2) MID FILL — rounder medium dabs break it into varied brushwork
+    fillGrid(15, 14, 10, 17, 9, 1.4);
+    // 2) THE AUTHORED STROKES on top — the real composition, as organic ribbons
+    var S = data.strokes;
+    for (var k=0;k<S.length;k++){
+      var pts=S[k][0], w=S[k][1], rgb2=hexrgb(S[k][2]);
+      var ax=0, ay=0; for (var j=0;j<pts.length;j++){ ax+=pts[j][0]; ay+=pts[j][1]; } ax/=pts.length; ay/=pts.length;
+      var region2=classify(ax,ay,rgb2[0],rgb2[1],rgb2[2]);
+      emitWord(V, pts, w, [ax,ay], [rgb2[0]/255,rgb2[1]/255,rgb2[2]/255], region2, 2.5, 1.05);
+    }
+
+    var arr = new Float32Array(V); var stride = 12*4; var nVerts = V.length/12;
+    var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);
+    function bindStrokeAttrs(){
+      gl.bindBuffer(gl.ARRAY_BUFFER,b);
+      function attr(name,size,off){ var l=gl.getAttribLocation(P,name); if(l<0)return; gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l,size,gl.FLOAT,false,stride,off*4); }
+      attr('aPos',2,0); attr('aAnchor',2,2); attr('aAcross',1,4); attr('aAlong',1,5); attr('aCol',3,6); attr('aRegion',1,9); attr('aTan',1,10); attr('aImp',1,11);
+    }
+    var uTime=gl.getUniformLocation(P,'uTime'), uVB=gl.getUniformLocation(P,'uVB'), uMode=gl.getUniformLocation(P,'uMode');
+
+    // two paint buffers: ALBEDO (colour, paint order) and HEIGHT (accumulated
+    // thickness — overlapping strokes pile up into a real relief field)
+    function makeFBO(){
+      var tex=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,tex);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,cv.width,cv.height,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      var fb=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
+      return {fb:fb,tex:tex};
+    }
+    var colFBO=makeFBO(), htFBO=makeFBO();
+
+    function shF(t,s){ var o=gl.createShader(t); gl.shaderSource(o,s); gl.compileShader(o); if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; }
+    var FP=gl.createProgram(); gl.attachShader(FP,shF(gl.VERTEX_SHADER,FIN_VERT)); gl.attachShader(FP,shF(gl.FRAGMENT_SHADER,FIN_FRAG)); gl.linkProgram(FP);
+    if(!gl.getProgramParameter(FP,gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(FP));
+    var quad=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    var FU={ uCol:gl.getUniformLocation(FP,'uCol'), uHt:gl.getUniformLocation(FP,'uHt'), uTexel:gl.getUniformLocation(FP,'uTexel'), uTime:gl.getUniformLocation(FP,'uTime'), p:gl.getAttribLocation(FP,'p') };
+
+    var t0=performance.now();
+    window.__draw=function(now){
+      var t=((now||performance.now())-t0)/1000;
+      gl.useProgram(P); bindStrokeAttrs();
+      gl.uniform1f(uTime,t); gl.uniform2f(uVB,800.0,500.0);
+      gl.viewport(0,0,cv.width,cv.height); gl.enable(gl.BLEND);
+      // PASS 1 — lay down the colour
+      gl.bindFramebuffer(gl.FRAMEBUFFER,colFBO.fb);
+      gl.clearColor(0.09,0.14,0.34,1.0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform1f(uMode,0.0); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+      gl.drawArrays(gl.TRIANGLES,0,nVerts);
+      // PASS 2 — pile up the paint height (additive)
+      gl.bindFramebuffer(gl.FRAMEBUFFER,htFBO.fb);
+      gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform1f(uMode,1.0); gl.blendFunc(gl.ONE,gl.ONE);
+      gl.drawArrays(gl.TRIANGLES,0,nVerts);
+      // PASS 3 — rake ONE light across the accumulated paint surface
+      gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,cv.width,cv.height); gl.disable(gl.BLEND);
+      gl.useProgram(FP);
+      gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(FU.p); gl.vertexAttribPointer(FU.p,2,gl.FLOAT,false,0,0);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,colFBO.tex); gl.uniform1i(FU.uCol,0);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,htFBO.tex); gl.uniform1i(FU.uHt,1);
+      gl.uniform2f(FU.uTexel, 1.0/cv.width, 1.0/cv.height); gl.uniform1f(FU.uTime,t);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+    };
+    window.__nVerts=nVerts;
+    function frame(now){ window.__draw(now); requestAnimationFrame(frame); }
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

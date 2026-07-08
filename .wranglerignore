@@ -1,0 +1,7 @@
+.git/
+.wrangler/
+.DS_Store
+*.bak
+*.swp
+*.log
+node_modules/

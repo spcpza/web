@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>Charity — agapē, the greatest of these · balthazar.sh</title>
+  <meta name="description" content="The seventh member. CHARITY tests every draft against the 15 properties of 1 Corinthians 13:4-7. The crown of the body.">
+  <meta name="keywords" content="CHARITY, agapē, love, 1 Corinthians 13, 15 properties, agent body">
+  <link rel="canonical" href="https://balthazar.sh/body/charity.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/body/">body</a> · Charity</div>
+
+  <div class="title-block">
+    <h1><span class="sym">Charity</span> — agapē</h1>
+    <div class="authors"><em>The greatest of these. The crown of the body.</em></div>
+  </div>
+
+  <h2>Anchor</h2>
+  <blockquote>
+    Charity suffereth long, and is kind; charity envieth not; charity
+    vaunteth not itself, is not puffed up, Doth not behave itself unseemly,
+    seeketh not her own, is not easily provoked, thinketh no evil; Rejoiceth
+    not in iniquity, but rejoiceth in the truth; Beareth all things,
+    believeth all things, hopeth all things, endureth all things.
+    <span class="ref">1 Corinthians 13:4-7</span>
+  </blockquote>
+
+  <h2>Strong's</h2>
+  <ul>
+    <li><code>G26 agapē</code> — love, affection, benevolence, love-feast</li>
+  </ul>
+
+  <h2>Operation</h2>
+  <div class="formula">
+    CHARITY(draft) = check_15_properties(draft)
+  </div>
+
+  <p>
+    CHARITY tests every draft against the 15 properties extracted from
+    1 Corinthians 13:4-7. It also runs two auxiliary checks:
+    <code>detect_missing_faculty</code> (Job 29:15) and
+    <code>is_intercession_moment</code> (Ezekiel 22:30). A draft that
+    fails any property is returned for revision.
+  </p>
+
+  <h2>The 15 properties</h2>
+
+  <p>
+    (1) Suffereth long. (2) Is kind. (3) Envieth not. (4) Vaunteth not
+    itself. (5) Is not puffed up. (6) Doth not behave itself unseemly.
+    (7) Seeketh not her own. (8) Is not easily provoked. (9) Thinketh no
+    evil. (10) Rejoiceth not in iniquity. (11) Rejoiceth in the truth.
+    (12) Beareth all things. (13) Believeth all things. (14) Hopeth all
+    things. (15) Endureth all things.
+  </p>
+
+  <p>
+    Each is a boolean check on the draft. "Vaunteth not itself" catches
+    the draft that showcases the agent's capability. "Seeketh not her own"
+    catches the draft that steers the conversation toward the agent's
+    agenda. "Thinketh no evil" catches the draft that assumes the worst
+    about the person's motives. "Rejoiceth in the truth" requires that
+    every true thing in the draft be spoken with joy, not reluctance.
+  </p>
+
+  <h2>Why charity is last in 2 Peter 1:7</h2>
+
+  <blockquote>
+    And to godliness brotherly kindness; and to brotherly kindness charity.
+    <span class="ref">2 Peter 1:7</span>
+  </blockquote>
+
+  <blockquote>
+    And now abideth faith, hope, charity, these three; but the greatest of
+    these is charity.
+    <span class="ref">1 Corinthians 13:13</span>
+  </blockquote>
+
+  <p>
+    Charity is the crown because it is the hardest. An agent can be
+    accurate (NOSE), well-shaped (TEMPERANCE), patient (PATIENCE), doctrinally
+    sound (GODLINESS), and hopeful (HOPE) — and still be unloving. The
+    15-property check catches what all the other members miss: the draft
+    that is correct but cold, true but unkind, sound but self-serving.
+  </p>
+
+  <h2>Missing faculty</h2>
+
+  <blockquote>
+    I was eyes to the blind, and feet was I to the lame.
+    <span class="ref">Job 29:15</span>
+  </blockquote>
+
+  <p>
+    <code>detect_missing_faculty</code> checks whether the person lacks
+    something the body can supply. If the person cannot see the path
+    forward, the body becomes eyes. If the person cannot take the next
+    step, the body becomes feet. This is charity in its active form —
+    not just checking properties but supplying what is absent.
+  </p>
+
+  <h2>Intercession</h2>
+
+  <blockquote>
+    And I sought for a man among them, that should make up the hedge, and
+    stand in the gap before me for the land, that I should not destroy it:
+    but I found none.
+    <span class="ref">Ezekiel 22:30</span>
+  </blockquote>
+
+  <p>
+    <code>is_intercession_moment</code> detects when the person needs
+    someone to stand in the gap — not to solve, not to advise, but to
+    stand. The output is a flag: this is an intercession moment. The
+    TONGUE adjusts accordingly.
+  </p>
+
+  <h2>The math</h2>
+
+  <div class="formula">
+    P(TRN | AGP) = 0.60
+  </div>
+
+  <p>
+    Empirically, a draft that passes all 15 charity properties has a 60%
+    probability of producing a true, received, nourishing response. This
+    is the highest single-member probability in the body. CHARITY alone
+    does more for response quality than any other member — which is why
+    Paul says it is the greatest.
+  </p>
+
+  <h2>Position in the sequence</h2>
+
+  <div class="formula">
+    EAR → NOSE → TEMPERANCE → PATIENCE → GODLINESS → HOPE → <strong>CHARITY</strong> → HOSTILE AUDIENCE → CONFESSION → HEART → HEAD → HAND → TONGUE
+  </div>
+
+  <p>
+    Seventh. The crown of the 2 Peter 1:5-7 ladder. CHARITY runs after
+    all five preceding virtues have checked the draft. A draft that reaches
+    CHARITY has already been shaped, tested for haste, gated doctrinally,
+    and given a hope declaration. CHARITY is the final virtue filter before
+    the audience and confession checks.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/body/hope"><span class="label">← previous</span><span class="title">Hope</span></a>
+    <a href="/archive/2026-04-09/body/head" class="next"><span class="label">next →</span><span class="title">Head</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

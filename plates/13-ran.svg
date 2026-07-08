@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>He ran — a long road; the returning child has taken three steps, and the father has already run half the road to meet him</title>
+        <defs>
+          <radialGradient id="p3-sun" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#f0d489" stop-opacity="0.55"/>
+            <stop offset="0.55" stop-color="#f0d489" stop-opacity="0.18"/>
+            <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- sky -->
+        <rect width="800" height="500" fill="#f4efe2"/>
+        <!-- low sun, over the house — the light comes from home -->
+        <circle cx="650" cy="148" r="170" fill="url(#p3-sun)"/>
+        <circle cx="650" cy="148" r="34" fill="#f0d489"/>
+
+        <!-- far hills -->
+        <path fill="#aebd7d" d="M0,250 C 120,224 260,238 380,230 C 520,220 640,236 800,222 L 800,320 L 0,320 Z"/>
+        <!-- mid hills -->
+        <path fill="#8aa75c" d="M0,300 C 150,272 320,290 470,278 C 600,268 700,284 800,272 L 800,420 L 0,420 Z"/>
+        <!-- foreground field -->
+        <path fill="#6a9b3e" d="M0,380 C 200,356 420,372 620,360 C 700,356 760,362 800,358 L 800,500 L 0,500 Z"/>
+
+        <!-- the road — long, unbroken, from the son's feet to the door -->
+        <path fill="#e8dfc6" d="M60,500
+          C 150,452 260,408 380,372
+          C 500,336 600,308 668,282
+          L 686,282
+          C 690,270 694,260 698,252
+          L 712,252
+          C 716,260 718,270 718,280
+          C 650,310 540,344 420,382
+          C 300,420 190,462 116,500 Z"/>
+        <!-- road edge shadow -->
+        <path fill="#c8b88a" opacity="0.5" d="M60,500 C 150,452 260,408 380,372 C 500,336 600,308 668,282 L 672,288 C 604,314 504,342 384,378 C 264,414 154,456 70,500 Z"/>
+
+        <!-- the house, small, far right at the road's end -->
+        <g>
+          <rect x="688" y="220" width="64" height="44" fill="#f8f4e6"/>
+          <path fill="#8a6f44" d="M680,222 L 720,192 L 760,222 Z"/>
+          <!-- the door, open, gold light inside -->
+          <rect x="710" y="234" width="16" height="30" fill="#f0d489"/>
+          <!-- tree by the house -->
+          <rect x="772" y="226" width="6" height="36" fill="#6e5836"/>
+          <circle cx="775" cy="212" r="22" fill="#4a5d33"/>
+        </g>
+
+        <!-- ============ the father — already running, full stride ============ -->
+        <g transform="translate(6,16)">
+          <!-- dust kicked up along the road behind him -->
+          <circle cx="462" cy="350" r="12" fill="#c8b88a" opacity="0.50"/>
+          <circle cx="484" cy="342" r="8" fill="#c8b88a" opacity="0.38"/>
+          <circle cx="502" cy="336" r="5" fill="#c8b88a" opacity="0.26"/>
+          <!-- robe streaming behind like a flag -->
+          <path fill="#c44747" d="M424,316
+            C 438,312 452,310 464,312
+            C 460,318 458,324 459,330
+            C 451,329 444,330 438,334
+            C 442,338 444,343 444,348
+            C 436,346 429,342 424,336 Z"/>
+          <!-- trailing leg, kicked back high -->
+          <path fill="#8a6f44" d="M422,338
+            C 430,344 438,349 448,352
+            L 445,361
+            C 434,358 425,352 417,345 Z"/>
+          <!-- leading leg, stretched far forward -->
+          <path fill="#8a6f44" d="M412,340
+            C 405,348 397,355 388,360
+            L 393,368
+            C 403,362 412,354 419,346 Z"/>
+          <!-- sandals -->
+          <path fill="#54432a" d="M386,358 C 382,360 380,363 381,366 L 392,369 L 394,362 Z"/>
+          <path fill="#54432a" d="M447,352 C 451,352 454,354 455,357 L 446,362 L 443,356 Z"/>
+          <!-- torso, leaning hard toward the son -->
+          <path fill="#c44747" d="M405,309
+            C 411,303 419,301 426,304
+            C 433,308 436,316 434,326
+            C 432,337 425,344 415,345
+            C 407,346 401,341 400,333
+            C 399,324 401,315 405,309 Z"/>
+          <!-- both arms thrown forward, open -->
+          <path fill="#8a6f44" d="M404,314 C 396,308 387,304 378,302 L 376,310 C 385,312 393,316 400,322 Z"/>
+          <path fill="#8a6f44" d="M406,324 C 398,322 389,322 381,324 L 382,332 C 390,330 398,330 405,332 Z"/>
+          <!-- head thrust forward, low -->
+          <circle cx="396" cy="300" r="10" fill="#e8c9a8"/>
+          <!-- hair swept back by speed -->
+          <path fill="#847d6e" d="M389,294
+            C 393,288 400,286 406,289
+            C 411,292 414,297 413,303
+            C 416,303 419,305 420,308
+            C 415,309 410,308 407,305
+            C 407,299 403,295 397,294
+            C 394,293 391,294 389,294 Z"/>
+        </g>
+
+        <!-- ============ the son — three steps onto the road ============ -->
+        <g>
+          <!-- worn garment, head low, a small bundle -->
+          <path fill="#8a6f44" d="M116,470
+            C 116,442 120,422 128,410
+            C 132,404 138,401 144,401
+            C 150,401 156,404 160,410
+            C 168,422 172,442 172,470 Z"/>
+          <!-- head, bowed -->
+          <circle cx="138" cy="392" r="12" fill="#e8c9a8"/>
+          <path fill="#3a352c" d="M127,388 C 128,381 133,376 140,376 C 146,376 150,379 152,384 C 147,381 142,380 137,382 C 132,384 129,386 127,388 Z"/>
+          <!-- staff -->
+          <line x1="170" y1="396" x2="178" y2="470" stroke="#6e5836" stroke-width="4" stroke-linecap="round"/>
+          <!-- bundle on the staff -->
+          <circle cx="172" cy="400" r="9" fill="#c8b88a"/>
+          <!-- small step: one foot just lifted -->
+          <path fill="#54432a" d="M122,468 L 138,468 L 141,476 L 119,476 Z"/>
+          <path fill="#54432a" d="M148,464 L 164,466 L 166,474 L 146,472 Z"/>
+        </g>
+      </svg>

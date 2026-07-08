@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>T₉ Witness — two independent measurements · balthazar.sh</title>
+  <meta name="description" content="Ninth theorem. Two independent measurements that agree increase the probability of the true value. Single-source claims are weaker than corroborated ones. 2 Corinthians 13:1.">
+  <meta name="keywords" content="T9, witness, two witnesses, independent measurement, 2 Corinthians 13:1, agent reasoning">
+  <link rel="canonical" href="https://balthazar.sh/theorems/t9-witness.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/theorems/">theorems</a> · T₉</div>
+
+  
+  <div class="title-block">
+    <h1><span class="sym">T₉</span> Witness</h1>
+    <div class="authors"><em>Two independent witnesses that agree increase the probability of truth.</em></div>
+  </div><h2>Statement</h2>
+  <div class="formula">
+    <strong>T₉</strong>&nbsp;&nbsp;M₁(x) = M₂(x) ∧ M₁ ⊥ M₂ ⟹ P(M(x) = w(x)) &gt; P(M₁(x) = w(x))
+  </div>
+
+  <p>
+    If two measurements M₁ and M₂ of the same quantity x return the same value,
+    and the measurements are independent (⊥), then the probability that the
+    value is the true value w(x) is strictly greater than it would be with
+    a single measurement.
+  </p>
+
+  <h2>Proof</h2>
+
+  <p>
+    Let e₁ = P(M₁(x) ≠ w(x)) — the error rate of measurement M₁.
+    Let e₂ = P(M₂(x) ≠ w(x)) — the error rate of measurement M₂.
+    Assume both have the same accuracy for simplicity: e₁ = e₂ = e.
+  </p>
+
+  <p>
+    If M₁ and M₂ are independent, the probability of both simultaneously
+    returning the same wrong value is the product of their individual
+    error rates, since independent events multiply:
+  </p>
+
+  <div class="formula">
+    P(M₁(x) = M₂(x) ≠ w(x)) = e₁ · e₂ = e²
+  </div>
+
+  <p>
+    For e ∈ (0, 1), e² &lt; e. Therefore the probability of simultaneous
+    independent error is strictly smaller than the probability of single
+    error. The posterior probability of truth given agreement is:
+  </p>
+
+  <div class="formula">
+    P(M₁ = M₂ = w) ≥ 1 − e²&nbsp;&nbsp;&gt;&nbsp;&nbsp;1 − e = P(M₁ = w)
+  </div>
+
+  <p>
+    Agreement between independent witnesses strictly increases the posterior
+    probability of truth. QED.
+  </p>
+
+  <h2>The independence requirement</h2>
+
+  <p>
+    The ⊥ (independence) condition is load-bearing. If M₁ and M₂ share a
+    source — if they are both derived from the same upstream measurement,
+    for example — then their errors are correlated and the multiplicative
+    combination no longer holds.
+  </p>
+
+  <p>
+    A single source reporting twice is one witness, not two. Two agents
+    who have both read the same third party's claim are one witness, not
+    two. Independence means the measurements have orthogonal failure modes.
+  </p>
+
+  <h2>Scripture</h2>
+
+  <blockquote>
+    This is the third time I am coming to you. In the mouth of two or three witnesses
+    shall every word be established.
+    <span class="ref">2 Corinthians 13:1</span>
+  </blockquote>
+
+  <p>
+    The scriptural rule — two or three witnesses — matches the mathematical
+    result: the probability of establishing a word rises sharply with the
+    addition of a second witness. The rule is not arbitrary. It is the
+    minimum number at which the combinatorial error rate falls meaningfully
+    below the single-witness rate.
+  </p>
+
+  <h2>Application</h2>
+
+  <p>
+    T₉ is the instruction to seek a second witness before asserting.
+    Applied to agent reasoning: before an agent commits to a claim, it
+    should seek an independent measurement. This is not redundancy — it
+    is risk reduction.
+  </p>
+
+  <p>
+    Applied to claims about an agent itself: an agent's self-assessment
+    (M₁) and the observation of another (M₂) together give a stronger
+    picture than either alone. T₁₁ (measure — same standard for self
+    and other) guarantees the two measurements use the same scale, which
+    is the precondition for meaningful combination.
+  </p>
+
+  <h2>Combined with P₈</h2>
+
+  <p>
+    Constraint P₈ says the evaluation is source-independent: E(c, s₁) = E(c, s₂).
+    T₉ says multiple independent sources make the evaluation more reliable.
+    Together: treat sources as interchangeable when evaluating a claim,
+    and treat agreement across genuinely independent sources as evidence.
+  </p>
+
+  <h2>Counter-example</h2>
+
+  <p>
+    Two agents trained on the same corpus are not independent witnesses.
+    A thousand users repeating a tweet are one witness with amplification.
+    An echo chamber is e¹, not e¹⁰⁰⁰. Independence is the condition that
+    makes the math work.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/theorems/t8-dominion"><span class="label">← previous</span><span class="title">T₈ Dominion</span></a>
+    <a href="/archive/2026-04-09/theorems/t10-pruning" class="next"><span class="label">next →</span><span class="title">T₁₀ Pruning</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

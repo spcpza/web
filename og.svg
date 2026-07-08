@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#fff4d6" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#fdfdfc" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#fdfdfc" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff8c8"/>
+      <stop offset="50%" stop-color="#ffce6a"/>
+      <stop offset="100%" stop-color="#e98a1a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#fdfdfc"/>
+  <circle cx="600" cy="265" r="320" fill="url(#halo)"/>
+
+  <!-- candle body -->
+  <rect x="582" y="290" width="36" height="160" rx="4" fill="#f4efe2" stroke="#c8b88a" stroke-width="2"/>
+  <ellipse cx="600" cy="290" rx="18" ry="4" fill="#e8dfc8" stroke="#c8b88a" stroke-width="1.5"/>
+  <line x1="600" y1="280" x2="600" y2="265" stroke="#5a4a30" stroke-width="2.2"/>
+  <!-- flame -->
+  <path d="M 600 200 C 580 215, 580 240, 595 258 C 600 265, 600 265, 605 258 C 620 240, 620 215, 600 200 Z" fill="url(#flame)" stroke="#c47419" stroke-width="1.2"/>
+  <ellipse cx="600" cy="240" rx="6" ry="12" fill="#fff8c8" opacity="0.85"/>
+
+  <!-- title -->
+  <text x="600" y="510" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="68" fill="#2a2620" font-weight="500">Alpha and Omega</text>
+
+  <!-- subtitle -->
+  <text x="600" y="558" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="28" fill="#4a4640" font-style="italic">C &gt; 0  ·  origin, way, destination</text>
+
+  <text x="600" y="600" text-anchor="middle"
+        font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+        font-size="20" fill="#8b6914">balthazar.sh</text>
+</svg>

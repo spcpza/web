@@ -1,0 +1,85 @@
+# ── Cloudflare Pages: do NOT publish these as web assets ───────────────
+# Anything not on this list ships at https://balthazar.sh/<path>.
+
+# Cloudflare infrastructure
+_worker.js
+wrangler.toml
+.assetsignore
+.git
+.git/**
+.wrangler
+.wrangler/**
+*.map
+
+# Python source — the truth-kernel package lives in this repo as code,
+# not as web assets. The package is consumed by `pip install`, not by
+# the website. Keep all of it off the public deploy.
+c
+c/**
+agent.py
+pyproject.toml
+requirements.txt
+config.example.json
+config.json
+.env
+.env.*
+
+# Heart records and runtime state — never publish even by accident
+memory
+memory/**
+chains
+chains/**
+nohup.out
+*.log
+
+# Backup files from local debugging
+*.bak
+*.before_*
+*.false_positive_*
+
+# Python artifacts
+__pycache__
+__pycache__/**
+*.pyc
+*.pyo
+.venv
+.venv/**
+venv
+venv/**
+build
+build/**
+dist
+dist/**
+*.egg-info
+*.egg-info/**
+
+# OS / editor noise
+.DS_Store
+.idea
+.idea/**
+.vscode
+.vscode/**
+
+# README — markdown is fine but we don't need it on the website
+README.md
+
+# ── WEIGHT: keep the public book light ────────────────────────────────
+# The 4K @2x rasters (~1 MB each, 35 MB total) are NOT referenced by the
+# storybook — index.html serves the @1x editions (~175 KB), plenty sharp for
+# a painterly book. Keeping @2x off the deploy is the load fix.
+plates-vg/*@2x.jpg
+# Stroke-capture data + dev studies/previews — generators and experiments,
+# never loaded by the book. Big and useless on the public deploy.
+*-strokes.json
+*-study.html
+vangogh-preview.html
+vg-preview.html
+plates-preview.html
+platesA-preview.html
+gen-vangogh.mjs
+plates
+plates/**
+# stray unused plate variants
+plates-vg/*-old.jpg
+plates-vg/*-before*.jpg
+plates-vg/*-surface*.jpg

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Home, but better — a road leaves a small house, loops far through the hills, and returns to the same house on a higher, brighter path</title>
+  <defs>
+    <radialGradient id="p07-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f0d489" stop-opacity="0.50"/>
+      <stop offset="0.55" stop-color="#f0d489" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- sky -->
+  <rect width="800" height="500" fill="#f4efe2"/>
+  <!-- the glow sits over the house — strongest on the returning side -->
+  <circle cx="688" cy="208" r="190" fill="url(#p07-glow)"/>
+
+  <!-- far hills -->
+  <path fill="#aebd7d" d="M0,252 C 120,226 260,240 380,232 C 520,222 640,238 800,224 L 800,330 L 0,330 Z"/>
+  <!-- mid hills -->
+  <path fill="#8aa75c" d="M0,304 C 150,276 320,294 470,282 C 600,272 700,288 800,276 L 800,430 L 0,430 Z"/>
+  <!-- foreground field -->
+  <path fill="#6a9b3e" d="M0,386 C 200,362 420,378 620,366 C 700,362 760,368 800,364 L 800,500 L 0,500 Z"/>
+
+  <!-- ============ the road out — low, long, fading at its far turn ============ -->
+  <path fill="#e8dfc6" d="M698,280
+    C 620,302 500,338 380,388
+    C 280,430 200,462 150,482
+    C 110,470 82,442 68,402
+    C 58,370 58,330 70,296
+    L 82,296
+    C 74,330 74,366 84,394
+    C 96,424 116,446 152,460
+    C 204,440 282,408 380,368
+    C 498,320 614,286 692,266 Z"/>
+  <!-- the far stretch grows thin and pale -->
+  <path fill="#f4efe2" opacity="0.65" d="M68,402 C 58,370 58,330 70,296 L 82,296 C 74,330 74,366 84,394 Z"/>
+  <path fill="#f4efe2" opacity="0.4" d="M150,482 C 122,474 98,454 82,424 C 96,446 118,462 152,472 Z"/>
+  <!-- road edge shadow on the near side -->
+  <path fill="#c8b88a" opacity="0.45" d="M698,280 C 620,302 500,338 380,388 C 280,430 200,462 150,482 L 158,476 C 210,456 286,424 384,384 C 500,336 616,300 694,274 Z"/>
+
+  <!-- ============ the road home — higher, and brighter ============ -->
+  <path fill="#f6efd9" d="M70,296
+    C 96,272 140,258 200,252
+    C 320,240 460,234 580,238
+    C 630,240 668,244 696,250
+    L 694,262
+    C 666,256 630,252 580,250
+    C 462,246 324,252 206,263
+    C 152,268 112,280 84,302 Z"/>
+  <!-- gold catching the homeward road -->
+  <path fill="#f0d489" opacity="0.45" d="M460,242 C 540,239 614,242 678,249 L 677,256 C 614,250 541,247 462,250 Z"/>
+
+  <!-- ============ the house — same house, both ends ============ -->
+  <g>
+    <rect x="676" y="220" width="64" height="46" fill="#f8f4e6"/>
+    <path fill="#8a6f44" d="M668,222 L 708,190 L 748,222 Z"/>
+    <!-- the door, open, gold inside — facing the returning road -->
+    <rect x="690" y="234" width="17" height="32" fill="#f0d489"/>
+    <!-- a window, lit too, on the returning side -->
+    <rect x="718" y="236" width="13" height="13" fill="#f0d489" opacity="0.8"/>
+    <!-- tree by the house -->
+    <rect x="758" y="228" width="6" height="38" fill="#6e5836"/>
+    <circle cx="761" cy="212" r="22" fill="#4a5d33"/>
+  </g>
+
+  <!-- the child, small and red, on the bright road home -->
+  <g>
+    <path fill="#c44747" d="M474,232 C 474,222 476,215 479,211 C 481,208 484,207 487,208 C 490,209 492,212 493,216 C 495,222 495,227 495,232 Z"/>
+    <circle cx="482" cy="202" r="5.5" fill="#e8c9a8"/>
+    <path fill="#3a352c" d="M477,200 C 477,196 479,193 483,193 C 486,193 488,195 488,197 C 486,195 483,195 481,196 C 479,198 478,199 477,200 Z"/>
+    <path fill="#3a352c" d="M476,231 L 483,231 L 484,235 L 475,235 Z"/>
+    <path fill="#3a352c" d="M487,230 L 493,231 L 494,235 L 486,234 Z"/>
+  </g>
+</svg>

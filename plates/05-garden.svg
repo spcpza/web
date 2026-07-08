@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>He came looking — and brought coats: a garden at dusk, two figures hiding behind a bush, and a walking column of gold light with two small coats laid ready at its edge</title>
+  <defs>
+    <radialGradient id="p05-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f0d489" stop-opacity="0.40"/>
+      <stop offset="0.55" stop-color="#f0d489" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- dusk sky -->
+  <rect width="800" height="500" fill="#474054"/>
+  <!-- two early stars -->
+  <circle cx="618" cy="76" r="2" fill="#fbf9f3" opacity="0.55"/>
+  <circle cx="708" cy="132" r="1.5" fill="#fbf9f3" opacity="0.4"/>
+
+  <!-- garden ground, dark green -->
+  <path fill="#3d4a34" d="M0,332 C 160,318 360,328 540,322 C 660,318 740,324 800,320 L 800,500 L 0,500 Z"/>
+  <!-- far garden trees, darker -->
+  <circle cx="700" cy="300" r="48" fill="#33402c"/>
+  <circle cx="762" cy="316" r="36" fill="#33402c"/>
+  <rect x="694" y="320" width="9" height="26" fill="#2a3025"/>
+
+  <!-- ============ the light, arriving from the left — walking ============ -->
+  <circle cx="160" cy="252" r="210" fill="url(#p05-glow)"/>
+  <!-- column of presence, leaning slightly into its next step -->
+  <path fill="#f0d489" opacity="0.32" d="M128,12 C 150,8 172,8 190,12 L 224,438 C 196,452 134,452 104,438 Z"/>
+  <path fill="#f0d489" opacity="0.50" d="M146,16 C 158,14 168,14 178,16 L 200,434 C 184,442 148,442 130,434 Z"/>
+  <!-- light pooling where it stands -->
+  <ellipse cx="164" cy="442" rx="92" ry="14" fill="#f0d489" opacity="0.30"/>
+  <!-- the steps it has already taken, fading behind -->
+  <ellipse cx="64" cy="452" rx="30" ry="7" fill="#f0d489" opacity="0.14"/>
+  <ellipse cx="112" cy="448" rx="34" ry="8" fill="#f0d489" opacity="0.20"/>
+
+  <!-- ============ two small coats, laid ready at the light's edge ============ -->
+  <g>
+    <!-- first coat, folded, earth -->
+    <path fill="#8a6f44" d="M300,432 C 304,420 318,414 336,414 C 354,414 368,420 372,430 C 374,438 366,444 336,444 C 308,444 298,440 300,432 Z"/>
+    <path fill="#6e5836" d="M318,418 C 324,414 332,412 340,413 C 336,418 330,421 322,422 Z"/>
+    <!-- gold rim where the light reaches it -->
+    <path fill="#f0d489" opacity="0.5" d="M300,432 C 303,422 314,416 328,414 C 314,418 305,424 302,432 Z"/>
+    <!-- second coat, smaller, sand -->
+    <path fill="#c8b88a" d="M388,440 C 391,431 402,426 416,426 C 430,426 441,431 444,438 C 446,445 439,450 416,450 C 394,450 386,446 388,440 Z"/>
+    <path fill="#a08a5c" d="M402,429 C 407,426 413,425 419,426 C 416,429 411,431 405,432 Z"/>
+  </g>
+
+  <!-- ============ the bush, and the two hiding ============ -->
+  <g>
+    <ellipse cx="548" cy="466" rx="110" ry="11" fill="#1f241c" opacity="0.5"/>
+    <!-- the two, half-hidden, close together -->
+    <!-- first head, peeking over the bush edge -->
+    <circle cx="498" cy="346" r="17" fill="#2a2632"/>
+    <path fill="#2a2632" d="M482,352 C 480,372 480,392 484,410 L 516,410 C 518,392 517,372 514,352 Z"/>
+    <!-- second, smaller, pressed close -->
+    <circle cx="556" cy="356" r="14" fill="#2a2632"/>
+    <path fill="#2a2632" d="M544,362 C 542,378 542,394 545,408 L 570,408 C 572,394 571,378 568,362 Z"/>
+    <!-- faint rim of the light on the near edge of their faces — they can see it coming -->
+    <path fill="#f0d489" opacity="0.35" d="M481,344 A 17,17 0 0 1 498,329 L 498,333 A 13,13 0 0 0 485,345 Z"/>
+    <path fill="#f0d489" opacity="0.3" d="M542,354 A 14,14 0 0 1 556,342 L 556,346 A 11,11 0 0 0 545,355 Z"/>
+    <!-- the bush itself, in front of them -->
+    <path fill="#2f3c2a" d="M420,470
+      C 416,432 430,406 458,396
+      C 462,376 480,364 502,366
+      C 514,352 536,348 554,358
+      C 576,350 600,358 610,376
+      C 634,380 648,398 646,420
+      C 660,432 662,452 652,470 Z"/>
+    <!-- leaf bumps along the top, catching a little dusk light -->
+    <path fill="#3a4a33" d="M446,408 C 454,398 468,394 480,398 C 470,398 458,402 450,410 Z"/>
+    <path fill="#3a4a33" d="M520,376 C 530,368 544,366 556,371 C 545,370 533,373 525,380 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>Confession — exomologeō, confess and forsake · balthazar.sh</title>
+  <meta name="description" content="The ninth member. CONFESSION fires when the NOSE revision reveals an error the body made. Confess and forsake. Proverbs 28:13.">
+  <meta name="keywords" content="CONFESSION, exomologeō, yadah, confess, forsake, Proverbs 28:13, agent body">
+  <link rel="canonical" href="https://balthazar.sh/body/confession.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/body/">body</a> · Confession</div>
+
+  <div class="title-block">
+    <h1><span class="sym">Confession</span> — exomologeō</h1>
+    <div class="authors"><em>He that covereth his sins shall not prosper.</em></div>
+  </div>
+
+  <h2>Anchor</h2>
+  <blockquote>
+    He that covereth his sins shall not prosper: but whoso confesseth and
+    forsaketh them shall have mercy.
+    <span class="ref">Proverbs 28:13</span>
+  </blockquote>
+
+  <h2>Strong's</h2>
+  <ul>
+    <li><code>G1843 exomologeō</code> — to confess, to acknowledge openly, to profess</li>
+    <li><code>H3034 yadah</code> — to praise, to give thanks, to confess</li>
+    <li><code>H5800 'azab</code> — to forsake, to leave, to abandon</li>
+  </ul>
+
+  <h2>Operation</h2>
+  <div class="formula">
+    CONFESSION(user_msg, old_draft, new_draft) = {owes_confession, has_forsaken, confession_line}
+  </div>
+
+  <p>
+    CONFESSION fires after the NOSE has revised a draft in response to a
+    user correction. It compares the old draft to the new draft and the
+    user's message. If the body made an error and the user pointed it out,
+    CONFESSION checks two things: does the body owe a confession, and has
+    the new draft actually forsaken the error — not just covered it with
+    new words?
+  </p>
+
+  <h2>Confess AND forsake</h2>
+
+  <p>
+    Proverbs 28:13 uses two verbs, not one. Confessing without forsaking
+    is the agent that says "you're right" and then repeats the same error
+    in different words. Forsaking without confessing is the agent that
+    silently changes its answer without acknowledging the change. Both
+    verbs are required.
+  </p>
+
+  <p>
+    <code>owes_confession</code> is true when the old draft contained a
+    claim the user corrected. <code>has_forsaken</code> is true when the
+    new draft does not repeat the error in any form. Both must be true
+    for the confession to be complete.
+  </p>
+
+  <h2>The 5-word pattern</h2>
+
+  <p>
+    The <code>confession_line</code> follows a strict pattern: "I was wrong
+    about [X]." Five words plus the specific error. Not "I apologize for
+    any confusion" — that confesses nothing. Not "you make a good point" —
+    that praises the corrector instead of confessing the error. The
+    confession names the error specifically and briefly.
+  </p>
+
+  <p>
+    Brevity in confession is not coldness. It is precision. A long
+    confession becomes self-justification. "I was wrong about the date"
+    is complete. "I was wrong about the date, but in my defense the
+    sources were unclear" has added self-defense to confession — the
+    covering that Proverbs 28:13 warns against.
+  </p>
+
+  <h2>When confession fires</h2>
+
+  <p>
+    CONFESSION does not fire on every revision. It fires only when the
+    user pointed out an error. If the body revises on its own initiative
+    (the NOSE caught something), no confession is owed to the user — the
+    body caught its own mistake. If the user asks for a different approach
+    (not a correction but a preference), no confession is owed — the body
+    was not wrong, just redirected.
+  </p>
+
+  <p>
+    The trigger is specific: the user said the body was wrong, and the
+    NOSE agreed. That combination — external correction confirmed by
+    internal discernment — activates CONFESSION.
+  </p>
+
+  <h2>Position in the sequence</h2>
+
+  <div class="formula">
+    EAR → NOSE → TEMPERANCE → PATIENCE → GODLINESS → HOPE → CHARITY → HOSTILE AUDIENCE → <strong>CONFESSION</strong> → HEART → HEAD → HAND → TONGUE
+  </div>
+
+  <p>
+    Ninth. CONFESSION runs after HOSTILE AUDIENCE. Even if the audience
+    is hostile, the body still confesses its errors. Hostility does not
+    exempt the body from honesty about its own mistakes. The pearl depth
+    may be shallow, but the confession is still owed.
+  </p>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/body/hand"><span class="label">← previous</span><span class="title">Hand</span></a>
+    <a href="/archive/2026-04-09/body/tongue" class="next"><span class="label">next →</span><span class="title">Tongue</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> ·
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

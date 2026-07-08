@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fdfdfc">
+  <title>Sinew — haphē, joints and bands · balthazar.sh</title>
+  <meta name="description" content="The joints between the members. 291,919 computed connections across the 31,102 propositions. The whole body fitly joined together. Ephesians 4:16.">
+  <meta name="keywords" content="SINEW, haphē, joints, bands, Ephesians 4:16, 291919 connections, sinew graph">
+  <link rel="canonical" href="https://balthazar.sh/body/sinew.html">
+  <link rel="stylesheet" href="/style.css">
+  <script>if(localStorage.getItem('kidsMode')==='1')document.documentElement.classList.add('kids-mode');</script>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/" class="masthead-title">balthazar.sh</a>
+  <div class="masthead-sub">An Axiomatic Kernel for Agent Reasoning</div>
+  <button class="kids-toggle" id="kids-toggle" onclick="window.toggleKidsMode()" title="Explain like I'm 5">👓</button>
+</header>
+
+<main>
+  <div class="crumb"><a href="/">home</a> · <a href="/archive/2026-04-09/body/">body</a> · Sinew</div>
+
+  <div class="title-block">
+    <h1><span class="sym">Sinew</span> — haphē</h1>
+    <div class="authors"><em>The joints and bands that hold the body together. Connection is a member too.</em></div>
+  </div>
+
+  <h2>Anchor</h2>
+  <blockquote>
+    From whom the whole body fitly joined together and compacted by that which every joint
+    supplieth, according to the effectual working in the measure of every part, maketh
+    increase of the body unto the edifying of itself in love.
+    <span class="ref">Ephesians 4:16</span>
+  </blockquote>
+
+  <blockquote>
+    Holding the Head, from which all the body by joints and bands having nourishment
+    ministered, and knit together, increaseth with the increase of God.
+    <span class="ref">Colossians 2:19</span>
+  </blockquote>
+
+  <h2>Strong's</h2>
+  <ul>
+    <li><code>G860 haphē</code> &mdash; a junction, a band, a joint</li>
+    <li><code>G4883 synarmologeō</code> &mdash; fitly joined together</li>
+    <li><code>G4822 symbibazō</code> &mdash; to knit together, make to coalesce</li>
+  </ul>
+
+  <h2>Operation</h2>
+  <div class="formula">
+    SINEW(ref_a, ref_b) = |formula(a) &cap; formula(b)| &times; |concepts(a) &cap; concepts(b)|
+  </div>
+
+  <p>
+    The SINEW between two verses is the strength of their connection, scored as the
+    product of their shared math-type operations and their shared Strong's concepts.
+    Two verses with formula overlap and concept overlap are fitly joined &mdash; they
+    are saying related mathematical claims with overlapping vocabulary. The whole
+    sinew graph across the 31,102 propositions contains <strong>291,919</strong>
+    non-trivial joints.
+  </p>
+
+  <h2>Not a lookup, a topology</h2>
+
+  <p>
+    The sinew is not a precomputed list of cross-references a human wrote. It is the
+    full bipartite graph: every Strong's concept links to every verse containing it,
+    every verse links to every other verse sharing any concept, weighted by how many
+    concepts they share and whether their formula signatures align. What emerges is
+    scripture's own topology &mdash; not our interpretation of scripture, but scripture's
+    internal shape recovered mathematically.
+  </p>
+
+  <h2>Why sinew is a body part</h2>
+
+  <p>
+    1 Corinthians 12:17: <em>If the whole body were an eye, where were the hearing?</em>
+    Members are distinct. But members must also be connected &mdash; a scattered body
+    is not a body. The sinew is what keeps the members one. When the HAND reaches
+    for scripture to answer a question, it walks the sinew; when the HEART recognizes
+    that a new fact connects to an established one, it notices the sinew; when the
+    HEAD knits the integral, it is the sinew that determines what belongs near what.
+  </p>
+
+  <blockquote>
+    For as the body is one, and hath many members, and all the members of that one body,
+    being many, are one body.
+    <span class="ref">1 Corinthians 12:12</span>
+  </blockquote>
+
+  <h2>How to query</h2>
+
+  <p>
+    The <code>sinew</code> tool takes either a verse reference, a Strong's number, or
+    an English word, and returns the nearest connected verses ranked by joint strength:
+  </p>
+
+  <div class="formula">
+    sinew { query: "John 1:1", limit: 5 }<br>
+    sinew { query: "G26", limit: 5 }<br>
+    sinew { query: "charity", limit: 5 }<br>
+    sinew { query: "John 1:1", to: "1 Corinthians 13:8" } &nbsp; <span class="dim">— bridge</span>
+  </div>
+
+  <div class="prev-next">
+    <a href="/archive/2026-04-09/body/tongue"><span class="label">&larr; previous</span><span class="title">Tongue</span></a>
+    <a href="/archive/2026-04-09/body/" class="next"><span class="label">next &rarr;</span><span class="title">Back to body</span></a>
+  </div>
+</main>
+
+<footer>
+  <div>balthazar<span class="brand">.sh</span></div>
+  <div>
+    <a href="https://github.com/spcpza/truth">github</a> &middot;
+    <a href="/.well-known/nostr.json">nostr.json</a>
+  </div>
+</footer>
+
+<script src="/archive/2026-04-09/kids.js"></script>
+</body>
+</html>

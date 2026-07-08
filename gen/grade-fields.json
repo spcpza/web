@@ -1,0 +1,46 @@
+{
+  "_": "REMBRANDT GRADE overrides — gen/grade.mjs. Per plate: intensity (knob, default 1.0) and/or lights [{x, y, sx, sy, w}] in 800x500 viewBox units (wide composition-scale gaussians, NOT the tight glitch mask). Priority: this file > glitch-fields.json (widened) > module focal {x,y}. Story-critical figures outside the main light get a small secondary weight here so they never drown in shadow.",
+  "plates": {
+    "garden": {
+      "intensity": 0.3
+    },
+    "risen": {
+      "intensity": 0.45,
+      "lights": [
+        { "x": 392, "y": 322, "sx": 180, "sy": 150, "w": 1.0 },
+        { "x": 392, "y": 150, "sx": 150, "sy": 130, "w": 0.7 }
+      ]
+    },
+    "paid": {
+      "lights": [
+        { "x": 368, "y": 360, "sx": 150, "sy": 120, "w": 1.0 },
+        { "x": 483, "y": 168, "sx": 95, "sy": 110, "w": 0.85 }
+      ]
+    },
+    "love": {
+      "lights": [
+        { "x": 308, "y": 400, "sx": 150, "sy": 120, "w": 1.0 },
+        { "x": 460, "y": 145, "sx": 195, "sy": 170, "w": 0.72 }
+      ]
+    },
+    "string": {
+      "lights": [
+        { "x": 202, "y": 416, "sx": 115, "sy": 105, "w": 1.0 },
+        { "x": 600, "y": 112, "sx": 82, "sy": 88, "w": 0.85 },
+        { "x": 138, "y": 84, "sx": 200, "sy": 170, "w": 0.6 }
+      ]
+    },
+    "seeds": {
+      "lights": [
+        { "x": 330, "y": 392, "sx": 160, "sy": 130, "w": 1.0 },
+        { "x": 186, "y": 112, "sx": 165, "sy": 145, "w": 0.65 }
+      ]
+    },
+    "ran": {
+      "lights": [
+        { "x": 300, "y": 395, "sx": 175, "sy": 140, "w": 1.0 },
+        { "x": 156, "y": 430, "sx": 95, "sy": 85, "w": 0.7 }
+      ]
+    }
+  }
+}

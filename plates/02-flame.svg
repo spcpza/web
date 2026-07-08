@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>The first flame — a great flame descends through darkness toward a child's small unlit candle</title>
+        <defs>
+          <radialGradient id="p1-glow" cx="0.5" cy="0.36" r="0.52">
+            <stop offset="0" stop-color="#f0d489" stop-opacity="0.34"/>
+            <stop offset="0.45" stop-color="#f0d489" stop-opacity="0.08"/>
+            <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="p1-floor" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#f0d489" stop-opacity="0.10"/>
+            <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- night field -->
+        <rect width="800" height="500" fill="#2c2833"/>
+        <!-- the glow around the descending flame -->
+        <rect width="800" height="500" fill="url(#p1-glow)"/>
+
+        <!-- faint floor line / reflected light -->
+        <ellipse cx="400" cy="472" rx="270" ry="26" fill="url(#p1-floor)"/>
+
+        <!-- descending flame — tongue pointing down, the moment before -->
+        <g>
+          <!-- outer flame -->
+          <path fill="#f0d489" d="M400,254
+            C 383,228 374,204 374,184
+            C 374,158 385,139 396,128
+            C 393,118 395,108 402,100
+            C 404,110 410,118 417,127
+            C 424,139 430,158 428,184
+            C 426,206 416,230 400,254 Z"/>
+          <!-- inner core -->
+          <path fill="#fbf9f3" d="M400,238
+            C 391,219 386,202 386,188
+            C 386,170 392,156 400,148
+            C 408,156 414,170 414,188
+            C 414,202 409,220 400,238 Z"/>
+        </g>
+
+        <!-- falling motes of light -->
+        <circle cx="376" cy="282" r="2.4" fill="#f0d489" opacity="0.55"/>
+        <circle cx="420" cy="298" r="1.8" fill="#f0d489" opacity="0.40"/>
+        <circle cx="398" cy="316" r="1.4" fill="#f0d489" opacity="0.30"/>
+
+        <!-- the child, looking up, candle raised directly under the flame -->
+        <g>
+          <!-- body: nightgown silhouette, leaning back slightly to look up -->
+          <path fill="#1f1b26" d="M342,470
+            C 342,433 348,405 358,389
+            C 363,380 370,376 378,376
+            C 386,376 393,381 398,390
+            C 407,406 412,434 412,470 Z"/>
+          <!-- head in profile, tilted back, face to the flame -->
+          <circle cx="370" cy="354" r="16" fill="#1f1b26"/>
+          <!-- upturned nose -->
+          <path fill="#1f1b26" d="M382,344 C 386,342 389,342 391,344 C 389,347 386,349 382,350 Z"/>
+          <!-- rim light along the upturned face, toward the flame -->
+          <path fill="#f0d489" opacity="0.55" d="M370,338
+            A 16,16 0 0 1 386,354
+            L 383,354
+            A 13,13 0 0 0 370,341 Z"/>
+          <!-- raised arms, candle held above head height -->
+          <path fill="#1f1b26" d="M366,398
+            C 370,389 377,382 385,378
+            L 393,387
+            C 387,392 381,398 377,406 Z"/>
+          <!-- the candle, unlit, on the flame's axis -->
+          <rect x="394" y="344" width="9" height="44" rx="3" fill="#f4efe2"/>
+          <!-- wick -->
+          <path d="M398.5,344 C 398.5,340 397.5,338 398.5,335" stroke="#15121d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <!-- hands wrapped at candle base -->
+          <ellipse cx="398" cy="389" rx="8" ry="6" fill="#1f1b26"/>
+          <!-- gold edge where the glow lands on the gown's shoulder -->
+          <path fill="#f0d489" opacity="0.22" d="M392,384
+            C 398,392 403,404 406,418
+            C 402,406 397,396 390,388 Z"/>
+        </g>
+      </svg>

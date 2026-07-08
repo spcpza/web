@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>The string never snaps — wind has carried the balloon far across the sky, but the long string is unbroken and the child's grip is calm</title>
+
+  <!-- open sky, mostly empty on purpose -->
+  <rect width="800" height="500" fill="#fbf9f3"/>
+  <!-- low ground band -->
+  <path fill="#ece4cf" d="M0,452 C 140,444 320,448 480,446 C 620,444 720,448 800,446 L 800,500 L 0,500 Z"/>
+
+  <!-- wind — quiet white arcs, pushing right -->
+  <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.9">
+    <path d="M268,140 C 350,108 442,104 506,128 C 520,134 522,148 510,154"/>
+    <path d="M330,228 C 410,204 480,202 534,218"/>
+    <path d="M430,86 C 490,68 552,66 600,80 C 612,84 613,95 604,100"/>
+  </g>
+  <g fill="none" stroke="#dcd2b4" stroke-width="2" stroke-linecap="round" opacity="0.8">
+    <path d="M268,140 C 350,108 442,104 506,128 C 520,134 522,148 510,154"/>
+    <path d="M330,228 C 410,204 480,202 534,218"/>
+    <path d="M430,86 C 490,68 552,66 600,80 C 612,84 613,95 604,100"/>
+  </g>
+
+  <!-- the string — one unbroken line, hand to balloon -->
+  <path fill="none" stroke="#a08a5c" stroke-width="2.5" stroke-linecap="round"
+    d="M206,316
+       C 268,352 352,348 438,308
+       C 524,268 592,210 646,142"/>
+
+  <!-- the balloon, carried far -->
+  <g>
+    <ellipse cx="654" cy="106" rx="30" ry="37" fill="#c44747"/>
+    <!-- knot -->
+    <path fill="#c44747" d="M648,140 L 660,140 L 654,150 Z"/>
+    <!-- soft highlight -->
+    <ellipse cx="644" cy="92" rx="8" ry="12" fill="#fbf9f3" opacity="0.35"/>
+  </g>
+
+  <!-- ============ the child — calm, feet planted, holding on ============ -->
+  <g>
+    <ellipse cx="168" cy="474" rx="44" ry="8" fill="#3a352c" opacity="0.10"/>
+    <!-- body: red sweater, steady, facing the balloon -->
+    <path fill="#c44747" d="M138,430
+      C 138,398 144,376 154,364
+      C 160,357 168,354 176,356
+      C 184,358 190,366 194,378
+      C 199,394 201,412 200,430
+      L 192,436 L 146,436 Z"/>
+    <!-- raised arm, easy, holding the string -->
+    <path fill="#c44747" d="M186,372 C 192,356 198,340 202,324 L 212,327 C 208,343 202,359 196,375 Z"/>
+    <!-- the calm hand -->
+    <circle cx="206" cy="320" r="7.5" fill="#e8c9a8"/>
+    <!-- other arm, resting -->
+    <path fill="#c44747" d="M146,380 C 142,392 140,404 140,416 L 149,417 C 149,406 151,395 154,385 Z"/>
+    <!-- head, watching the balloon, unworried -->
+    <circle cx="170" cy="338" r="16" fill="#e8c9a8"/>
+    <path fill="#3a352c" d="M155,334 C 155,323 161,315 171,314 C 180,313 186,318 187,326 C 181,321 174,320 168,323 C 161,326 157,330 155,334 Z"/>
+    <circle cx="178" cy="335" r="1.9" fill="#3a352c"/>
+    <!-- legs, planted -->
+    <rect x="150" y="430" width="14" height="38" rx="5" fill="#5a5247"/>
+    <rect x="174" y="430" width="14" height="38" rx="5" fill="#5a5247"/>
+    <!-- shoes -->
+    <path fill="#3a352c" d="M147,466 L 166,466 L 169,474 L 144,474 Z"/>
+    <path fill="#3a352c" d="M171,466 L 190,466 L 193,474 L 168,474 Z"/>
+  </g>
+</svg>
