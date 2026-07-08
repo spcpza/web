@@ -301,13 +301,14 @@ export function paint(E, opts = {}) {
     rightFoot: [fx + 36, fy - 6],                        // back leg kicked up behind
   });
   // THE FATHER IS THE LIGHT — he does not run as a dark shape but RADIANT:
-  // a soft halo of light around him first (he gives off light, not just reflects)
+  // a soft, TIGHTER halo of light around him (paintLight adds its own aura + rays,
+  // so keep this modest — a big halo here erased his FORM into a white splat)
   const hc = fy - 26 * fScale;
   strokes(out, counter, {
-    rng, n: 150,
-    sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.85) * 50 * fScale; return [fx + Math.cos(a) * d, hc + Math.sin(a) * d * 0.92]; },
+    rng, n: 96,
+    sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.9) * 34 * fScale; return [fx + Math.cos(a) * d, hc + Math.sin(a) * d * 0.92]; },
     dir: () => lean,
-    col: (x, y, r) => jig(ramp([GOLD_PALE, GOLD, GOLD_DEEP, '#9a6e34'], Math.hypot(x - fx, (y - hc) / 0.92) / (50 * fScale)), r, 9),
+    col: (x, y, r) => jig(ramp([GOLD_PALE, GOLD, GOLD_DEEP, '#9a6e34'], Math.hypot(x - fx, (y - hc) / 0.92) / (34 * fScale)), r, 9),
     len: 8, lw: 2.4, steps: 2, impasto: 0.4,
   });
   // his body: luminous golden-white, the brightest thing in the field — warmth,
@@ -316,6 +317,14 @@ export function paint(E, opts = {}) {
   // RADIANT: brilliant white woven with yellow, glowing. ONE consistent Light.
   castShadow(out, counter, fCaps, { dir: 0.5 });
   paintLight(out, counter, rng, fCaps);   // (paintLight now emits the rays of light consistently)
+  // RE-ASSERT THE FORM: overlay the limbs in translucent GOLD (gold holds form;
+  // pure white blooms shapeless), so the flung-WIDE arms + running stride read as
+  // a Father running, not a starburst — the white-hot core still shows through
+  paintFigure(out, counter, rng, fCaps, (x, y, r) => jig(mix('#ffe888', '#e2a838', r() * 0.55), r, 7), 1.15, 1, 1, 0.5);
+  // a hot defining edge along the tops of the flung-open arms so the gesture reads
+  for (const [ax, ay, bx, by] of [[fx, fy - 56, fx - 52, fy - 56], [fx, fy - 54, fx + 40, fy - 50]]) {
+    paintPath(out, counter, rng, [[ax, ay], [bx, by]], (x, y, r) => jig(mix('#fffef2', GOLD_PALE, r() * 0.5), r, 5), { lw: 2.2, len: 5, density: 0.6, jitter: 1.0 });
+  }
   // robe flying behind (up-road, toward the house)
   strokes(out, counter, {
     rng, n: 70,

@@ -78,6 +78,12 @@ export function paint(E, opts = {}) {
     const g = gF(x, y);
     let c = ramp(['#7cc0ee', '#bcaee8', '#f4b8d2', '#f8e6c8'], fbm(x / 110, y / 110, 19) * 0.6 + g * 0.3 + 0.16);
     c = mix(c, '#fff4d6', g * 0.5 + (lift || 0));
+    // the dawn BREAKS from the radiant child (left) INTO the night the other still
+    // stands in (right) + the outer edges — real value-structure so the light has
+    // darkness to shine into (Matt 5:16). The central glow stays warm (1 - g).
+    const night = Math.max(0, (x - flame[0] + 20) / 430) * 1.08
+                + Math.max(0, (Math.hypot(x - flame[0], y - flame[1]) - 215) / 280) * 0.55;
+    c = mix(c, '#201b48', Math.min(0.9, night) * (1 - g * 0.7));
     return jig(c, r, 8);
   };
   // the smooth dawn GROUND — broad soft masses (opaque); the visible swirl

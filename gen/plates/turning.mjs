@@ -162,9 +162,11 @@ export function paint(E, opts = {}) {
     dir: () => Math.atan2(-96, -150) + 0.05,    // dragging along the shadow's length
     col: (x, y, r) => {
       const s = shadow(x, y);
-      // the shadow is the gold gone cold-violet — a deep dim of the warm ground, not black
-      const base = ramp([GOLD, '#b08a3c', '#6a5a52'], Math.min(1, 0.4 + fbm(x / 40, y / 40, 95) * 0.4));
-      return jig(mix(base, '#241a48', Math.min(0.85, s * 0.95)), r, 8);
+      // the shadow is the gold gone cold-violet — a deep dim of the warm ground, not
+      // black. A floor of 0.34 dim so the WHOLE shadow reads as darker-than-the-gold
+      // (not a pale smear), deepening toward the feet.
+      const base = ramp(['#c9a24e', '#8a6a34', '#524436'], Math.min(1, 0.4 + fbm(x / 40, y / 40, 95) * 0.4));
+      return jig(mix(base, '#1b1338', Math.min(0.9, 0.34 + s * 0.82)), r, 8);
     },
     len: 18, lw: 5, steps: 3, follow: 0.94, lenJ: 0.5, relief: 0.5,
   });
