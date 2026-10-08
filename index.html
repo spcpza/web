@@ -1401,12 +1401,14 @@
     if (document.visibilityState !== 'visible') return;   // visibilitychange restarts
     var t = now / 1000;
     var current = Math.round(book.scrollLeft / book.clientWidth);
+    var live = false;
     for (var v = 0; v < views.length; v++) {
       var V = views[v], ctx = V.ctx;
       if (V.pageIndex !== current) {
         if (!V.cleared) { ctx.clearRect(0, 0, V.w, V.h); V.cleared = true; }
         continue;
       }
+      live = true;
       V.cleared = false;
       ctx.clearRect(0, 0, V.w, V.h);
       ctx.globalCompositeOperation = 'lighter';
@@ -1431,10 +1433,17 @@
       //  thread stands on its own; the moving line fought the filtered painting)
       ctx.globalCompositeOperation = 'source-over';
     }
-    raf = requestAnimationFrame(frame);
+    // ⭐ OFF THE COVER AND THE END PAGE, STOP (Oct 8). Only those two pages carry a canvas.live; on
+    // the other 31 this loop did nothing but read scrollLeft/clientWidth every frame, which forces a
+    // layout while a page is being built (measured ~1 s of main thread per 15 s on hands at 4x CPU).
+    // Every canvas is already cleared above, so stopping changes no pixel. The twinkle runs on the
+    // document clock (t = now), so when the reader scrolls back it resumes on exactly the frame it
+    // would have shown: any scroll (swipe, arrow key, hash jump, keepPage) restarts it below.
+    if (live) raf = requestAnimationFrame(frame);
   }
 
   function start() { if (!raf && data) raf = requestAnimationFrame(frame); }
+  book.addEventListener('scroll', start, { passive: true });
 
   function init() {
     fetch('/live-word.json').then(function (r) { return r.json(); }).then(function (d) {
@@ -1462,7 +1471,7 @@
 })();
 </script>
 
-<script src="/engine/character.min.js?v=76e44eb07e"></script>
+<script src="/engine/character.min.js?v=295363a8ba"></script>
 <script src="/engine/scene.min.js?v=7a4bb7c41b"></script>
 <!-- LIVING PAINT SHADER ENGINE — real GPU oil-stroke renderer, scoped to the front
      cover ([data-paintlive]) as an A/B pilot vs the flat last page. -->
