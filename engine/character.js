@@ -1202,11 +1202,14 @@
   }
   // the next few pages' drawings, low priority — called by the scene engine as each page settles.
   // A reader who has come this far is reading: from page 4 on, the rest of the cast follows in idle time.
-  function kidWarmAhead(idx) {
+  // ⚠ `noAll` (Oct 8): the scene engine now schedules kidWarmAll ITSELF, after the current page's
+  // art has landed and the browser is idle (see warmCast in engine/scene.js), so it passes true
+  // here. Called the old way, with one argument, this behaves exactly as before.
+  function kidWarmAhead(idx, noAll) {
     var cs = [];
     for (var p = idx; p <= idx + 4; p++) cs = cs.concat(kidCellsFor(p));
     kidPreload(cs, true);
-    if (idx >= 4) kidWarmAll();
+    if (idx >= 4 && !noAll) kidWarmAll();
   }
   // which of his drawings answers what the page asked for
   // ⚠ EVERY PERSON IN THE BOOK IS THIS CHARACTER NOW — the protagonist plain, the friends
@@ -6304,7 +6307,13 @@
   /* ⚠ ONLY WHAT THE OPENING NEEDS, UP FRONT. Everything else follows once the book is
      built — see kidWarmAll. This one line was 1.98 MB of the first load. */
   try {
-    kidPreload(kidCellsFor(0).concat(kidCellsFor(1), kidCellsFor(2)));
+    // ⚠ Oct 8: after the page's own load, in idle time — not while the cover's planes are still in
+    // flight. Pages 1–2 ask for their own cells the moment they build (buildActor), so nothing waits.
+    (function () {
+      function go() { kidPreload(kidCellsFor(0).concat(kidCellsFor(1), kidCellsFor(2)), true); }
+      function idle() { if (window.requestIdleCallback) window.requestIdleCallback(go, { timeout: 2000 }); else setTimeout(go, 300); }
+      if (document.readyState === 'complete') idle(); else window.addEventListener('load', idle, { once: true });
+    })();
     /* ⚠ Sep 25 — NO LONGER THE WHOLE CAST AT LOAD. kidWarmAll ran 250 ms after load and fetched all
        41 drawings (3.0 MB) while a first-time reader was still looking at the cover — a third of the
        cold download, and wasted entirely on anyone who reads two pages and leaves. The scene engine
@@ -6316,7 +6325,7 @@
     drawPilgrim: drawPilgrim, drawRadiant: drawRadiant, drawHooded: drawHooded,
     drawKid: drawKid, kidPreload: kidPreload, kidCell: kidCell, kidPalFor: kidPalFor,
     drawKidBuilt: drawKidBuilt, drawKidRig: drawKidRig, drawKidMesh: drawKidMesh, onMeshReady: onMeshReady, meshReady: meshReady, onRigReady: onRigReady, rigReady: rigReady,
-    kidReady: kidReady, onKidReady: onKidReady, kidCellsFor: kidCellsFor, kidWarm: kidPreload, kidWarmAhead: kidWarmAhead,
+    kidReady: kidReady, onKidReady: onKidReady, kidCellsFor: kidCellsFor, kidWarm: kidPreload, kidWarmAhead: kidWarmAhead, kidWarmAll: kidWarmAll,
     drawTree: drawTree, drawBush: drawBush, drawCrown: drawCrown,
     drawFlower: drawFlower, drawSpout: drawSpout, drawBird: drawBird,
     drawSheep: drawSheep, drawLamp: drawLamp,

@@ -759,7 +759,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=466';   // plate-asset version — bump on every plate rebuild (see dioPlanes)
+  var PV = '?p=466';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -2022,6 +2022,7 @@
       dio.className = 'sc-dio';
       dio.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;';
       var planes = [], dioF = null, breathe = null, breatheRate = 1;   // breathe = the light plane that gets a pulsing copy
+      var boilQ = [];   // this build's boil drawings, src held back until the page is the one being read (see loadBoil)
       defs.forEach(function (d, di) {
         var im = document.createElement('img');   // .page img CSS makes it absolute/cover/filtered
         im.decoding = 'async';
@@ -2157,14 +2158,26 @@
           // budget on something nobody can see yet. The picture arrives first; the
           // breath starts a moment later, and no reader can tell.
           var _bfSrc = (NB === 2 && BOIL_PING_SRC[idx]) ? BOIL_PING_SRC[idx] : bf;
-          (function (el, u) { setTimeout(function () { el.src = u; }, 700); })(bi, '/plates-vg/' + base + '-' + d.name + '-b' + _bfSrc + ext + PV);
+          // ⚠ AND NOT FOR A PAGE NOBODY IS ON (Oct 8, measured on an emulated iPhone). This used to
+          // be `setTimeout(src, 700)` at BUILD time — and the look-ahead builds the next one or two
+          // pages, so every swipe also downloaded the boil drawings of pages the reader had not
+          // reached (32 MB of the 95 MB read went to pages not yet on screen, 9 MB of it boil). A
+          // drawing is invisible until its dissolve begins, so it is the one thing a page can
+          // safely be built without. The URL waits here; loadBoil() sets it once this page is
+          // the CURRENT one and its planes have landed, at low priority. The painting you swipe
+          // to is complete (base + every plane); only its breathing starts a moment later.
+          bi.__boilSrc = '/plates-vg/' + base + '-' + d.name + '-b' + _bfSrc + ext + PV;
+          boilQ.push(bi);
           (function (el, di2, nm, f) {
             el.onerror = function () {
+              if (!el.getAttribute('src')) return;   // a held-back drawing (or one emptied by settle's free) is not a failure
               if (el.src.indexOf('.avif') !== -1) { el.src = el.src.replace('.avif', '.webp'); return; }   // AVIF refused → the webp
               if (di2 !== 0 && el.src.indexOf('.webp') !== -1) { el.src = '/plates-vg/' + base + '-' + nm + '-b' + f + '.png' + PV; return; }
               el.style.display = 'none';   // a missing frame drops out of the loop...
               im.style.opacity = '';       // ...and the base comes back, so the plane can never go blank
+              if (el.__boilEnd) el.__boilEnd(false);
             };
+            el.addEventListener('load', function () { if (el.__boilEnd && el.getAttribute('src')) el.__boilEnd(true); });
           })(bi, di, d.name, _bfSrc);
           var _wp = BOIL_WIPE[idx];
           var _pair = (BOIL_PAIR[idx] || []).indexOf(d.name) !== -1;
@@ -2213,7 +2226,24 @@
         // rule were each right alone and blank together. Both are gone now: a pan only
         // hardens the ping-pong's cross-fade into a cut (see `.sc-panning .dio-boil`), so
         // no plane is ever emptied and the doubling still stays off a moving view.
-        if (RING) { im.style.opacity = '0'; im.classList.add('dio-boil-base'); }
+        // ⚠ ...BUT ONLY ONCE THE RING HAS ARRIVED. Hiding the base at build time was safe while the
+        // drawings followed 700 ms later on every page; now they wait for the reader, so a ring
+        // plane whose base hid at once would be EMPTY on the page you swipe to. The base stays up
+        // (the same painting, undisplaced) until every drawing of its ring has loaded, then fades
+        // out under them on .dio-boil-base's own transition. If any drawing fails it stays up.
+        if (RING) {
+          im.classList.add('dio-boil-base');
+          (function (base0, ring) {
+            var left = ring.length, ok = true;
+            ring.forEach(function (el) {
+              el.__boilEnd = function (good) {
+                el.__boilEnd = null;
+                if (!good) ok = false;
+                if (--left === 0 && ok) base0.style.opacity = '0';
+              };
+            });
+          })(im, boilQ.slice(boilQ.length - (NBe | 0)));
+        }
       });
       diag('page ' + idx + ': ' + planes.length + ' plane imgs built');
       // the BREATH COPY: same src (already in cache — no extra request), stacked
@@ -2254,6 +2284,8 @@
       page.insertBefore(dio, layer);   // below the sprite layer
       if (dioF) page.insertBefore(dioF, page.querySelector('.scrim') || null);   // ABOVE the sprite layer, below the poem/scrim
       page.__dio = planes;
+      page.__boilQ = boilQ; page.__boilGo = false; page.__artDone = false;
+      if (pages[currentIdx()] === page) setTimeout(function () { loadBoil(page); }, 0);   // built while being read (cold open, resize): start its breath
       seatActors(page, idx);   // ground the figures (actors may already be built)
       return planes;
     }
@@ -2893,11 +2925,19 @@
   /* his prints: spawned at the foot position for the CURRENT phase of the same ellipse,
      on the same period, so they land where he actually is. They are placed by the layer,
      so they pan with the painting, and they remove themselves when their fade ends. */
-  function startPrints(page, w, fit) {
-    if (page.__prints) return;
-    var layer = page.__scLayer;
+  /* ⚠⚠ THEY NEVER DREW, AND THREW TWICE A SECOND INSTEAD (found Oct 8). This read
+     `page.__scLayer` — but buildPage calls it BEFORE it assigns `page.__scLayer = layer`, so on the
+     first build `layer` was undefined and every 430 ms tick died on `layer.classList`. And because
+     `page.__prints` was then set, a rebuild never restarted it, so the timer outlived the page
+     (settle frees and rebuilds `lost` as the reader passes) and kept throwing. Now the layer is
+     handed in, and the timer belongs to that layer: when settle frees it, the timer stops itself,
+     and the next build starts a fresh one. */
+  function startPrints(page, w, fit, layer) {
+    if (page.__prints) { clearInterval(page.__prints); page.__prints = 0; }
+    if (!layer) return;
     var t0 = performance.now();
-    page.__prints = setInterval(function () {
+    var timer = page.__prints = setInterval(function () {
+      if (!layer.isConnected) { clearInterval(timer); if (page.__prints === timer) page.__prints = 0; return; }
       if (!layer.classList.contains('on') || document.hidden) return;
       var ph = (((performance.now() - t0) / (w.sec * 1000)) % 1 + 1) % 1;
       var a = Math.PI + ph * Math.PI * 2;                       // matches the path: starts at the left, over the top
@@ -3960,7 +4000,7 @@
     });
     var _wk = WALK[idx];
     if (_wk && !REDUCED) {
-      try { layer.appendChild(buildWalk(_wk, fit, idx)); startPrints(page, _wk, fit); }
+      try { layer.appendChild(buildWalk(_wk, fit, idx)); startPrints(page, _wk, fit, layer); }
       catch (e) { diag('walk ' + idx + ' failed: ' + e.message); }   // a rig that fails loses its own motion, never the page
     }
     // critters marked FRONT go on AFTER the cast — the garden's cypress is the thing
@@ -4296,9 +4336,87 @@
   }
   setTimeout(coverReady, 5000);    // backstop: a stalled plane must never strand the look-ahead
   addEventListener('load', function () { setTimeout(coverReady, 300); });   // covers WITHOUT a diorama never call coverReady() — don't make them wait for the backstop
+  /* ---- ⚠ THE BOIL DRAWINGS LOAD FOR THE PAGE BEING READ, AND ONLY AFTER ITS PLANES (Oct 8) ----
+     buildDiorama no longer gives a boil drawing its src; it parks the URL on the element. This
+     sets them, for the CURRENT page only, once every plane of that page has loaded (so the
+     picture is up first and the drawings never compete with it), at fetchPriority low. If the
+     reader swipes on before that, nothing is fetched and the page simply starts again the next
+     time it is current. The still image is identical — a ring's base plane stays visible until
+     its drawings are in (see buildDiorama) — only the motion begins a moment later. */
+  var _idle = window.requestIdleCallback
+    ? function (f, ms) { window.requestIdleCallback(f, { timeout: ms || 3000 }); }
+    : function (f) { setTimeout(f, 400); };
+  function artDone(page) {
+    if (page.__artDone) return;
+    page.__artDone = true;
+    var w = page.__artWait || []; page.__artWait = [];
+    w.forEach(function (f) { _idle(f); });
+  }
+  // run `f` in idle time once this page's art (planes + boil drawings) has all landed
+  function onPageArt(page, f) {
+    if (page.__artDone) return _idle(f);
+    (page.__artWait || (page.__artWait = [])).push(f);
+  }
+  function loadBoil(page) {
+    if (!page || page.__boilGo) return;
+    var planes = page.__dio, q = page.__boilQ;
+    if (!planes || !q) { if (built[pages.indexOf(page)] && !planes) artDone(page); return; }   // a page with no diorama has no boil to wait for
+    page.__boilGo = true;
+    var waits = planes.filter(function (p) { return q.indexOf(p.img) === -1; }).map(function (p) { return p.img; });
+    var left = waits.length + 1, fired = false;
+    function planesUp() {
+      if (--left > 0 || fired) return;
+      fired = true;
+      setTimeout(function () {
+        if (page.__boilQ !== q) return;                                         // freed or rebuilt meanwhile
+        if (pages[currentIdx()] !== page) { page.__boilGo = false; return; }    // reader moved on: wait until they come back
+        var n = q.length;
+        if (!n) return artDone(page);
+        q.forEach(function (el) {
+          var end = el.__boilEnd, counted = false;   // a ring's own counter (may be null), chained with the page's
+          el.__boilEnd = function (good) {
+            if (counted) return; counted = true;
+            if (end) end(good);
+            if (--n === 0 && page.__boilQ === q) artDone(page);
+          };
+          if (el.getAttribute('src')) return el.__boilEnd(true);                // already set on an earlier visit
+          try { el.fetchPriority = 'low'; } catch (e) { }                      // ⚠ before src, or it is already queued
+          el.src = el.__boilSrc;
+        });
+      }, 120);   // let the planes paint first
+    }
+    waits.forEach(function (im) {
+      if (im.complete) return planesUp();
+      im.addEventListener('load', planesUp, { once: true });
+      im.addEventListener('error', planesUp, { once: true });
+    });
+    planesUp();
+    setTimeout(function () { if (!fired) { left = 1; planesUp(); } }, 10000);   // backstop: one stalled plane must not keep the page still for ever
+  }
+  // ⚠ THE CAST WARM-UP WAITS ITS TURN (Oct 8). On the cover it waits for the first swipe or for
+  // the cover's own art to finish and the browser to go idle, whichever comes first; from page 5
+  // the bulk warm of every remaining cell (kidWarmAll) waits for the current page's art and idle
+  // time instead of starting the moment the page settles. Each page still asks for ITS OWN cells
+  // when it builds (buildActor), so no figure ever waits on this.
+  var _castFirst = null, _castSwiped = false;
+  function warmCast(idx) {
+    if (!F || !F.kidWarmAhead) return;
+    if (_castFirst === null) _castFirst = idx;
+    if (idx !== _castFirst) _castSwiped = true;
+    var page = pages[idx];
+    if (!_castSwiped) {
+      if (page && !page.__castQ) { page.__castQ = 1; onPageArt(page, function () { _castSwiped = true; warmCast(currentIdx()); }); }
+      return;
+    }
+    try { F.kidWarmAhead(idx, !!F.kidWarmAll); } catch (e) { }   // the next pages' cells now; with kidWarmAll exported, NOT the bulk
+    if (idx >= 4 && F.kidWarmAll && page && !page.__castAll) {
+      page.__castAll = 1;
+      onPageArt(page, function () { try { F.kidWarmAll(); } catch (e) { } });
+    }
+  }
   function settle() {
     var idx = currentIdx();
-    if (F && F.kidWarmAhead) { try { F.kidWarmAhead(idx); } catch (e) { } }   // his drawings for the next pages, before they are needed
+    warmCast(idx);   // his drawings for the next pages, before they are needed (deferred on the cover — see warmCast)
     if (DIAG) diag('settle ' + idx + ' cold=' + COLD + ' ' + (new Error().stack || '').split('\n').slice(2, 4).join(' | ').replace(/https?:[^ )]+/g, ''));
     var dir = idx >= lastIdx ? 1 : -1;   // swipe direction (default forward)
     lastIdx = idx;
@@ -4396,6 +4514,7 @@
             dd[k].remove();
           }
           p.__dio = null;
+          p.__boilQ = null; p.__boilGo = false; p.__artDone = false;
           var pic = p.querySelector('picture');
           if (pic) pic.style.opacity = (DIO[i] && i !== 0) ? '0' : '';
         }
@@ -4403,6 +4522,7 @@
       }
     });
     ensure(idx);
+    loadBoil(pages[idx]);   // the page being read gets its boil drawings once its planes are in
     if (!COLD) for (var kk in keep) if (+kk !== idx) ensure(+kk);
     pages.forEach(function (p, i) {
       if (p.__scLayer) p.__scLayer.classList.toggle('on', i === idx && !REDUCED && !FREEZE[i]);
@@ -4446,7 +4566,8 @@
     rT = setTimeout(function () {
       pages.forEach(function (p, i) {
         if (p.__scLayer) { p.__scLayer.remove(); p.__scLayer = null; }
-        p.__seated = false; if (p.__dio) { var dd = p.querySelectorAll('.sc-dio'); for (var k = 0; k < dd.length; k++) dd[k].remove(); p.__dio = null;
+        p.__seated = false; p.__boilQ = null; p.__boilGo = false; p.__artDone = false;
+        if (p.__dio) { var dd = p.querySelectorAll('.sc-dio'); for (var k = 0; k < dd.length; k++) dd[k].remove(); p.__dio = null;
           var pic = p.querySelector('picture'); if (pic) pic.style.opacity = DIO[i] ? '0' : ''; }
       });
       built = {}; settle();
