@@ -1,62 +1,85 @@
 // gen/plates/bread.mjs — "The Bread of Life"
 // John 6:35 ("I am the bread of life"). POST-RESURRECTION new-creation page —
-// BRIGHT DAY. The recurring RED child, washed clean with a soft WHITE AURA,
-// walks a flourishing bright path through green fields full of wildflowers,
-// fed by the Light, holding up a warm GLOWING LOAF of light; the way is lit
-// bright ahead toward home. Vibrant light-blue sky, gold, lush green.
-// Daily provision, joy, the road home bright. MULTIPLANE.
+// BRIGHT DAY. Vibrant light-blue sky, gold, lush green. MULTIPLANE.
+//
+// ⚠ A PICNIC LANDSCAPE UNDER AN APPLE TREE, built in four passes:
+// 1) Fred: "the scene does not picture what is being said... put the character
+//    in a picnic?" — the words are "Every day He FEEDS you. Every night He KEEPS
+//    you," and the plate showed him WALKING, carrying a loaf mid-stride. So: he
+//    sits at rest, fed in front of him, not held aloft.
+// 2) Fred: "if you draw it as picnic, make it as picnic... create the scene" —
+//    a small cloth patch wasn't a picnic. Built a real checkered blanket, a
+//    basket, and a fuller food spread (since removed, see 4).
+// 3) Fred: "redraw the background as well... make it more like a picnic. remove
+//    the road, change the grassy terrain to be like 'gift'" — the path removed
+//    entirely, the whole field one unbroken flowering meadow, painted with
+//    gift's own recipe (rolling terrain, four-layer grass, drifting hue, flower
+//    colonies — see memory green_world_recipe).
+// 4) Fred: "this looks bad... maybe everyday he feeds you should be like a
+//    person under an apple tree, and theres a lot of apples in the ground
+//    provided by god" + "make it apples instead of manna." The checkered
+//    blanket/basket apparatus is GONE. He sits under a real apple tree
+//    (paintTree, gift's own tree painter — no rainbow fruit dabs), a few
+//    apples visible in the branches, more fallen and scattered in the grass
+//    around him — drawn as real fruit (a bezier apple shape: dimple, belly,
+//    pucker, stem, leaf — not a smooth "tomato" ellipse), with a solid
+//    underpaint under the painterly strokes so it reads opaque, and a soft
+//    stroke-based edge instead of a flat outline so it stays part of the
+//    painting rather than a sticker on it.
+// 5) Fred: "make one on the hands of the kid, less on the ground" — then,
+//    once placed at his hands INSIDE the plate: "now he is sitting on the
+//    apple." It could never have worked there: the runtime actor is a full
+//    opaque cutout drawn OVER the plate, so anything painted "in" his hands
+//    is painted UNDER them. THE GIVEN APPLE now lives in engine/scene.js (the
+//    HELD table), appended AFTER his sprite so it sits in front of him —
+//    see the note at `HAND` below for exactly where and why.
 //
 // Paint order (= rng order — append only):
 //   1. SKY      — vibrant light-blue day, gold + pink low at the horizon
-//   2. GROUND   — flourishing green field + a bright winding path
-//   3. FLOWERS  — wildflowers of every colour across the field
+//   2. GROUND   — rolling flowering meadow, gift's grass recipe (no path)
+//   3. FLOWERS  — wildflower colonies across the rolling ground
 //   4. LIFE     — fruit-trees flourishing in the field (planted)
-//   4b. LIFE    — sparrows fed on the path (Matt 6:26) + lilies at the verge (Matt 6:28)
-//   5. FIGURE   — the red child, washed, white aura, walking, loaf raised
-//   6. BREAD    — the warm glowing loaf of light cradled/raised
-//   7. EASTER EGG — John 6:35 (Greek) on the bright path
+//   4b. LIFE    — sparrows fed in the grass (Matt 6:26) + lilies of the field (Matt 6:28)
+//   5. APPLE TREE — a real apple tree, apples on it and fallen in the grass, dappled light
+//   6. THE WAY AHEAD — a soft pool of light resting further out in the meadow
+//   7. EASTER EGG — John 6:35 (Greek), incised low in the grass
+// (the apple in his hands is NOT painted here — see engine/scene.js HELD[21])
 export const name = 'bread';
 export const title = 'The Bread of Life';
 export const caption = 'Fed by the Light, every day.';
 export const seed = 20261006;
-export const focal = { x: 420, y: 330 };
+// focal.x=555 → portrait x0=399 (focal.x−156), MUST match CAST1[21].fx0 in
+// character.js. Moved 420→555 so the mobile portrait crop (399..711) holds
+// the whole scene under the tree, not just its left edge.
+export const focal = { x: 555, y: 330 };
 // MOBILE 3D — depth planes (FAR→NEAR): the bright day sky behind (opaque); the
-// flourishing field + path + wildflowers + planted trees + the incised verse in
-// the middle; the washed red child + the glowing loaf nearest. `full` (desktop)
-// keeps the original paint order untouched.
-// DIORAMA (true one-point perspective on mobile): the ground is ONE plane that
-// paint-live re-projects with an exact ground-plane homography as the camera
-// trucks/dollies; each TREE and the CHILD are separate billboard cels anchored
-// to their base point on that ground (so they scale with true distance and
-// stay planted). Order = far → near: tc (y268, farthest) … fg (the child).
-// ONE-POINT PERSPECTIVE, DRAWN INTO THE ART (the pilot of the book-wide redraw):
-// an AVENUE of trees flanks the path in four depth ROWS — each row at a true
-// depth Z (Z = k/(y−v0), k=268, v0=232), sized by 1/Z, placed at ±220/Z from
-// the vanishing axis (x=424) — and each row is its own camera band, so the
-// drawing's perspective and the camera's projection AGREE exactly.
+// rolling flowering meadow + planted trees + the incised verse in the middle;
+// the washed red child + the apple tree + the given apple nearest. `full`
+// (desktop) keeps the original paint order untouched.
 export const layers = [
   { name: 'bg', opaque: true },  // bright day sky (backmost, opaque)
-  { name: 'ground' },            // field + path + edge-stones + wildflowers + fringe + verse
+  { name: 'ground' },            // meadow + wildflower colonies + fringe + verse
   { name: 't3' },                // amber tree, mid-distant (base 548,268)
   { name: 't2' },                // pink tree, left (base 120,332)
   { name: 't1' },                // teal tree, right (base 690,348)
-  { name: 'fg' },                // the red child + the glowing loaf (base 436,396)
+  { name: 'fg' },                // the apple tree + red child + the given apple (base 436,396)
 ];
 
 export function paint(E, opts = {}) {
   const {
     mulberry32, fbm, curlV, goldenSpiralV, mix, ramp, jig, strokes, rej,
     lightRadial, paintChild, lightEdge, castShadow, personCaps, paintPath, inCap, underpaintCapsules,
-    fruitTree, groundFlowers, horizonFringe, ridge, LEAF_PALETTES,
+    fruitTree, paintTree, groundFlowers, horizonFringe, ridge, LEAF_PALETTES, TREE_KINDS,
     svgWrap, R1, W, H,
     GOLD, GOLD_PALE, GOLD_DEEP, GOLD_HOT,
   } = E;
 
   const rng = mulberry32(seed);
+  const E_SPECIES_APPLE = ['#0e2612', '#17391b', '#245425', '#397334', '#5f9645', '#8dba58', '#c6d97c'];   // the apple's crown ramp (engine.SPECIES.apple) — the extra boughs match the tree
   const out = [];
   const counter = { n: 0 };
   // MOBILE 3D LAYERS: tag the sky-end and the figure ranges; MID = the rest
-  // (field, path, flowers, trees, verse). FG = child + glowing loaf.
+  // (field, flowers, trees, verse). FG = child + apple tree + given apple.
   const LAYER = opts.layer || 'full';
   const fgRanges = [];
 
@@ -90,16 +113,36 @@ export function paint(E, opts = {}) {
     if (lift) c = mix(c, '#ffffff', lift);
     return jig(c, r, 6);
   };
+  // ⭐ DETAIL PASS (Sep 8) — the SKY only (the picnic meadow is gift's recipe and stays).
+  // EVERY STROKE DRAWS ITS OWN WIDTH AND LENGTH (Fred: "use no rules"), and every drawing
+  // of the boil ring is a DIFFERENT PAINTING of the sky (its own rng, salted by the frame;
+  // displacement 0 in BOIL_BAND_PAGE.bread) — never the same marks nudged.
+  const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+  const widthOf  = (x, y, salt) => 0.40 + 3.2 * Math.pow(free(x, y, salt), 2.6);
+  const lengthOf = (x, y, salt) => 0.40 + 1.5 * Math.pow(free(x, y, salt + 17), 1.5);
+  const FR = (globalThis.__FRAME | 0);
+  // ⚠ softer, with intent (Fred): the SAME sky in every drawing; a swell travels round the
+  // great wheel over the sun-glow, so across the ring the day sky turns — no churn.
+  const skyRng = mulberry32(seed + 4409);
+  const _NFb = Math.max(1, globalThis.__FRAME_N || 6), _PHb = FR / _NFb;
+  const turnB = (x, y) => 1 + 0.15 * Math.cos(2 * Math.PI * (_PHb - Math.atan2(y - 216, x - 420) / (2 * Math.PI)));
   // the deep moving day-sky — long streaming strokes that FOLLOW the great wheel
   strokes(out, counter, {
-    rng, n: 700, sample: rej(-10, -10, 810, horizon + 8),
+    rng: skyRng, n: 1800, sample: rej(-10, -10, 810, horizon + 8),
     dir: skyDir, col: (x, y, r) => skyCol(x, y, r, 0),
-    len: 44, lw: 9.5, steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.5, impasto: 0.5, relief: 0.55,
+    // ⚠ THE SKY WAS GREY BECAUSE OF ITS SURFACE, NOT ITS COLOUR. The ramp here is already
+    // a vibrant day — gold and pink low, light blue up, near-white crown — but at lw 9.5
+    // with relief 0.55 every one of these huge marks got its own lit edge AND its own
+    // shadow edge, so the whole heaven tiled into slabs with dark seams between them and
+    // read as overcast. (born had the identical fault at a third the relief.) Relief is
+    // right on grass, where each blade really does cast on the next; on air it is just
+    // dirt. Same colours, the surface let go.
+    len: (x, y) => 34 * lengthOf(x, y, 11) * turnB(x, y), lw: (x, y) => 3.6 * widthOf(x, y, 13), steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.3, relief: 0.12,
   });
   // bright cloud-ribbon crests + soft knot-sparks — following the curling flow so
   // the jewel swirls read clearly against the bright day sky
   strokes(out, counter, {
-    rng, n: 210, sample: rej(-10, -10, 810, horizon - 10),
+    rng: skyRng, n: 500, sample: rej(-10, -10, 810, horizon - 10),
     dir: skyDir,
     col: (x, y, r) => {
       const near = nearEddy(x, y);
@@ -107,254 +150,556 @@ export function paint(E, opts = {}) {
       const k = fbm(x / 88, y / 88, 23) + (r() - 0.5) * 0.2;
       return k > 0.74 ? jig('#fffdf6', r, 8) : skyCol(x, y, r, 0.18);   // bright white cloud-crests
     },
-    len: 30, lw: 5, steps: 5, follow: 0.9, wild: 0.2, lenJ: 0.55, impasto: 0.4,
+    len: (x, y) => 26 * lengthOf(x, y, 21) * turnB(x, y), lw: (x, y) => 2.6 * widthOf(x, y, 23), steps: 5, follow: 0.9, wild: 0.12, lenJ: 0.3, wJ: 0.3, impasto: 0.4, relief: 0.3,   // ⚠ relief was the default 1
     aJ: (x, y) => 0.16 + Math.max(0, 1.3 - nearEddy(x, y)) * 0.42,
   });
   const skyEnd = out.length;   // BG plane: the opaque bright day sky
 
-  /* ---------------- 2. GROUND — flourishing green field + bright path ---------------- */
+  /* ---------------- 2. GROUND — a real picnic LANDSCAPE, "gift"'s grassy terrain ----------------
+     ⚠ REBUILT (Fred: "make a picnic landscape? you can remove the road, change the
+     grassy terrain to be like 'gift'"). The path is gone entirely — a picnic does
+     not need a road running through it, and removing it frees the whole field to
+     be one unbroken flowering meadow. The terrain now follows gift's own recipe
+     (see memory green_world_recipe): the ground ROLLS (swell + facing, not just
+     colour), grass is FOUR layers (sward / standing blades / fine nap / tufts,
+     not one flat pass), and colour drifts in HUE across the field, not just value
+     (`chroma`, lifted verbatim from gift.mjs). */
+  /* ⚠ HE SITS WHERE THE TREE STANDS (Fred, Sep 18: "the kid is still floating, it looks like the kid
+     is sitting on the middle of the tree instead of the ground"). 396 put his seat 38 units ABOVE the
+     trunk's own base (TREEY 434) — on a receding field that is not "further back", it is up the trunk,
+     because the ground he shares with the tree is the line the tree meets it at. The seat, its contact
+     shadow and CAST1[21].y all move to that line; the child grows with the scale gradient (dS 0.95 ->
+     1.10, so h 78 -> 88) because he is now standing a little nearer the reader. */
+  const SEAT_Y = 436;   // where he sits — on the tree's own ground line (TREEY 434), not up its trunk
   // the field's top is a rolling contour, never a straight line
-  const fieldTop = ridge(horizon, { amp: 20, freq: 150, bumps: 0.32, seed: 131 });
-  const WHEAT = ['#3a7a38', '#5e9a40', '#88b84a', '#bcc850', '#e6d266'];
-  // the path: a soft S winding from the foreground up to the horizon-glow ahead
-  const FEET = { x: 436, y: 396 };   // ON the path: pathX(t) at y=396 ≈ 436 — "a lamp unto my FEET" (Ps 119:105)
-  const pathTop = [424, horizon + 2];
-  const pathX = t => 372 + Math.sin(t * 2.2) * 64 * (1 - t * 0.4) + (pathTop[0] - 372) * t;
-  const pathY = t => H + 10 - t * (H + 10 - pathTop[1]);
-  const pathW = t => 46 * (1 - t) + 5;       // wide near, vanishing far
-  const onPath = (x, y) => {
-    let best = 1e9;
-    for (let i = 0; i <= 16; i++) {
-      const t = i / 16, px = pathX(t), py = pathY(t);
-      const d = Math.hypot((x - px), (y - py) * 1.1);
-      if (d - pathW(t) < best) best = d - pathW(t);
-    }
-    return best;
+  const fieldTop = ridge(horizon, { amp: 22, freq: 145, bumps: 0.34, seed: 131 });
+  // ══ DRIFTING HUE (lifted from gift.mjs, verbatim technique) — value stays where
+  // the light and the land put it; HUE drifts across the field in soft bands, so
+  // the green is never one flat colour end to end. ══
+  const HEXN = c => { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const HEXS = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+  const toHSL = (r, g, b) => {
+    r /= 255; g /= 255; b /= 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
+    if (mx === mn) return [0, 0, l];
+    const d = mx - mn, sa = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+    let h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [h / 6, sa, l];
   };
-  // underpaint: solid GREEN field with the rolling top — gaps read lush, not bare
+  const toRGB = (h, sa, l) => {
+    if (sa === 0) return [l * 255, l * 255, l * 255];
+    const q = l < 0.5 ? l * (1 + sa) : l + sa - l * sa, pp = 2 * l - q;
+    const f = t => { t = ((t % 1) + 1) % 1;
+      if (t < 1 / 6) return pp + (q - pp) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return pp + (q - pp) * (2 / 3 - t) * 6;
+      return pp; };
+    return [f(h + 1 / 3) * 255, f(h) * 255, f(h - 1 / 3) * 255];
+  };
+  const HUES = [0.96, 0.06, 0.09, 0.60, 0.96, 0.28, 0.13, 0.76, 0.60];
+  const chroma = (c, x, y, k, sd = 211) => {
+    const f = fbm(x / 155, y / 135, sd);
+    const Hh = HUES[Math.min(HUES.length - 1, Math.floor(f * HUES.length * 1.25))];
+    const rgb = HEXN(c);
+    let [h, sa, l] = toHSL(rgb[0], rgb[1], rgb[2]);
+    let d = Hh - h; if (d > 0.5) d -= 1; if (d < -0.5) d += 1;
+    const kk = k * (0.6 + fbm(x / 62, y / 58, sd + 3) * 0.75);
+    h = (h + d * kk + 1) % 1;
+    sa = Math.min(0.62, sa + kk * 0.5 * (1 - Math.abs(l - 0.55) * 1.5));
+    const o = toRGB(h, sa, l);
+    return HEXS(o[0], o[1], o[2]);
+  };
+  // The ground's top edge is where it meets the sky — grass has no outline, it
+  // has blades. This jagged contour replaces fieldTop in the FILL only (sampled fine
+  // enough to keep the sawtooth; a coarse step averages it straight again).
+  const fieldTopJag = x => {
+    const fine = (fbm(x / 3.1, 2.1, 723) - 0.5) * 6.5;
+    const tuft = Math.max(0, fbm(x / 8.5, 9.4, 725) - 0.52) * 24;
+    return fieldTop(x) + fine - tuft;
+  };
   {
-    let d = `M-2 ${R1(fieldTop(-2))}`;
-    for (let x = -2; x <= 802; x += 9) d += `L${R1(x)} ${R1(fieldTop(x))}`;
+    let d = `M-2 ${R1(fieldTopJag(-2))}`;
+    for (let x = -2; x <= 802; x += 2.2) d += `L${R1(x)} ${R1(fieldTopJag(x))}`;
     d += `L802 ${H + 2}L-2 ${H + 2}Z`;
-    out.push(`<path d="${d}" fill="#477e38"/>`); counter.n++;
+    out.push(`<path d="${d}" fill="#3f7a38"/>`); counter.n++;
   }
-  // flourishing green grass strokes, gold at the lit crowns
-  strokes(out, counter, {
-    rng, n: 1500,
-    sample: rej(-10, horizon - 22, 810, 510, (x, y) => y > fieldTop(x) - 1 && onPath(x, y) > 0),
-    dir: (x, y) => { const [vx, vy] = curlV(x, y, 171, 70); return Math.atan2(vy * 0.9 - 0.5, Math.abs(vx) + 0.5); },
-    col: (x, y, r) => {
-      if (r() < 0.08) return jig('#2c6a48', r, 12);   // cool shadow flecks
-      const depth = (y - horizon) / (H - horizon);
-      const g = glow(x, y);
-      let c = mix(ramp(WHEAT, 0.12 + fbm(x / 60, y / 60, 177) * 0.7 + depth * 0.3), '#f6e08a', g * 0.4);
-      // ATMOSPHERIC PERSPECTIVE: the far field pales into the sky — air itself
-      // declares the distance (the third bone of the one-point construction)
-      c = mix(c, '#cfe6f2', Math.pow(1 - depth, 1.7) * 0.42);
-      return jig(c, r, 13);
-    },
-    len: (x, y) => 8 + (y / H) * 16, lw: (x, y) => 2.5 + (y / H) * 3, steps: 3, lenJ: 0.55, wild: 0.16, impasto: 0.7,
+  // the ragged skyline of grass — tufts rising off the crest, clumped with gaps
+  const horizonFringeCols = ['#2c6a48', '#3a7a38', '#5e9a40', '#88b84a'];
+  horizonFringe(out, counter, rng, { horizonFn: fieldTop, x0: -10, x1: 810, cols: horizonFringeCols, hMax: 21, lightFn: glow, dirJitter: 0.72 });
+  // ⚠ AND THE SAME HEDGEROW `seeds` has along its far edge — the strongest single signal
+  // that this is that field again. A worked field does not simply stop; it ends at a hedge.
+  {
+    const hRng = mulberry32(seed ^ 0x2f9a1c07);
+    for (let i = 0; i < 92; i++) {
+      const hx = -30 + (i + hRng() * 0.9) / 92 * 872;
+      const hy = fieldTop(hx) + 5 + hRng() * 12;
+      paintTree(out, counter, hRng, hx, hy, 15 + Math.pow(hRng(), 0.7) * 24, {
+        lightFn: glow, shadowDir: 1, blossom: hRng() < 0.28 ? 2 : 0,
+        tint: (c) => mix(c, '#cfe6f2', 0.32),
+      });
+    }
+  }
+  // SCALE GRADIENT — a mark at the feet is far bigger than a mark at the crest.
+  const dS = y => 0.32 + 1.0 * Math.max(0, Math.min(1, (y - horizon) / (H - horizon)));
+  // A PLAIN WITHOUT FORM IS A GREEN SHAPE. The land rolls, and value follows which
+  // way each slope FACES the light — the term that turns a green area into ground.
+  const swell = (x, y) => fbm(x / 165, y / 74, 313);
+  const facing = (x, y) => {
+    const e = 7;
+    return (swell(x - e, y) - swell(x + e, y)) * 2.2 + (swell(x, y - e) - swell(x, y + e)) * 1.2;
+  };
+  const haze = (x, y) => Math.max(0, Math.min(1, 1 - (y - horizon) / 86));
+  // ⚠ THIS IS THE SAME FIELD AS `seeds`, LATER. Fred: "continue from the scene before but
+  // the tree is already grown." So the ground still remembers being sown: the rows he
+  // planted on the page before run back to the same kind of vanishing point, only now they
+  // are grown over and read as a soft memory in the turf rather than open furrows. Same
+  // geometry as gen/plates/seeds.mjs (VP toward the light, ridge crowns ROWW apart), at a
+  // fraction of the contrast — a field that has been worked, not a field being worked.
+  const VP = { x: 300, y: fieldTop(300) - 6 };
+  const ROWW = 88, BOT = H + 46;
+  const rowAcross = (x, y) => {
+    const dy = y - VP.y; if (dy < 4) return 0;
+    const xb = VP.x + (x - VP.x) * (BOT - VP.y) / dy;
+    const u = xb / ROWW;
+    return Math.pow(Math.abs(Math.cos((u - Math.floor(u)) * Math.PI)), 1.5);
+  };
+  // GRASS, PROPERLY PAINTED — four layers at three scales, gift's own recipe.
+  const grassCol = (x, y, r, lift) => {
+    const depth = Math.max(0, Math.min(1, (y - horizon) / (H - horizon)));
+    let c = ramp(['#2f6a2e', '#3a7433', '#4f8c3c', '#6aa447', '#8bbc57', '#aed073'],
+      fbm(x / 46, y / 30, 93) * 0.5 + depth * 0.24 + facing(x, y) * 0.55 + swell(x, y) * 0.18 + lift);
+    const g = glow(x, y);
+    const sh = 1 - g;
+    if (sh > 0.4 && r() < 0.2 + sh * 0.3) c = mix(c, chroma('#37543e', x, y, 0.5, 197), 0.22 + sh * 0.3);
+    c = mix(c, '#f6e08a', g * 0.4);
+    c = mix(c, '#4a7a3a', rowAcross(x, y) * 0.22);             // the old rows, grown over
+    c = mix(c, '#cfe6f2', Math.pow(haze(x, y), 1.7) * 0.42);   // atmospheric perspective — air pales the far field
+    return jig(chroma(c, x, y, 0.28, 211), r, 12);
+  };
+  strokes(out, counter, {                                    // 1 · the body of the sward
+    rng, n: 4200,
+    sample: rej(-10, horizon - 14, 810, 512, (x, y) => y > fieldTop(x) - 1),
+    dir: (x, y) => -Math.PI / 2 + (fbm(x / 30, y / 20, 97) - 0.5) * 0.7,
+    col: (x, y, r) => grassCol(x, y, r, 0.06),
+    len: (x, y) => 7 * dS(y), lw: (x, y) => 1.9 * dS(y), steps: 2, lenJ: 0.7, impasto: 0.5, relief: 0.3,
   });
-  // the BRIGHT PATH — pale warm dust, brightening toward the horizon-glow ahead
-  strokes(out, counter, {
-    rng, n: 620,
-    sample: rej(280, horizon, 510, 510, (x, y) => onPath(x, y) < 0),
-    dir: (x, y) => Math.atan2(pathTop[1] - y, pathTop[0] - x),
-    col: (x, y, r) => { const g = glow(x, y); const up = Math.max(0, (510 - y) / (510 - horizon)); return jig(mix(ramp(['#f4e6c0', '#ecd9a4', '#e6cf94'], fbm(x / 50, y / 50, 191) * 0.5), '#fff4cc', Math.max(g, up) * 0.6), r, 9); },
-    len: (x, y) => 8 + (y / H) * 12, lw: (x, y) => 2.6 + (y / H) * 3, steps: 3, lenJ: 0.5,
+  strokes(out, counter, {                                    // 2 · blades that STAND UP out of it
+    rng, n: 3000,
+    sample: rej(-10, horizon + 6, 810, 512, (x, y) => y > fieldTop(x) + 2),
+    dir: (x, y) => -Math.PI / 2 + (fbm(x / 11, y / 9, 101) - 0.5) * 1.15,
+    col: (x, y, r) => grassCol(x, y, r, 0.22),
+    len: (x, y) => 9 * dS(y), lw: (x, y) => 1.1 * dS(y), steps: 2, lenJ: 0.8, impasto: 0.6,
   });
-  // a bright warm thread of light running up the path toward home (Ps 119:105)
-  strokes(out, counter, {
-    rng, n: 120,
-    sample: r => { const t = Math.pow(r(), 1.4); const px = pathX(t), py = pathY(t); return [px + (r() + r() - 1) * pathW(t) * 0.3, py + (r() - 0.5) * 4]; },
-    dir: (x, y) => Math.atan2(pathTop[1] - y, pathTop[0] - x),
-    col: (x, y, r) => jig(ramp(['#fff8e0', '#ffeeb0', GOLD_PALE], (510 - y) / (510 - horizon) + (r() - 0.5) * 0.25), r, 7),
-    len: 13, lw: 1.8, steps: 3, lenJ: 0.6,
+  strokes(out, counter, {                                    // 3 · and the finest nap, close to us
+    rng, n: 2600,
+    sample: r => { const x = -10 + r() * 820, y = horizon + 14 + Math.pow(r(), 0.8) * (512 - horizon - 14);
+                   return y > fieldTop(x) ? [x, y] : null; },
+    dir: (x, y) => -Math.PI / 2 + (fbm(x / 7, y / 6, 103) - 0.5) * 1.5,
+    col: (x, y, r) => grassCol(x, y, r, 0.3),
+    len: (x, y) => 6 * dS(y), lw: (x, y) => 0.8 * dS(y), steps: 2, lenJ: 0.85, impasto: 0.7,
   });
-  // CONVERGING EDGE-STONES — the drawn ORTHOGONALS of the one-point construction:
-  // two dashed stone lines hug the path's edges and vanish into the horizon glow,
-  // stone size ∝ 1/Z so the eye reads the recession even in a still.
-  strokes(out, counter, {
-    rng, n: 170,
-    sample: r => { const t = Math.pow(r(), 1.15); const side = r() < 0.5 ? -1 : 1; return [pathX(t) + side * (pathW(t) + 3), pathY(t) + (r() - 0.5) * 3]; },
-    dir: (x, y) => Math.atan2(pathTop[1] - y, pathTop[0] - x),
-    col: (x, y, r) => jig(mix('#8a6a3c', '#c9a86a', r() * 0.5), r, 8),
-    len: (x, y) => 3 + ((y - horizon) / (H - horizon)) * 9,
-    lw: (x, y) => 1.2 + ((y - horizon) / (H - horizon)) * 2.6,
-    steps: 2, lenJ: 0.5,
-  });
+  for (let i = 0; i < 120; i++) {                            // 4 · and clumps — grass grows in tufts
+    const tx = -10 + rng() * 820;
+    const ty = horizon + 14 + Math.pow(rng(), 0.55) * (508 - horizon - 14);
+    const sc = dS(ty);
+    strokes(out, counter, {
+      rng, n: 14,
+      sample: r => [tx + (r() + r() - 1) * 9 * sc, ty - Math.pow(r(), 0.7) * 11 * sc],
+      dir: (x, y) => -Math.PI / 2 + (x - tx) * 0.05 + (fbm(x / 6, y / 6, 107) - 0.5) * 0.8,
+      col: (x, y, r) => grassCol(x, y, r, 0.34),
+      len: 10 * sc, lw: 1.1 * sc, steps: 2, lenJ: 0.7, impasto: 0.65,
+    });
+  }
 
-  /* ---------------- 3. WILDFLOWERS — every colour across the field ---------------- */
-  groundFlowers(out, counter, rng, {
-    x0: -6, y0: horizon + 8, x1: 812, y1: 508, n: 460,
-    mask: (x, y) => onPath(x, y) > 4,
-    lightFn: glow,
-    depthFn: (x, y) => (y - horizon) / (510 - horizon),
-  });
+  /* ---------------- 3. WILDFLOWERS — colonies, not sprinkles (gift's recipe) ----------------
+     900 evenly-scattered dots read as sprinkles on the loudest thing on the plain.
+     Flowers grow in COLONIES: ~30 patches, each a family of one colour, each bloom
+     a stem + petals + a centre — thinning out with distance, not carpeting evenly. */
+  {
+    // ⚠ THREE OF THE FIVE PALETTES WERE NEAR-WHITE, so an "unbroken flowering meadow" came
+    // out as white specks on green. Jewel pairs, and enough colonies to actually flower the
+    // field — the same fix seeds needed.
+    const PETALS = [['#f0537c', '#c2325c'], ['#ffc247', '#e0942a'], ['#b184ea', '#8557c4'],
+                    ['#6fc4f0', '#3d8fd0'], ['#fff6e2', '#efdcc0'], ['#f2603c', '#cc3f24']];
+    for (let c = 0; c < 58; c++) {
+      const cx = -10 + rng() * 820;
+      const cy = horizon + 20 + (c < 10 ? rng() * 0.42 : rng()) * (508 - horizon - 20);
+      const pal = PETALS[(rng() * PETALS.length) | 0];
+      const spread = 26 + rng() * 54, count = 5 + (rng() * 9) | 0;
+      for (let i = 0; i < count; i++) {
+        const fx = cx + (rng() + rng() - 1) * spread;
+        const fyy = cy + (rng() + rng() - 1) * spread * 0.4;
+        if (fyy < fieldTop(fx) + 6) continue;
+        // ⚠ KEEP THE TREE'S OWN CLEARING CLEAR. Fred: "yeah i still see manna" —
+        // one reason the given apple read as a gold blur was a flower colony
+        // landing right on top of it. The apple tree (TREEX,TREEY ≈ 560,434)
+        // and the actor's own hands (486,392, where the given apple now rests
+        // — "make one on the hands of the kid") are fixed spots known ahead of
+        // section 5, so flowers give both a wide berth, same as the ground apples.
+        if (Math.hypot(fx - 548, fyy - 410) < 58) continue;
+        if (Math.hypot(fx - 486, fyy - 392) < 40) continue;
+        const sc = dS(fyy), st = (7 + rng() * 8) * sc;
+        paintPath(out, counter, rng, [[fx, fyy], [fx + (rng() - 0.5) * 4, fyy - st]],
+          (x, y, r) => jig(mix('#4e7a3c', '#7fa84e', r()), r, 7), { lw: 1.2 * sc, len: 3, density: 0.9, jitter: 0.3 });
+        const pet = pal[(rng() * 2) | 0], hd = 2.4 * sc;
+        for (let k = 0; k < 5; k++) {
+          const a = k * 1.256 + rng() * 0.35;
+          out.push(`<ellipse cx="${R1(fx + Math.cos(a) * hd)}" cy="${R1(fyy - st + Math.sin(a) * hd)}" rx="${R1(2.1 * sc)}" ry="${R1(1.5 * sc)}" transform="rotate(${R1(a * 57)} ${R1(fx + Math.cos(a) * hd)} ${R1(fyy - st + Math.sin(a) * hd)})" fill="${pet}" opacity="0.94"/>`);
+          counter.n++;
+        }
+        out.push(`<circle cx="${R1(fx)}" cy="${R1(fyy - st)}" r="${R1(1.25 * sc)}" fill="#ffe9a8"/>`); counter.n++;
+      }
+    }
+  }
 
   /* ---------------- 4. LIFE — flourishing fruit-trees planted in the field ---------------- */
-  const horizonFringeCols = ['#2c6a48', '#3a7a38', '#5e9a40', '#88b84a'];
-  horizonFringe(out, counter, rng, { horizonFn: fieldTop, x0: -10, x1: 320, cols: horizonFringeCols, hMax: 20, lightFn: glow });
-  horizonFringe(out, counter, rng, { horizonFn: fieldTop, x0: 520, x1: 810, cols: horizonFringeCols, hMax: 20, lightFn: glow, seed: 521 });
-  // THE AVENUE — four depth rows of trees flanking the path, drawn by the
-  // perspective construction itself: y = v0 + k/Z, lateral = ±220/Z from the
-  // vanishing axis (424), height = 110/Z. Far → near, each row its own band.
-  // three flanking trees as true-depth billboards (an AVENUE with visible
-  // trunks needs a trunk-forward tree helper — fruitTree is canopy-only and a
-  // row of them reads as floating bouquets; build the helper before retrying)
+  // ⚠ THESE WERE STILL `fruitTree`, THE PAINTER THIS PAGE ALREADY REJECTED. The header at
+  // the top of this file records it: "fruitTree's rainbow FRUIT_COLS dabs made the canopy a
+  // candy ball instead of a tree you could name" — and the apple tree was moved to
+  // paintTree because of it. The other three were never converted, so the page ended up
+  // with one real tree standing between two flat mushroom caps of pink and teal, dotted in
+  // rainbow sweets, on barber-pole trunks. Same painter as the apple tree now: gift's
+  // crown-warm/belly-deep canopy, majority GREEN so a child can name it, with the pale
+  // blossom paintTree already knows how to hang on the lit side.
+  // (h roughly doubles because paintTree's crown is proportionally smaller than
+  // fruitTree's mushroom — matched by eye to the space each tree used to fill.)
   const avRanges = [];
   let _t = out.length;
-  fruitTree(out, counter, rng, 548, 268, 50, 22, LEAF_PALETTES[5], glow);  // amber, mid-distant
+  paintTree(out, counter, rng, 548, 268, 76, { lightFn: glow, shadowDir: 1, blossom: 2, species: 'olive',   // after his kind (Sep 15): an olive in the haze
+    tint: (c) => mix(c, '#cfe6f2', 0.34) });                                 // far, in the haze
   avRanges.push([_t, out.length]);
   _t = out.length;
-  fruitTree(out, counter, rng, 120, 332, 78, 34, LEAF_PALETTES[1], glow);  // pink, left
+  // ⚠ BLOSSOM IS GATED ON THE PAGE'S LIGHT — paintTree skips any bloom where lightFn < 0.12,
+  // and `glow` is a 200-radius pool centred at (420,230), which this tree sits well outside.
+  // So asking for eleven blossoms produced three. A tree in flower needs its own floor.
+  paintTree(out, counter, rng, 120, 332, 138, { lightFn: (x, y) => Math.max(0.38, glow(x, y)),
+    shadowDir: -1, blossom: 18, species: 'almond' });   // the tree in blossom IS an almond — the first to wake (Jer 1:11)                                          // in blossom, left
   avRanges.push([_t, out.length]);
   _t = out.length;
-  fruitTree(out, counter, rng, 690, 348, 84, 38, LEAF_PALETTES[2], glow);  // teal, right
+  // a deeper, older green on the right so the three do not read as one repeated tree
+  paintTree(out, counter, rng, 690, 348, 124, { lightFn: (x, y) => Math.max(0.3, glow(x, y)),
+    shadowDir: 1, blossom: 4, species: 'fig' }); // right — a fig, its own deep green (1 Kings 4:25)
   avRanges.push([_t, out.length]);
 
-  /* ---------------- 4b. LIFE — sparrows on the path + lilies at the verge ----------------
+  /* ---------------- 4b. LIFE — sparrows fed in the grass + lilies of the field ----------------
      The page's own word made visible: "Behold the fowls of the air... your
-     heavenly Father feedeth them" (Matt 6:26) — fed sparrows ON the daily-bread
-     path; "Consider the lilies of the field, how they grow" (Matt 6:28) — white
-     trumpet lilies clothed at its verge. Bold simple silhouettes, one accent
-     each, curved lines (living things — Munch), size ∝ 1/Z. Ground band. */
+     heavenly Father feedeth them" (Matt 6:26) and "Consider the lilies of the
+     field, how they grow" (Matt 6:28) — no longer tied to a path verge (there is
+     no path); they simply live in the meadow, near enough the picnic to feel
+     like the same afternoon. Bold simple silhouettes, curved lines (Munch). */
   {
-    // a SPARROW, feet-anchored at (px,py). pose 'peck' faces LEFT, head to the
-    // path (feeding); pose 'watch' faces RIGHT, head up toward the Light ahead.
     const sparrow = (px, py, s, pose) => {
-      // BOLD PRIMITIVES so the anatomy survives the brushwork (the blob lesson):
-      // tail wedge + body ellipse + a DISTINCT round head + beak triangle + legs.
       const X = dx => R1(px + dx * s), Y = dy => R1(py + dy * s);
-      const DK = '#3a2812';   // dark warm-brown silhouette on the PALE path (contrast vs the local hue)
-      if (pose === 'peck') {   // facing LEFT, head down at the seed
-        out.push(`<path d="M${X(14)} ${Y(-14)} L${X(4.5)} ${Y(-11.5)} L${X(12.5)} ${Y(-7)} Z" fill="${DK}" opacity="0.95"/>`); counter.n++;   // tail wedge, raised
-        out.push(`<ellipse cx="${X(-0.5)}" cy="${Y(-8.5)}" rx="${R1(8.2 * s)}" ry="${R1(5.4 * s)}" transform="rotate(-14 ${X(-0.5)} ${Y(-8.5)})" fill="${DK}" opacity="0.96"/>`); counter.n++;   // body
-        out.push(`<circle cx="${X(-8.5)}" cy="${Y(-6)}" r="${R1(4.4 * s)}" fill="${DK}" opacity="0.96"/>`); counter.n++;                       // head, lowered
-        out.push(`<path d="M${X(-10.5)} ${Y(-5.5)} L${X(-16.5)} ${Y(-1)} L${X(-9)} ${Y(-3)} Z" fill="#5a4020" opacity="0.95"/>`); counter.n++; // beak to the ground
-        out.push(`<path d="M${X(4)} ${Y(-5)} Q${X(-1.5)} ${Y(-3.6)} ${X(-6)} ${Y(-4.6)}" stroke="#c8955a" stroke-width="${R1(1.8 * s)}" fill="none" opacity="0.8" stroke-linecap="round"/>`); counter.n++;   // buff breast (the one accent)
-        out.push(`<circle cx="${X(-8.8)}" cy="${Y(-7.4)}" r="${R1(1.05 * s)}" fill="#f6e8c0" opacity="0.95"/>`); counter.n++;                  // eye dot
-      } else {                 // 'watch': facing RIGHT, head raised toward the Light
-        out.push(`<path d="M${X(-14.5)} ${Y(-11.5)} L${X(-4.5)} ${Y(-9.5)} L${X(-12.5)} ${Y(-5)} Z" fill="${DK}" opacity="0.95"/>`); counter.n++;   // tail wedge
-        out.push(`<ellipse cx="${X(0.5)}" cy="${Y(-7.5)}" rx="${R1(8 * s)}" ry="${R1(5.2 * s)}" transform="rotate(10 ${X(0.5)} ${Y(-7.5)})" fill="${DK}" opacity="0.96"/>`); counter.n++;   // body
-        out.push(`<circle cx="${X(7.5)}" cy="${Y(-13.5)}" r="${R1(4.6 * s)}" fill="${DK}" opacity="0.96"/>`); counter.n++;                     // head, clearly RAISED above the back-line
-        out.push(`<path d="M${X(11)} ${Y(-15)} L${X(16.5)} ${Y(-13)} L${X(11)} ${Y(-11.5)} Z" fill="#5a4020" opacity="0.95"/>`); counter.n++;  // beak up-forward
-        out.push(`<path d="M${X(7)} ${Y(-9)} Q${X(7.5)} ${Y(-6)} ${X(2.5)} ${Y(-4.4)}" stroke="#c8955a" stroke-width="${R1(1.8 * s)}" fill="none" opacity="0.8" stroke-linecap="round"/>`); counter.n++;    // buff breast
-        out.push(`<circle cx="${X(8.6)}" cy="${Y(-14.4)}" r="${R1(1.05 * s)}" fill="#f6e8c0" opacity="0.95"/>`); counter.n++;                  // eye dot
+      const DK = '#3a2812';
+      if (pose === 'peck') {
+        out.push(`<path d="M${X(14)} ${Y(-14)} L${X(4.5)} ${Y(-11.5)} L${X(12.5)} ${Y(-7)} Z" fill="${DK}" opacity="0.95"/>`); counter.n++;
+        out.push(`<ellipse cx="${X(-0.5)}" cy="${Y(-8.5)}" rx="${R1(8.2 * s)}" ry="${R1(5.4 * s)}" transform="rotate(-14 ${X(-0.5)} ${Y(-8.5)})" fill="${DK}" opacity="0.96"/>`); counter.n++;
+        out.push(`<circle cx="${X(-8.5)}" cy="${Y(-6)}" r="${R1(4.4 * s)}" fill="${DK}" opacity="0.96"/>`); counter.n++;
+        out.push(`<path d="M${X(-10.5)} ${Y(-5.5)} L${X(-16.5)} ${Y(-1)} L${X(-9)} ${Y(-3)} Z" fill="#5a4020" opacity="0.95"/>`); counter.n++;
+        out.push(`<path d="M${X(4)} ${Y(-5)} Q${X(-1.5)} ${Y(-3.6)} ${X(-6)} ${Y(-4.6)}" stroke="#c8955a" stroke-width="${R1(1.8 * s)}" fill="none" opacity="0.8" stroke-linecap="round"/>`); counter.n++;
+        out.push(`<circle cx="${X(-8.8)}" cy="${Y(-7.4)}" r="${R1(1.05 * s)}" fill="#f6e8c0" opacity="0.95"/>`); counter.n++;
+      } else {
+        out.push(`<path d="M${X(-14.5)} ${Y(-11.5)} L${X(-4.5)} ${Y(-9.5)} L${X(-12.5)} ${Y(-5)} Z" fill="${DK}" opacity="0.95"/>`); counter.n++;
+        out.push(`<ellipse cx="${X(0.5)}" cy="${Y(-7.5)}" rx="${R1(8 * s)}" ry="${R1(5.2 * s)}" transform="rotate(10 ${X(0.5)} ${Y(-7.5)})" fill="${DK}" opacity="0.96"/>`); counter.n++;
+        out.push(`<circle cx="${X(7.5)}" cy="${Y(-13.5)}" r="${R1(4.6 * s)}" fill="${DK}" opacity="0.96"/>`); counter.n++;
+        out.push(`<path d="M${X(11)} ${Y(-15)} L${X(16.5)} ${Y(-13)} L${X(11)} ${Y(-11.5)} Z" fill="#5a4020" opacity="0.95"/>`); counter.n++;
+        out.push(`<path d="M${X(7)} ${Y(-9)} Q${X(7.5)} ${Y(-6)} ${X(2.5)} ${Y(-4.4)}" stroke="#c8955a" stroke-width="${R1(1.8 * s)}" fill="none" opacity="0.8" stroke-linecap="round"/>`); counter.n++;
+        out.push(`<circle cx="${X(8.6)}" cy="${Y(-14.4)}" r="${R1(1.05 * s)}" fill="#f6e8c0" opacity="0.95"/>`); counter.n++;
       }
-      out.push(`<path d="M${X(-1)} ${Y(-4)} L${X(-1.8)} ${Y(0)} M${X(4)} ${Y(-4.4)} L${X(4.8)} ${Y(0)}" stroke="#2e1f10" stroke-width="${R1(Math.max(0.9, 1.1 * s))}" fill="none" opacity="0.9" stroke-linecap="round"/>`); counter.n++;   // legs
+      out.push(`<path d="M${X(-1)} ${Y(-4)} L${X(-1.8)} ${Y(0)} M${X(4)} ${Y(-4.4)} L${X(4.8)} ${Y(0)}" stroke="#2e1f10" stroke-width="${R1(Math.max(0.9, 1.1 * s))}" fill="none" opacity="0.9" stroke-linecap="round"/>`); counter.n++;
     };
-    // a white trumpet LILY, root-anchored at (px,py), bloom at py-h, gold throat.
-    const lily = (px, py, h, lean = 0) => {
-      const tx = px + lean, ty = py - h, s = Math.max(4, h * 0.32);
-      out.push(`<path d="M${R1(px)} ${R1(py - h * 0.30)} Q${R1(px - s * 0.9)} ${R1(py - h * 0.52)} ${R1(px - s * 1.15)} ${R1(py - h * 0.40)} Q${R1(px - s * 0.55)} ${R1(py - h * 0.34)} ${R1(px)} ${R1(py - h * 0.24)} Z" fill="#2f6a38" opacity="0.9"/>`); counter.n++;   // leaf-blades
-      out.push(`<path d="M${R1(px)} ${R1(py - h * 0.20)} Q${R1(px + s * 0.85)} ${R1(py - h * 0.40)} ${R1(px + s * 1.05)} ${R1(py - h * 0.28)} Q${R1(px + s * 0.5)} ${R1(py - h * 0.22)} ${R1(px)} ${R1(py - h * 0.14)} Z" fill="#35743e" opacity="0.9"/>`); counter.n++;
-      out.push(`<path d="M${R1(px)} ${R1(py)} Q${R1(px + lean * 0.4)} ${R1(py - h * 0.55)} ${R1(tx)} ${R1(ty)}" stroke="#255c30" stroke-width="${R1(Math.max(1.1, h * 0.055))}" fill="none" opacity="0.92" stroke-linecap="round"/>`); counter.n++;   // living curved stem
-      out.push(`<path d="M${R1(tx)} ${R1(ty)} Q${R1(tx - s * 1.0)} ${R1(ty - s * 0.35)} ${R1(tx - s * 1.2)} ${R1(ty - s * 1.05)} Q${R1(tx - s * 0.4)} ${R1(ty - s * 0.72)} ${R1(tx)} ${R1(ty)} Z" fill="#fdfaef" opacity="0.95"/>`); counter.n++;   // left petal, flared
-      out.push(`<path d="M${R1(tx)} ${R1(ty)} Q${R1(tx + s * 1.0)} ${R1(ty - s * 0.35)} ${R1(tx + s * 1.2)} ${R1(ty - s * 1.05)} Q${R1(tx + s * 0.4)} ${R1(ty - s * 0.72)} ${R1(tx)} ${R1(ty)} Z" fill="#f8f3e4" opacity="0.95"/>`); counter.n++;   // right petal
-      out.push(`<path d="M${R1(tx)} ${R1(ty)} Q${R1(tx - s * 0.35)} ${R1(ty - s * 0.9)} ${R1(tx)} ${R1(ty - s * 1.45)} Q${R1(tx + s * 0.35)} ${R1(ty - s * 0.9)} ${R1(tx)} ${R1(ty)} Z" fill="#fffdf6" opacity="0.97"/>`); counter.n++;            // centre petal, lancet up
-      out.push(`<path d="M${R1(tx)} ${R1(ty - s * 0.15)} L${R1(tx - s * 0.3)} ${R1(ty - s * 0.75)} M${R1(tx)} ${R1(ty - s * 0.15)} L${R1(tx + s * 0.28)} ${R1(ty - s * 0.7)} M${R1(tx)} ${R1(ty - s * 0.15)} L${R1(tx)} ${R1(ty - s * 0.9)}" stroke="#e8b23e" stroke-width="${R1(Math.max(0.8, s * 0.09))}" fill="none" opacity="0.9" stroke-linecap="round"/>`); counter.n++;   // gold stamens — arrayed beyond Solomon
-    };
-    // LILIES at the path verge (clear of the edge-stones, the child, and the egg)
-    lily(326, 487, 30, -3); lily(337, 481, 24, 3); lily(317, 480, 20, -4);   // near-left cluster
-    lily(470, 464, 27, 3); lily(481, 472, 31, -3); lily(461, 476, 21, 4);    // near-right cluster
-    lily(384, 413, 15, -2); lily(377, 417, 12, 2);                           // far pair, smaller (1/Z)
-    // SEED-CRUMBS on the path — the Father's table, spread where the birds feed
-    for (const [cx2, cy2, cr] of [[371, 483.5, 1.0], [365, 486.5, 0.8], [377, 488.5, 0.9], [357, 490.5, 0.8], [396, 430.5, 0.6], [405, 432, 0.6]]) {
-      out.push(`<circle cx="${R1(cx2)}" cy="${R1(cy2)}" r="${R1(cr)}" fill="#ffe9a0" opacity="0.85"/>`); counter.n++;
-    }
-    // SPARROWS on the bright path, fed each day (size ∝ depth; clear of egg + child)
-    sparrow(386, 486, 1.05, 'peck');    // nearest, head down at the crumbs
-    sparrow(352, 492, 0.95, 'watch');   // head up toward the Light — "are ye not much better than they?"
-    sparrow(402, 428, 0.62, 'peck');    // farther up the path, smaller
+    // ⭐ "Consider the lilies of the field, how they grow… even Solomon in all his glory was not
+    // arrayed like one of these" (Matt 6:28-29). These were three flat white petals on a stroke.
+    // They are the engine's paintLily now (Sep 21) — six tepals in a nodding trumpet, a gold
+    // throat, rust anthers, a closed bud, leaves spiralling up the stem — because if He says a
+    // lily outshines the king, the lily gets more craft than the palace. Own rng: the plate's
+    // stream is untouched.
+    const lilyR = mulberry32((seed ^ 0x11717) >>> 0);
+    const lily = (px, py, h, lean = 0) => E.paintLily(out, counter, lilyR, px, py, h * 1.25, { lean: lean * 1.6, lightFn: glow });
+    // lilies scattered through the near meadow, clear of the picnic itself
+    lily(226, 487, 30, -3); lily(237, 481, 24, 3); lily(217, 480, 20, -4);
+    lily(670, 464, 27, 3); lily(681, 472, 31, -3); lily(661, 476, 21, 4);
+    lily(284, 413, 15, -2); lily(277, 417, 12, 2);
+    // sparrows fed in the open grass, clear of the picnic and the child
+    sparrow(246, 486, 1.05, 'peck');
+    sparrow(212, 492, 0.95, 'watch');
+    sparrow(662, 428, 0.62, 'peck');
   }
 
-  /* ---------------- 5. FIGURE — the washed red child walking ----------------  [FG plane] */
+  /* ---------------- 5. UNDER THE APPLE TREE — apples given, on the tree and on the ground ----------------  [FG plane] */
   const _fg = out.length;
-  const fy = FEET.y;
-  // child mid-stride, one arm RAISED holding the loaf of light high, the way lit
-  // bright ahead; consistent deep-red clothes; WASHED WHITE AURA (Rev 7:14)
-  const CX = 436;
-  const LOAF = { x: CX + 20, y: fy - 52 };   // the glowing loaf CARRIED before him at the chest —
-                                             // clear of the head, its light falling on the path ahead
-  // the child WALKS the path, carrying the warm loaf of light before him;
-  // its glow falls on the next step — fed each day, lit each step.
-  const childCaps = personCaps(CX, fy - 84, 84, {
-    leftHand: [LOAF.x, LOAF.y],     // near hand carrying the bread of light before him
-    rightHand: [CX - 22, fy - 36],  // far hand swinging at his side, mid-stride
-    leftFoot: [CX - 13, fy],        // mid-stride on the path
-    rightFoot: [CX + 15, fy - 2],
-    headTilt: 0,                    // looking ahead, toward home
-  });
-  castShadow(out, counter, childCaps, { dir: 0.4 });
-  paintChild(out, counter, rng, childCaps, { whiteAura: true, outlineW: 4 });
-  // (the tiny hand-held fish was removed — at ~20px it read as a blade, not the
-  // ΙΧΘΥΣ; the fish sign lives on the risen page where it has room to read)
-  // warm gold rim-light on the side facing the Light ahead
+  const fy = SEAT_Y;
+  // ⚠ REBUILT AGAIN (Fred: "this looks bad... maybe everyday he feeds you should be
+  // like a person under an apple tree, and theres a lot of apples in the ground
+  // provided by god"). The checkered-blanket picnic was too fussy a prop to read
+  // clearly, and `fruitTree`'s rainbow FRUIT_COLS dabs made the canopy a candy
+  // ball instead of a tree you could name. Simpler, and truer to the words: he
+  // sits under a real APPLE TREE — gift's own tree painter (paintTree, the
+  // crown-warm/belly-deep green canopy, no rainbow fruit or blossom clutter) — a
+  // few apples visible IN it, and MANY MORE fallen and scattered in the grass all
+  // around him: provision so abundant it is just lying there on the ground.
+  // ⚠ CX MUST EQUAL CAST1[21].x AND engine/scene.js's HELD entry is gone (the apple is
+  // drawn in his hands now). He sits to the RIGHT of the trunk and looks out across the
+  // field — Fred: "flip it so not all the pages have the kid looking left."
+  const CX = 590, CY = fy + 6;             // where he sits, under the tree
+  // ⚠ HE MUST SIT ON THE GROUND, NOT HOVER OVER IT (Fred, Sep 16: "the kid is floating").
+  // The child is a sprite composited over the plate, so nothing in the paint touches him
+  // unless the paint reaches out: a contact shadow under his seat, thrown away from the
+  // glow, and a few grass blades pressed flat where his weight is. (figures_must_touch_ground)
   strokes(out, counter, {
-    rng, n: 26,
-    sample: rej(416, fy - 84, 468, fy, (x, y) => childCaps.some(c => inCap(x, y, c)) && !childCaps.some(c => inCap(x + 3, y - 3.5, c))),
-    dir: () => -Math.PI / 3,
-    col: (x, y, r) => jig(mix(GOLD, GOLD_HOT, r() * 0.5), r, 9),
-    len: 4, lw: 1.4, steps: 2, relief: 0,
+    rng, n: 150,
+    sample: r => { const a2 = r() * Math.PI * 2, d = Math.pow(r(), 0.55); return [CX + 4 + Math.cos(a2) * 30 * d, CY + 3 + Math.sin(a2) * 8 * d]; },
+    dir: () => 0.05,
+    col: (x, y, r) => jig(mix('#1d3a1c', '#0e2412', r() * 0.6), r, 5),
+    len: 8, lw: 3.2, steps: 2, lenJ: 0.6, relief: 0, impasto: 0.2, op: 0.46,
+  });
+  strokes(out, counter, {                                   // flattened blades round the seat
+    rng, n: 60,
+    sample: r => { const a2 = r() * Math.PI * 2, d = 0.7 + r() * 0.5; return [CX + 4 + Math.cos(a2) * 30 * d, CY + 4 + Math.sin(a2) * 7 * d]; },
+    dir: (x) => (x < CX ? Math.PI * 0.85 : 0.15) + (rng() - 0.5) * 0.5,
+    col: (x, y, r) => jig(mix('#2f5a2a', '#5f8f3a', r() * 0.7), r, 6),
+    len: 7, lw: 1.6, steps: 2, lenJ: 0.7, relief: 0.2, op: 0.8,
   });
 
-  /* ---------------- 6. THE BREAD — a warm glowing loaf of light, raised ---------------- */
+  const TREEX = 548, TREEY = 434;
+  // ⚠ GROWN. On the page before he pressed one seed into this ground; here it is the tree
+  // feeding him. It is bigger than it was (210 -> 252) so its canopy actually shelters the
+  // child sitting under it, which is what "every day He feeds you / every night He keeps
+  // you" needs the tree to be doing.
+  // ⭐ "As the apple tree among the trees of the wood, so is my beloved… I sat down under his
+  // shadow with great delight, and his fruit was sweet to my taste" (Song 2:3) — THE tree the
+  // child eats under is an apple tree, after his kind (Sep 15).
+  paintTree(out, counter, rng, TREEX, TREEY, 252, { lightFn: glow, blossom: 2, species: 'apple' });
+  // ⚠ AND A BROADER CROWN. paintTree draws one narrow canopy (crown radius = h * 0.24), so
+  // at 252 it is a TALL tree with a small head — a young orchard whip, not the spreading
+  // tree a child sits under all day. Calling paintTree again would plant a second trunk, so
+  // the extra boughs are painted as foliage only, in its own crown ramp, spread either side
+  // and a little lower: one tree, with a canopy wide enough to be a roof.
   {
-    const bx = LOAF.x, by = LOAF.y;
-    // a great soft halo of warm light radiating from the loaf (the bread of life)
-    strokes(out, counter, {
-      rng, n: 130,
-      sample: r => { const a = r() * Math.PI * 2, d = 2 + Math.pow(r(), 0.9) * 10; return [bx + Math.cos(a) * d, by + Math.sin(a) * d * 0.9]; },
-      dir: (x, y) => Math.atan2(y - by, x - bx) + 0.5,
-      col: (x, y, r) => jig(ramp([GOLD_PALE, GOLD, GOLD_DEEP], Math.hypot(x - bx, y - by) / 12), r, 8),
-      len: 5, lw: 1.5, steps: 2, relief: 0,
+    const CROWN = E_SPECIES_APPLE;
+    const crownMass = (mx, my, rx, ry, n) => strokes(out, counter, {
+      rng, n,
+      sample: r => { const a2 = r() * 6.2832, d = Math.pow(r(), 0.52);
+                     return [mx + Math.cos(a2) * rx * d, my + Math.sin(a2) * ry * d]; },
+      dir: (x, y) => Math.atan2(y - my, x - mx) + 1.35,
+      col: (x, y, r) => {
+        const up = Math.max(0, Math.min(1, (my + ry - y) / (ry * 2)));   // crown warm, belly deep
+        return jig(ramp(CROWN, up * 0.62 + glow(x, y) * 0.26 + r() * 0.2), r, 10);
+      },
+      len: 6.5, lw: 2.7, steps: 2, lenJ: 0.7, impasto: 0.5, relief: 0.3,
     });
-    // a few short rays — a modest glow at the loaf, so the head stays visible eating
+    const ccY = TREEY - 252 * 0.5 - 252 * 0.14;
+    crownMass(TREEX - 66, ccY + 16, 52, 34, 340);      // the left bough
+    crownMass(TREEX + 62, ccY + 12, 50, 33, 330);      // the right bough
+    crownMass(TREEX - 14, ccY - 22, 46, 28, 240);      // and a little more height on top
+  }
+  // a proper red APPLE — the same honest dab used for every piece of fruit in
+  // this book, not a tiny rainbow jewel dot lost in the leaves
+  // ⚠ IT WAS A TOMATO. Fred: "make all the apple looks like an actual apple...
+  // this is a tomato." A plain squashed ellipse IS a tomato — what makes an
+  // apple's SILHOUETTE an apple (not just its colour) is the CONCAVE dimple at
+  // the stem end (two shoulders either side of a dip, not a smooth curve), a
+  // belly wider than the shoulders, and a small pucker at the blossom end. A
+  // real closed shape now, built from that outline, not a circle with red on
+  // it — the same shape drives the solid underpaint, the dark contrast edge
+  // and the highlight, so all three agree on what an apple looks like.
+  // Local unit apple (x:-1.05..1.05, y:-1.1..1.0), scaled by s and placed at
+  // (fx,fyy); P() maps one local point through that transform.
+  const applePath = (fx, fyy, s) => {
+    const P = (x, y) => `${R1(fx + x * s)} ${R1(fyy + y * s)}`;
+    return `M${P(0, -0.85)} `
+      + `C${P(0.15, -1.05)} ${P(0.35, -1.1)} ${P(0.55, -1.02)} `    // right shoulder, out of the dimple
+      + `C${P(0.85, -0.9)} ${P(1.05, -0.55)} ${P(1.02, -0.15)} `    // down the right side to the widest point
+      + `C${P(1.0, 0.25)} ${P(0.85, 0.65)} ${P(0.55, 0.88)} `       // curving in toward the bottom
+      + `C${P(0.35, 1.0)} ${P(0.15, 0.92)} ${P(0, 0.85)} `          // the blossom-end pucker, right half
+      + `C${P(-0.15, 0.92)} ${P(-0.35, 1.0)} ${P(-0.55, 0.88)} `    // pucker, left half
+      + `C${P(-0.85, 0.65)} ${P(-1.0, 0.25)} ${P(-1.02, -0.15)} `   // up the left side
+      + `C${P(-1.05, -0.55)} ${P(-0.85, -0.9)} ${P(-0.55, -1.02)} ` // left side to left shoulder
+      + `C${P(-0.35, -1.1)} ${P(-0.15, -1.05)} ${P(0, -0.85)} Z`;   // back into the dimple, closing
+  };
+  // ⚠ "UGLY... make it so that the apple is a part of the art." The shape fix
+  // was right; the PAINT wasn't — a smooth solid-fill outline (a perfect
+  // parallel offset of the bezier) is exactly the "geometric sticker sitting
+  // ON the picture" this engine's own rule warns against (Munch's law: a
+  // circle drawn with a compass, not a hand). Nothing else in this book has a
+  // cartoon ink line. Fixed two ways: the contrast edge is now a soft LOW-
+  // OPACITY stroke (the same technique `lightEdge` uses everywhere else, not
+  // a flat fill), and the texture strokes sample from the TRUE silhouette
+  // (via appleR below, a radius-by-angle lookup built once off the same
+  // bezier) instead of a circular approximation — so the paint reaches every
+  // part of the real shape, dimple and pucker included, and the solid
+  // underpaint underneath (still needed so it reads opaque) never shows
+  // through raw and flat.
+  const APPLE_PTS = (() => {
+    const segs = [
+      [[0, -0.85], [0.15, -1.05], [0.35, -1.1], [0.55, -1.02]],
+      [[0.55, -1.02], [0.85, -0.9], [1.05, -0.55], [1.02, -0.15]],
+      [[1.02, -0.15], [1.0, 0.25], [0.85, 0.65], [0.55, 0.88]],
+      [[0.55, 0.88], [0.35, 1.0], [0.15, 0.92], [0, 0.85]],
+      [[0, 0.85], [-0.15, 0.92], [-0.35, 1.0], [-0.55, 0.88]],
+      [[-0.55, 0.88], [-0.85, 0.65], [-1.0, 0.25], [-1.02, -0.15]],
+      [[-1.02, -0.15], [-1.05, -0.55], [-0.85, -0.9], [-0.55, -1.02]],
+      [[-0.55, -1.02], [-0.35, -1.1], [-0.15, -1.05], [0, -0.85]],
+    ];
+    const bez = (p0, p1, p2, p3, t) => {
+      const u = 1 - t;
+      return [u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0],
+              u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]];
+    };
+    const pts = [];
+    for (const [p0, p1, p2, p3] of segs) for (let i = 0; i < 10; i++) {
+      const [x, y] = bez(p0, p1, p2, p3, i / 10);
+      pts.push([Math.atan2(y, x), Math.hypot(x, y)]);
+    }
+    pts.sort((a, b) => a[0] - b[0]);
+    return pts;
+  })();
+  const appleR = theta => {
+    while (theta > Math.PI) theta -= 2 * Math.PI;
+    while (theta < -Math.PI) theta += 2 * Math.PI;
+    const n = APPLE_PTS.length, first = APPLE_PTS[0], last = APPLE_PTS[n - 1];
+    if (theta <= first[0] || theta >= last[0]) {
+      const span = (first[0] + 2 * Math.PI) - last[0];
+      const t = span === 0 ? 0 : ((theta < first[0] ? theta + 2 * Math.PI : theta) - last[0]) / span;
+      return last[1] + (first[1] - last[1]) * t;
+    }
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (APPLE_PTS[mid][0] < theta) lo = mid; else hi = mid; }
+    const a = APPLE_PTS[lo], b = APPLE_PTS[hi];
+    const t = (theta - a[0]) / ((b[0] - a[0]) || 1);
+    return a[1] + (b[1] - a[1]) * t;
+  };
+  const apple = (fx, fyy, s) => {
+    // ⚠ SOLID UNDERPAINT (Fred: "you have opaque red, in my page that red is
+    // transparent"). strokes() marks glaze at 60% opacity by design — never
+    // fully opaque wherever they don't triple-overlap. A solid fill first
+    // guarantees the apple reads opaque at any size; the strokes on top,
+    // reaching all the way to the true edge (appleR), are what's actually
+    // seen — the same fix `paintPalace` uses for its own walls.
+    out.push(`<path d="${applePath(fx, fyy, s)}" fill="#a8341e"/>`); counter.n++;
+    const dens = Math.max(1, (s * s) / (4.4 * 4.4));
     strokes(out, counter, {
-      rng, n: 18,
-      sample: r => { const a = r() * Math.PI * 2, d = 3 + r() * 7; return [bx + Math.cos(a) * d, by + Math.sin(a) * d * 0.9]; },
-      dir: (x, y) => Math.atan2(y - by, x - bx),
-      col: (x, y, r) => jig(mix(GOLD_HOT, GOLD_PALE, r() * 0.5), r, 6),
-      len: (x, y) => 5 + Math.hypot(x - bx, y - by) * 0.3, lw: 1.1, steps: 2, lenJ: 0.6,
+      rng, n: Math.round(34 * dens),
+      sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.72) * appleR(a) * 0.99; return [fx + Math.cos(a) * s * d, fyy + Math.sin(a) * s * d]; },
+      dir: (x, y) => Math.atan2(y - fyy, x - fx) + Math.PI / 2 + (rng() - 0.5) * 0.6,
+      col: (x, y, r) => jig(ramp(['#f0805a', '#e8503a', '#c8402a', '#8a1c10'], (y - (fyy - s)) / (s * 2)), r, 7),
+      len: 3, lw: 1.7, steps: 2, lenJ: 0.5, wJ: 0.5, relief: 0.3,
     });
-    lightEdge(out, counter, bx, by, 9);   // dark contrast ring so the bread-of-light pops
-    // the loaf body — the brightest warm knot on the page
+    // a soft, low-opacity contrast edge HUGGING the true silhouette — the same
+    // two-pass technique `lightEdge` uses everywhere else (thin translucent
+    // strokes, not a flat outline), just following this shape instead of a circle
+    out.push(`<path d="${applePath(fx, fyy, s * 1.05)}" fill="none" stroke="#2a0f08" stroke-width="${R1(Math.max(1.2, s * 0.14))}" opacity="0.22"/>`); counter.n++;
+    out.push(`<path d="${applePath(fx, fyy, s * 1.02)}" fill="none" stroke="#2a0f08" stroke-width="${R1(Math.max(0.8, s * 0.08))}" opacity="0.3"/>`); counter.n++;
+    // a bright highlight, off-centre upper-left, broken into a few small
+    // separate dabs rather than one smooth blob
     strokes(out, counter, {
-      rng, n: 70,
-      sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.4) * 8; return [bx + Math.cos(a) * d * 1.3, by + Math.sin(a) * d * 0.85]; },
-      dir: () => 0.1,
-      col: (x, y, r) => jig(ramp(['#fffef4', GOLD_HOT, GOLD_PALE, '#e6c068'], Math.hypot((x - bx) / 1.3, (y - by) / 0.85) / 9), r, 7),
-      len: 5, lw: 2.1, steps: 2, relief: 0,
+      rng, n: Math.max(4, Math.round(9 * Math.sqrt(dens))),
+      sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.6) * 0.22; return [fx - s * 0.4 + Math.cos(a) * s * d, fyy - s * 0.45 + Math.sin(a) * s * d]; },
+      dir: () => -0.3 + (rng() - 0.5) * 0.8, col: (x, y, r) => jig(mix('#fff0dc', '#f6a878', r()), r, 6),
+      len: 1.8, lw: 1.2, steps: 1, relief: 0,
     });
-    // a tiny crust highlight on top of the loaf
-    strokes(out, counter, {
-      rng, n: 10,
-      sample: r => [bx + (r() - 0.5) * 10, by - 2 - r() * 1.5],
-      dir: () => 0,
-      col: (x, y, r) => jig('#fffef6', r, 6),
-      len: 3, lw: 1.4, steps: 1, relief: 0,
+    // the stem, rising from the dimple — dark, thin, slightly curved
+    strokes(out, counter, { rng, n: Math.round(4 * Math.sqrt(dens)), sample: r => [fx + (r() - 0.5) * s * 0.1, fyy - s * (0.85 + r() * 0.35)],
+      dir: () => -0.1, col: (x, y, r) => jig('#3a2210', r, 5), len: 3, lw: Math.max(1, s * 0.11), steps: 1 });
+    // a small leaf beside the stem
+    out.push(`<path d="M${R1(fx + s * 0.04)} ${R1(fyy - s * 0.88)} Q${R1(fx + s * 0.4)} ${R1(fyy - s * 1.05)} ${R1(fx + s * 0.62)} ${R1(fyy - s * 0.78)} Q${R1(fx + s * 0.32)} ${R1(fyy - s * 0.72)} ${R1(fx + s * 0.04)} ${R1(fyy - s * 0.88)} Z" fill="#3a7a38" opacity="0.92"/>`); counter.n++;
+  };
+  // apples ON the tree — a handful, clear against the leaves, round the crown
+  {
+    const crCx = TREEX, crCy = TREEY - 252 * 0.5 - 252 * 0.14, crR = 252 * 0.24;
+    // ⚠ THEY WERE BAUBLES. Eight apples at s~6, all one size, evenly spaced around the
+    // crown, came out nearly as wide as the child's head and hung like decorations on a
+    // Christmas tree. Fruit grows in twos and threes off the same spur, at mixed sizes,
+    // some half-hidden in the leaves — and smaller: an apple is about a third of a child's
+    // head, not three quarters. More of them too; the page's word is abundance.
+    const onTree = [[-0.92, -0.46, 4.6], [-0.78, -0.30, 3.9], [-0.30, -0.88, 4.8],
+                    [-0.16, -0.72, 3.6], [0.48, -0.62, 5.0], [0.62, -0.44, 4.0],
+                    [0.92, -0.16, 4.4], [-0.62, 0.30, 4.7], [-0.48, 0.46, 3.7],
+                    [0.20, 0.60, 4.9], [0.34, 0.44, 3.8], [0.86, 0.50, 4.3],
+                    [-0.92, 0.58, 4.1], [0.06, -0.20, 3.5]];
+    for (const [ux, uy, s] of onTree) apple(crCx + ux * crR, crCy + uy * crR * 0.85, s);
+  }
+  // THE GIVEN APPLE now lives OUTSIDE the plate entirely (engine/scene.js,
+  // the HELD table for page 21) — Fred: "now he is sitting on the apple. can
+  // you put it where i drew it?" Painting it into the plate could never work:
+  // the runtime actor is a full opaque cutout drawn OVER the plate, so
+  // anything painted "in" his hands is painted UNDER them and is either
+  // invisible or, pushed just low enough to peek out, reads as him sitting on
+  // it. The engine already has the right mechanism for exactly this — a
+  // "front" critter, appended AFTER the cast so it occludes him instead of
+  // the other way round (used elsewhere for the garden's cypress, which the
+  // child hides behind). `HAND` below is just the reference point the ground
+  // apples still need to keep his hands' own clearing; the apple ITSELF is
+  // drawn in scene.js now, at the same measured position.
+  const HAND = { x: 590, y: 424 };   // = CAST1[21].x, and his lap moved down with SEAT_Y; keeps the ground apples out of it
+  // APPLES ON THE GROUND — fewer now (Fred: "less on the ground"), and clear
+  // of his hands.
+  // ⚠ THEY WERE FLOATING. Scattered flat across a 300-unit box with no contact of any kind,
+  // the fallen fruit read as red blobs stuck at random heights in tall grass rather than
+  // apples lying ON the ground — Fred: "the old apples are messy." Two things fix it, and
+  // both are about contact: a shadow pressed into the turf under each one, and a few blades
+  // drawn back OVER its lower edge so it sits down IN the grass instead of on top of it.
+  // They also gather toward the trunk now, because that is where fruit falls.
+  const groundApples = [];
+  for (let i = 0; i < 13; i++) {
+    const a2 = rng() * 6.2832, d = Math.pow(rng(), 0.62);          // clustered under the tree
+    const ax = TREEX + Math.cos(a2) * 165 * d, ay = TREEY - 16 + Math.sin(a2) * 52 * d;
+    if (Math.hypot(ax - HAND.x, ay - HAND.y) < 30) continue;       // clear of his own hands
+    groundApples.push([ax, ay, (2.8 + rng() * 2.2) * dS(ay)]);
+  }
+  groundApples.sort((a, b) => a[1] - b[1]);   // far apples first, near ones overlap on top
+  for (const [ax, ay, s] of groundApples) {
+    strokes(out, counter, {                                        // pressed into the turf
+      rng, n: 9,
+      sample: r => [ax + (r() + r() - 1) * s * 1.5, ay + s * 0.62 + (r() - 0.5) * s * 0.5],
+      dir: () => 0.06,
+      col: (x, y, r) => jig(mix('#1f3a1c', '#33512a', r()), r, 6),
+      len: s * 1.5, lw: s * 0.7, steps: 1, relief: 0, op: 0.42,
     });
-    // THE NEXT STEP LIT — the loaf's warm light falls in a soft pool on the path
-    // one stride ahead of his feet: "a lamp unto my feet, and a light unto my
-    // path" (Ps 119:105). Rides the fg plane so the light moves with its source.
-    const STEP = { x: CX + 16, y: fy + 9 };
+    apple(ax, ay, s);
+    strokes(out, counter, {                                        // and grass closing over its foot
+      rng, n: 11,
+      sample: r => [ax + (r() + r() - 1) * s * 1.25, ay + s * (0.15 + r() * 0.55)],
+      dir: (x, y) => -Math.PI / 2 + (fbm(x / 7, y / 6, 103) - 0.5) * 1.2,
+      col: (x, y, r) => jig(ramp(['#2f6a2e', '#4f8c3c', '#7ab04e', '#a3c85e'], r() * 0.9 + glow(x, y) * 0.3), r, 10),
+      len: s * 1.9, lw: 1.0, steps: 2, lenJ: 0.7, impasto: 0.5,
+    });
+  }
+  // DAPPLED LIGHT — the tree's canopy breaking the sun into small warm coins of
+  // light across the grass and the fallen apples. Not a flat tint: real light
+  // falling THROUGH leaves.
+  strokes(out, counter, {
+    rng, n: 110,
+    sample: r => [TREEX + (r() - 0.5) * 340, TREEY - 20 + (r() - 0.5) * 160],
+    dir: () => 0.1,
+    col: (x, y, r) => jig(mix('#fff6c8', GOLD_PALE, r() * 0.4), r, 5),
+    len: 3, lw: 1.7, steps: 1, impasto: 0.12, relief: 0,
+  });
+
+  /* ---------------- 6. THE WAY AHEAD, STILL LIT ---------------- */
+  {
+    // "And He lights the next step of the way" stays true as a soft pool
+    // of light resting further out in the open meadow, toward the horizon-glow —
+    // the way is not a path underfoot any more, it is the whole field ahead of
+    // him, and it is still lit.
+    const STEP = { x: 400, y: 330 };
     strokes(out, counter, {
-      rng, n: 46,
-      sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8) * 20; return [STEP.x + Math.cos(a) * d * 1.5, STEP.y + Math.sin(a) * d * 0.42]; },
-      dir: (x, y) => Math.atan2(pathTop[1] - y, pathTop[0] - x),
-      col: (x, y, r) => jig(ramp(['#fff8dc', '#ffeeb0', GOLD_PALE, '#e6cf94'], Math.hypot((x - STEP.x) / 1.5, (y - STEP.y) / 0.42) / 20), r, 8),
-      len: 7, lw: 2.2, steps: 2, lenJ: 0.5, relief: 0,
+      rng, n: 40,
+      sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8) * 30; return [STEP.x + Math.cos(a) * d, STEP.y + Math.sin(a) * d * 0.4]; },
+      dir: (x, y) => Math.atan2(STEP.y - y, STEP.x - x),
+      col: (x, y, r) => jig(ramp(['#fff8dc', '#ffeeb0', GOLD_PALE, '#e6cf94'], Math.hypot(x - STEP.x, (y - STEP.y) / 0.4) / 30), r, 8),
+      len: 6, lw: 1.9, steps: 2, lenJ: 0.5, relief: 0,
     });
   }
 
-  fgRanges.push([_fg, out.length]);   // ← the child + the glowing loaf + the lit next step are foreground
+  fgRanges.push([_fg, out.length]);   // ← the child + the apple tree + the fallen apples + the lit way ahead are foreground
 
-  /* ---------------- 7. EASTER EGG — John 6:35 in Greek, on the bright path ---------------- */
-  // "I am the bread of life." Ϛʹ·ΛΕʹ (6 = Ϛ, 35 = ΛΕ) — incised low on the lit path.
-  E.inscriptionText(out, E.greekRef(6, 35), { x: 408, y: 456, h: 14, body: '#fff4cc', edge: '#8a6a2a', op: 0.78, edgeOp: 0.5 });
+  /* ---------------- 7. EASTER EGG — John 6:35 in Greek, incised low in the grass ---------------- */
+  // "I am the bread of life." Ϛʹ·ΛΕʹ (6 = Ϛ, 35 = ΛΕ) — incised low in the meadow.
+  // ⚠ a fourth-look secret, not a caption — near-white at h14/op.78 it read as a watermark
+  E.inscriptionText(out, E.greekRef(6, 35), { x: 408, y: 456, h: 10, body: '#2a4a2c', edge: '#e8f4d8', op: 0.44, edgeOp: 0.24 });
 
-  const ALT = 'In a bright new-creation day a small child in red, washed and ringed with a soft white aura, walks a flourishing winding path through green fields full of wildflowers and fruit-trees, carrying a warm glowing loaf of light whose glow falls in a pool on the path one step ahead; sparrows peck scattered seed on the path and white trumpet lilies bloom at its verge; vibrant light-blue sky, gold low on the horizon, the way bright ahead toward home.';
+  const ALT = 'In a bright new-creation day a small hooded child sits at rest in the dappled shade of a big green apple tree, in an unbroken flowering meadow, an apple resting in his own two hands; a few more red apples hang in the branches and lie scattered in the grass all around him, provided in abundance; a soft pool of light rests further out in the open field; sparrows peck seed and white trumpet lilies bloom nearby in the grass; vibrant light-blue sky, gold low on the horizon, wildflowers growing in colourful colonies across the rolling ground.';
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.
@@ -363,7 +708,7 @@ export function paint(E, opts = {}) {
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
   const fgSet = setOf(fgRanges);
   if (LAYER === 'bg') return svgWrap(ALT, out.slice(0, skyEnd).join('\n'), RAW);   // bright day sky (opaque)
-  if (LAYER === 'fg') return svgWrap(ALT, pick(fgRanges), RAW);                    // the child + the glowing loaf (nearest)
+  if (LAYER === 'fg') return svgWrap(ALT, pick(fgRanges), RAW);                    // the child + the apple tree + the given apple (nearest)
   if (LAYER === 't3') return svgWrap(ALT, pick([avRanges[0]]), RAW);               // avenue rows, far → near
   if (LAYER === 't2') return svgWrap(ALT, pick([avRanges[1]]), RAW);
   if (LAYER === 't1') return svgWrap(ALT, pick([avRanges[2]]), RAW);

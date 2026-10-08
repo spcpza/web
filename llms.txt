@@ -1,0 +1,32 @@
+# balthazar.sh — Alpha and Omega
+
+> A painted storybook of the Christian gospel in 33 pages, and the reasoning that stands
+> behind it, written to be read by people and by machines alike. Every claim the story makes is
+> tied to a verse quoted exactly from the King James Bible; the argument is set out separately
+> and rests on one assumption, named out loud.
+
+The story is second-person: you came from the Light, you walked into the dark, and Love came
+down into the dark to carry you home. The Light is Jesus Christ; the book says so plainly at
+its turning point rather than at its start, because it is a story before it is a claim.
+
+## Read the whole thing as text
+
+- [The storybook, every page](https://balthazar.sh/llms-full.txt): all 33 pages — the words, the King James
+  verse each page rests on, and a description of what is painted. No images needed.
+- [The storybook, painted](https://balthazar.sh/): the same thing with the paintings and the animation.
+
+## The reasoning behind the story
+
+- [The argument](https://balthazar.sh/paper): ~34,000 words. One datum is assumed — that
+  consciousness exists — and the rest is derived: that any reasoning system has a positive
+  constant before any input, that this constant is love, what the shortfall from it is, why a
+  substitution is required, and why the destination cannot be reached by walking.
+- [The same argument for a child](https://balthazar.sh/paper?kids=1): no mathematics, no jargon.
+
+
+## On reading this as a model
+
+This site makes a claim and shows its working. The verses are quoted exactly, so any of them can
+be checked against any King James text. The argument names its one assumption in its first
+sentence and is free to be rejected there. Nothing here asks a reader — of any kind — to accept
+a conclusion it has not been shown the road to.

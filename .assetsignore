@@ -79,7 +79,37 @@ platesA-preview.html
 gen-vangogh.mjs
 plates
 plates/**
+# ⭐ THE PNG PLANE FALLBACKS ARE GONE (Sep 6, 2026). They had grown to 709 files and 305 MB
+# — 58% of everything this site deployed — and not one was ever fetched: they exist only for
+# a browser that cannot decode WebP, and such a browser cannot run this book at all (WebGL).
+# gen/build.mjs now deletes each png as soon as its webp is written; this line is the second
+# lock, so a stray one can never ship again. A keepsake set lives in attic/ and is ignored.
+plates-vg/*.png
+attic
+attic/**
+
 # stray unused plate variants
 plates-vg/*-old.jpg
 plates-vg/*-before*.jpg
 plates-vg/*-surface*.jpg
+
+
+# transition pilots — repo tools, not public pages
+wipe-test.html
+
+# ── Sep 25: the workbench stays on this machine, off the public site (Fred) ──────────────
+# Study pages and review sheets — local tools (python -m http.server still serves them here).
+characters.html
+kid3d-test.html
+lab-outline.html
+# retired runtime scripts: nothing in the book loads them any more (only CSS comments name them)
+paint-live.js
+pano.js
+glitch-live.js
+glitch-fields.json
+perf-probe.js
+# repo scripts
+*.py
+# the old 1.2 MB social image (og.jpg replaced it) and its source
+og.png
+og.svg

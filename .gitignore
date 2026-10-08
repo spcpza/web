@@ -49,3 +49,6 @@ Thumbs.db
 
 # ── Node ─────────────────────────────────────────────────────────────────
 node_modules/
+
+# ── Local backups of replaced art / cells (Sep–Oct 2026) — kept on this Mac only ──
+attic/

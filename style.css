@@ -3,9 +3,7 @@
  */
 
 /* Computer Modern fonts via CDN */
-@import url('https://fonts.cdnfonts.com/css/cmu-serif');
-@import url('https://fonts.cdnfonts.com/css/cmu-sans-serif');
-@import url('https://fonts.cdnfonts.com/css/cmu-typewriter-text');
+@import url('/fonts/cmu.css');   /* self-hosted Sep 25 — was fonts.cdnfonts.com (a third party saw every reader) */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

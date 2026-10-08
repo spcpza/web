@@ -1,0 +1,24 @@
+<meta charset="utf-8"><title>kid3d</title>
+<style>body{background:#f2ece4;margin:0;font:13px system-ui}
+canvas{background:#faf5ee;margin:4px;border:1px solid #ddd}
+b{display:block;margin:8px 0 0 8px;color:#444}</style>
+<div id="r"></div>
+<script src="/engine/kid3d.js"></script>
+<script>
+var only = new URLSearchParams(location.search).get('only');
+var K = window.__kid3d;
+K.onReady(function(){
+  var views = [{t:'front',yaw:0},{t:'3q',yaw:35},{t:'side',yaw:85},{t:'back',yaw:180},
+               {t:'up',yaw:0,L:[-0.20,0.80,0.06],R:[0.20,0.80,0.06]}];
+  var r = document.getElementById('r');
+  views.forEach(function(v){
+    var c=document.createElement('canvas'); c.width=380; c.height=470;
+    var g=c.getContext('2d');
+    var pose={x:190,y:452,h:410,yaw:v.yaw,rot:{},only:only};
+    if(v.L){pose.mat=pose.mat||{};K.reachTo(pose.mat,'L',v.L,1);}
+    if(v.R){pose.mat=pose.mat||{};K.reachTo(pose.mat,'R',v.R,1);}
+    K.draw(g,pose);
+    r.appendChild(c);
+  });
+});
+</script>

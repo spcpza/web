@@ -1,0 +1,305 @@
+<!doctype html>
+<!-- data-ep=1: character.js picks its cast table from this root attribute. -->
+<html data-ep="1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>the cast — every character in the book</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #10142a; color: #cfd4ea; font: 13px/1.45 Georgia, serif; }
+  h1 { font-size: 15px; font-weight: normal; letter-spacing: .12em; margin: 16px 18px 4px; color: #e8d9a0; }
+  p.hint { margin: 0 18px 18px; opacity: .6; font-style: italic; max-width: 62ch; }
+  section { margin: 0 12px 26px; border-top: 1px solid #232a4e; padding-top: 14px; }
+  h2 { font-size: 14px; font-weight: normal; letter-spacing: .1em; margin: 0 6px 2px; color: #e8d9a0; }
+  .who { margin: 0 6px 10px; opacity: .62; max-width: 64ch; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; padding: 0 6px; align-items: flex-end; }
+  figure { margin: 0; }
+  figure img, figure canvas { display: block; background: #f6ece2; border-radius: 6px; }
+  figcaption { padding: 4px 2px 0; opacity: .72; font-size: 12px; }
+  .pal { display: flex; gap: 6px; padding: 10px 6px 0; flex-wrap: wrap; }
+  .sw { width: 46px; height: 46px; border-radius: 5px; position: relative; }
+  .sw i { position: absolute; left: 0; right: 0; bottom: -16px; font-size: 10px; font-style: normal;
+          text-align: center; opacity: .55; letter-spacing: .04em; }
+  .note { margin: 22px 6px 0; padding: 10px 12px; background: #161b36; border-radius: 6px;
+          font-size: 12px; opacity: .78; max-width: 78ch; }
+  code { color: #e8d9a0; font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+</style>
+
+<h1>THE CAST — every character in the book</h1>
+<p class="hint">Two characters carry the whole story. Their look is decided in ONE place —
+<code>gen/characters.mjs</code> — so a change here is a change on all thirty-three pages.
+This sheet draws them the way the book does, so it shows what the pages really hold.</p>
+
+<section>
+  <h2>THE LIGHT</h2>
+  <p class="who">The Father, the Son, the walking radiance — one Person from creation to the
+  homecoming. He is light, but he must read as somebody: white alone disappears against his own
+  glory, so his light is woven with gold and given a contour. <b>Painted into the plate</b> by
+  <code>paintTheLight()</code>.</p>
+  <div class="row">
+    <figure><img src="/cast/light-stand.png?v=1" width="200" height="320" alt=""><figcaption>standing</figcaption></figure>
+    <figure><img src="/cast/light-walk.png?v=1" width="200" height="320" alt=""><figcaption>walking</figcaption></figure>
+    <figure><img src="/cast/light-carry.png?v=1" width="200" height="320" alt=""><figcaption>carrying the child (Luke 15:5)</figcaption></figure>
+  </div>
+  <div class="pal" id="palLight"></div>
+</section>
+
+<section>
+  <h2>THE KID — <em>3D model with joints</em></h2>
+  <p>Real geometry: a hood shell with a hollow rim, a skull, a bell body, sleeves
+  swept down the joint chain, paws and feet. Fourteen joints. Cel-shaded off his
+  own palette with a drawn contour, and wearing HIS painted face as a texture —
+  the one thing geometry should never try to fake.</p>
+  <div class="row" id="kid3d"></div>
+</section>
+<section>
+  <h2>THE KID — <em>skinned mesh, no cut</em></h2>
+  <p>His painting, uncut. A triangle mesh over it, twelve bones under it, every
+  vertex weighted to the bones nearest it — so a moving arm STRETCHES the cloth
+  instead of sliding a cut piece over it. The arm is upper arm + forearm + hand,
+  posed by two-bone IK: give it a hand position and the elbow works out where to go.</p>
+  <div class="row" id="kidMesh"></div>
+</section>
+<section>
+  <h2>THE KID — <em>rigged from your own painting</em></h2>
+  <p>Not redrawn. Your front figure, cut into head / torso / two sleeves, hung on
+  shoulder joints. Every pose below is the SAME painted sleeve rotated — nothing
+  here is drawn by me except the sliver of body the sleeves were covering.</p>
+  <div class="row" id="kidRig"></div>
+</section>
+<section>
+  <h2>THE KID <span style="opacity:.55;font-size:12px">— redrawn from your sheet, not in the book yet</span></h2>
+  <p class="who">Your chibi sheet, REDRAWN — not cropped from it, and not the Twitter avatar
+  (that was a different, much scarier character). Every form is drawn as its own shape with
+  modelling, so he can be posed and lit per page: big round hood, a face light enough to read,
+  a fringe with locks falling past the cheeks, and big round eyes with a catch-light — which is
+  what makes him a child rather than something looking out of a cowl. The book stays on the
+  original pilgrim until he is right.</p>
+  <div class="row" id="kidBuilt"></div>
+</section>
+
+<section>
+  <h2>THE CHILD <span style="opacity:.55;font-size:12px">— current</span></h2>
+  <p class="who">The little pilgrim — and the reader. She appears on nearly every page, so she is
+  the character that most needs to be identical every time. <b>Drawn at runtime</b>, not painted:
+  <code>DEBAKE</code> is on by default, so no plate contains her; she is an actor in
+  <code>engine/character.js</code> and is drawn live here by that same file.</p>
+  <div class="row" id="kids"></div>
+  <div class="pal" id="palChild"></div>
+</section>
+
+<div class="note">
+  Where they live — <code>gen/characters.mjs</code> holds the cast (palettes, contour, halo, and
+  the poses). <code>engine/character.js</code> holds the runtime twin and every page's actor list.
+  <code>carriedChildAt()</code> defines the carried pose once, so the painted Light and the sprite
+  child always agree. A plate says WHERE someone stands and what they are doing — never what they
+  look like. One split to know: the Light's colours are decided in <code>characters.mjs</code>;
+  the child's live in <code>character.js</code> (<code>RED</code>/<code>MASKC</code>) because she
+  is drawn at runtime — the library mirrors them, and they change together.
+</div>
+
+<div id="book" hidden></div>
+<script>
+  var MOODS = [['joy', 'joy'], ['wonder', 'wonder'], ['open', 'open'], ['wary', 'wary']];
+  // a proper model sheet: the turnaround first, then the faces
+  var TURN = [
+    { t: 'front',        turn: 0,    facing: 1,  mood: 'open',   eye: [0, 0] },
+    { t: 'three-quarter',turn: 0.5,  facing: 1,  mood: 'open',   eye: [0.3, 0] },
+    { t: 'side',         turn: 0.95, facing: 1,  mood: 'open',   eye: [0.5, 0] },
+    { t: 'back',         turn: 0,    facing: 1,  back: true },
+    { t: 'joy',          turn: 0,    facing: 1,  mood: 'joy',    eye: [0, -0.3] },
+    { t: 'wonder',       turn: 0.2,  facing: 1,  mood: 'wonder', eye: [0.2, -0.5] },
+    { t: 'wary',         turn: 0.35, facing: -1, mood: 'wary',   eye: [-0.4, 0.2] },
+    { t: 'looking up',   turn: 0,    facing: 1,  mood: 'open',   eye: [0, -1] },
+  ];
+  var v = Date.now();
+  var s3 = document.createElement('script');
+  s3.src = '/engine/kid3d.js?cb=' + Date.now();
+  document.head.appendChild(s3);
+  var sc = document.createElement('script');
+  sc.src = '/engine/character.js?cb=' + v;
+  sc.onload = function () {
+    var F = window.__charFactory;
+    var row = document.getElementById('kids');
+    if (!F || !F.drawPilgrim) { row.textContent = 'character.js did not expose the factory.'; return; }
+    // ── THE 3D MODEL ── real geometry, real joints
+    var row3 = document.getElementById('kid3d');
+    function go3d() {
+      var K = window.__kid3d;
+      if (!K) { setTimeout(go3d, 120); return; }
+      K.onReady(function () {
+        [{t:'front'}, {t:'three-quarter', yaw:34}, {t:'side', yaw:82}, {t:'back', yaw:170},
+         {t:'looking down', yaw:22, rot:{head:[0.26,0.18,0]}},
+         {t:'looking up', rot:{head:[-0.30,0,0]}},
+         {t:'both arms up', L:[-0.19,0.78,0.06], R:[0.19,0.78,0.06]},
+         {t:'waving', R:[0.25,0.71,0.09]},
+         {t:'reaching out', R:[0.28,0.50,0.24]},
+         {t:'pointing', yaw:22, R:[0.30,0.56,0.16]},
+         {t:'holding on, from behind', yaw:170, L:[-0.13,0.62,0.22], R:[0.13,0.62,0.22]},
+         {t:'carrying something', L:[-0.15,0.44,0.20], R:[0.15,0.44,0.20]}
+        ].forEach(function (t) {
+          var f = document.createElement('figure');
+          var cv = document.createElement('canvas'); cv.width = 230; cv.height = 300;
+          var g = cv.getContext('2d');
+          var pose = { x: 115, y: 288, h: 262, yaw: t.yaw || 0, pitch: t.pitch || 0, rot: t.rot || {} };
+          if (t.L) { pose.mat = pose.mat || {}; K.reachTo(pose.mat, 'L', t.L, 1); }
+          if (t.R) { pose.mat = pose.mat || {}; K.reachTo(pose.mat, 'R', t.R, 1); }
+          K.draw(g, pose);
+          f.appendChild(cv);
+          var cap = document.createElement('figcaption'); cap.textContent = t.t; f.appendChild(cap);
+          row3.appendChild(f);
+        });
+      });
+    }
+    if (row3) go3d();
+
+    // ── THE SKINNED MESH ── no cut at all; the cloth bends
+    var meshRow = document.getElementById('kidMesh');
+    if (meshRow && F.drawKidMesh) F.onMeshReady(function () {
+      [{t:'rest'},
+       {t:'both arms up',   L:[-70,-224], R:[70,-224]},
+       {t:'waving',         R:[78,-198]},
+       {t:'reaching out',   R:[92,-118]},
+       {t:'HUGGING a neck', L:[-46,-166], R:[46,-160]},
+       {t:'holding on',     L:[-34,-178], R:[34,-174]},
+       {t:'carried, tilted',L:[-42,-170], R:[42,-162], tilt:-9},
+       {t:'pointing the way', R:[96,-160]},
+       {t:'both hands to the face', L:[-30,-150], R:[30,-150]}
+      ].forEach(function (t) {
+        var f = document.createElement('figure');
+        var cv = document.createElement('canvas'); cv.width = 230; cv.height = 300;
+        var g = cv.getContext('2d');
+        var X0 = 115, Y0 = 288, HT = 262;
+        var pose = { x: X0, y: Y0, h: HT, facing: 1, tilt: t.tilt };
+        if (t.L) pose.armL = [X0 + t.L[0], Y0 + t.L[1]];
+        if (t.R) pose.armR = [X0 + t.R[0], Y0 + t.R[1]];
+        F.drawKidMesh(g, pose, {});
+        f.appendChild(cv);
+        var cap = document.createElement('figcaption'); cap.textContent = t.t; f.appendChild(cap);
+        meshRow.appendChild(f);
+      });
+    });
+
+    // ── THE RIG ── his own painting, hung on shoulder joints
+    var rigRow = document.getElementById('kidRig');
+    if (rigRow && F.drawKidRig) F.onRigReady(function () {
+      [{t:'rest'},
+       {t:'both arms up',  L:[-60,-250], R:[60,-250]},
+       {t:'waving',        R:[74,-196]},
+       {t:'reaching out',  R:[86,-120]},
+       {t:'HUGGING — arms round a neck', L:[-52,-176], R:[52,-168]},
+       {t:'holding on tight', L:[-30,-190], R:[30,-186]},
+       {t:'carried (tilted)', L:[-46,-180], R:[46,-172], tilt:-9}
+      ].forEach(function (t) {
+        var f = document.createElement('figure');
+        var cv = document.createElement('canvas'); cv.width = 230; cv.height = 300;
+        var g = cv.getContext('2d');
+        var X0 = 115, Y0 = 288, HT = 262;
+        var pose = { x: X0, y: Y0, h: HT, facing: 1, tilt: t.tilt };
+        if (t.L) pose.armL = [X0 + t.L[0], Y0 + t.L[1]];
+        if (t.R) pose.armR = [X0 + t.R[0], Y0 + t.R[1]];
+        F.drawKidRig(g, pose, {});
+        f.appendChild(cv);
+        var cap = document.createElement('figcaption'); cap.textContent = t.t; f.appendChild(cap);
+        rigRow.appendChild(f);
+      });
+    });
+
+    var kb = document.getElementById('kidBuilt');
+    [{t:'rest'}, {t:'joy', mood:'joy'}, {t:'wonder', mood:'wonder', eye:[0.2,-0.3]},
+     {t:'three-quarter', turn:0.5, eye:[0.3,0]}, {t:'side', turn:0.9, eye:[0.5,0]},
+     {t:'arms up', mood:'joy', up:1}, {t:'wave', wave:1},
+     {t:'reaching', reach:1, mood:'wonder'},
+     {t:'hugging (from behind)', back:1, hug:1},
+     {t:'holding on', turn:0.6, hug:1, mood:'joy'}].forEach(function (t) {
+      var f = document.createElement('figure');
+      var cv = document.createElement('canvas'); cv.width = 210; cv.height = 290;
+      var ctx = cv.getContext('2d');
+      var X0 = 105, Y0 = 274, HT = 248;
+      var pose = { x: X0, y: Y0, h: HT, facing: 1, mood: t.mood, eye: t.eye, turn: t.turn };
+      if (t.up) { pose.armL = [X0 - 66, Y0 - HT * 0.99]; pose.armR = [X0 + 66, Y0 - HT * 0.99]; }
+      if (t.wave) { pose.armR = [X0 + 84, Y0 - HT * 0.88]; }
+      if (t.reach) { pose.armL = [X0 - 30, Y0 - HT * 0.86]; pose.armR = [X0 + 62, Y0 - HT * 0.92]; }
+      if (t.back) pose.back = true;
+      // the hug: both hands come round the FRONT of whoever he is holding, which
+      // means they cross the far side of his own body and sit high, at neck height
+      if (t.hug) { pose.armL = [X0 - HT * 0.30, Y0 - HT * 0.74]; pose.armR = [X0 + HT * 0.30, Y0 - HT * 0.70]; }
+      try { F.drawKidBuilt(ctx, pose, {}); } catch (e) {}
+      f.appendChild(cv);
+      var cap = document.createElement('figcaption'); cap.textContent = t.t; f.appendChild(cap);
+      kb.appendChild(f);
+    });
+
+    // his own sheet, painted
+    var kid = document.getElementById('kid');
+    ['front', 'three-quarter', 'side', 'back', 'hands-up', 'surprised', 'hood-down'].forEach(function (n) {
+      var f = document.createElement('figure');
+      var im = document.createElement('img');
+      im.src = '/cast/kid-' + n + '.webp?v=' + v;
+      im.style.height = '250px'; im.style.width = 'auto';
+      f.appendChild(im);
+      var cap = document.createElement('figcaption'); cap.textContent = n; f.appendChild(cap);
+      kid.appendChild(f);
+    });
+
+    var hood = document.getElementById('hood');
+    if (F.drawHooded) {
+      TURN.forEach(function (t) {
+        var f = document.createElement('figure');
+        var cv = document.createElement('canvas');
+        cv.width = 170; cv.height = 250;
+        var ctx = cv.getContext('2d');
+        ctx.setTransform(1.15, 0, 0, 1.15, 0, 0);
+        try {
+          F.drawHooded(ctx, { x: 74, y: 200, h: 168, facing: t.facing, turn: t.turn,
+                              back: t.back, mood: t.mood, eye: t.eye },
+                       { swayX: 0, bobY: 0, gazeX: 0, gazeY: 0 });
+        } catch (e) { }
+        f.appendChild(cv);
+        var cap = document.createElement('figcaption'); cap.textContent = t.t; f.appendChild(cap);
+        hood.appendChild(f);
+      });
+    } else { hood.textContent = 'drawHooded() not found — is character.js current?'; }
+
+    MOODS.forEach(function (m, i) {
+      var f = document.createElement('figure');
+      var cv = document.createElement('canvas');
+      cv.width = 200; cv.height = 320;
+      var ctx = cv.getContext('2d');
+      ctx.setTransform(1.4, 0, 0, 1.4, 0, 0);
+      try {
+        F.drawPilgrim(ctx, {
+          x: 71, y: 210, h: 150, facing: 1, mood: m[0],
+          eye: [i % 2 ? -0.4 : 0.4, -0.5],
+          armL: [71 - 46, 210 - 150 + 6], armR: [71 + 46, 210 - 150 + 10],
+        }, { swayX: 0, bobY: 0, breeze: 0, gazeX: 0, gazeY: 0, lid: 0, smile: false });
+      } catch (e) { }
+      f.appendChild(cv);
+      var cap = document.createElement('figcaption');
+      cap.textContent = m[1];
+      f.appendChild(cap);
+      row.appendChild(f);
+    });
+    // palettes, read from the library's own values (kept in step by hand — see the note)
+    var PAL = {
+      palLight: [['#8a6a22', 'body deep'], ['#c39a3c', 'body'], ['#efd07a', 'body lit'],
+                 ['#fdf0c2', 'body pale'], ['#fffdf2', 'highlight'], ['#3b2410', 'contour'],
+                 ['#fff8dc', 'halo']],
+      palHood: [['#5db4f7', 'hood lit'], ['#3b93ea', 'hood'], ['#2a6dba', 'hood shade'],
+                ['#454049', 'face'], ['#1a1620', 'hair'], ['#e8481f', 'eyes']],
+      palChild: [['#dc3f2c', 'cloak lit'], ['#b0271c', 'cloak'], ['#7a160e', 'cloak shade'],
+                 ['#f6efdc', 'face'], ['#e8dfc4', 'face mid'], ['#c4b898', 'face shade']],
+    };
+    Object.keys(PAL).forEach(function (id) {
+      var host = document.getElementById(id);
+      PAL[id].forEach(function (c) {
+        var d = document.createElement('div');
+        d.className = 'sw'; d.style.background = c[0];
+        d.innerHTML = '<i>' + c[1] + '</i>';
+        host.appendChild(d);
+      });
+    });
+  };
+  document.head.appendChild(sc);
+</script>

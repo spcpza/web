@@ -22,7 +22,7 @@
 // layout leaves the rendered SVG byte-identical.
 
 import { loadCorpus, LIGHT_ROOTS } from '../corpus.mjs';
-import { mix, ramp } from '../engine.mjs';
+import { mix, ramp, twinkleAt } from '../engine.mjs';
 
 // ALPHA & OMEGA — "I am Alpha and Omega, the beginning and the end" (Rev 22:13).
 // The first page and the last hold ALL colours: the full spectrum, red through
@@ -45,20 +45,54 @@ export const focal = { x: 400, y: 258 };
 // the one Light at its own depth. Positions (the checkable claim) are untouched;
 // only the DRAW is split into shells the compositor slides apart.
 //   depth(mote) ≈ 1 − (r/RIM)²  → finer depth resolution toward the Word.
-const NSHELL = 14;        // transparent mote shells between the bg and the Word
-const RIM = 170;          // motes beyond this fold into the opaque bg (they barely parallax)
+const NSHELL = 3;         // transparent mote shells between the bg and the Word (lean, for the tiltable cover diorama)
+const RIM = 230;          // ⚠ ALL 31,102 motes live in the shells now (max r = 224). It was 170, with 13k rim motes baked into the bg — but the shells TURN at runtime (scene.js SPIN) and a wheel whose rim stands still is not a wheel. Fred, Sep 8: "why is it not moving with the other stars?"
 // PAINT ON PAINT: the spiral's visible brushwork is NOT one smooth field but
 // several INDEPENDENT, bold, GAPPED stroke-sheets stacked at their own depths
 // over a smooth deep ground. Each is its own pass (own rng) of crisp full-opacity
 // marks with open gaps — so you see strokes, and through the gaps the strokes of
 // the sheet behind, and behind that. They parallax apart as the phone tilts.
 // Deepest → nearest: strokes get a touch finer + warmer (atmospheric).
+// FINE FLOWING LIGHT, not fat impasto blobs. Long, thin, luminous streaks that
+// spiral with the canon — brushed aurora that lets the deep ground and the
+// verse-motes shine THROUGH the gaps, so the picture reads as a galaxy of light,
+// not a pile of candy. Deepest → nearest: a touch finer + warmer (atmospheric).
+// THREE sheets (was five): the cover is a tiltable DIORAMA like every story page,
+// and a lean plane count (bg + 3 sheets + 3 mote shells + fg = 8, same as the
+// heaviest story plate) keeps it crisp + pannable WITHOUT the 21-plane memory
+// crash. Denser strokes per sheet preserve the full brushwork coverage.
+/* ⭐⭐ FINE FLOWING LIGHT — AT LAST WHAT THE NOTE ABOVE ASKS FOR. Sep 8, Fred: "make all of the
+   pages more detailed... lets start with word." Measured against its own brief, the cover was
+   the blobs the note warns against: three sheets of THREE HUNDRED strokes each at 3-4.4 units
+   wide and up to 124 long — fat, flat, single-colour bands with no lit edge and nothing
+   happening inside them. The centre is already the detail (every mote is a verse); the
+   deficit was the whole outer spiral. Same coverage, five times the grain: ~1150 streaks a
+   sheet at under half the width and two-thirds the length (area per stroke ≈ ¼, so the ink
+   laid is about the same and the GAPS the stacking depends on survive), each with a real
+   lit edge (relief 0.5, was 0.28), colour breaking along the flow the way a painted sky's
+   does, plus `hi` thinner, brighter streaks riding the same spiral — the light on the
+   light. Three sheets still: the plane count is the memory budget, and stays. */
+// ⚠ AND THEN TUNED BACK, for two reasons measured on the first cut. (1) WEIGHT: fine
+// strokes are edges, and edges are what a webp pays for — 1150 + 360 streaks a sheet
+// DOUBLED the cover's planes (612 → 1206 KB on n0), and the cover is the first thing every
+// phone downloads. (2) COLOUR: at 32% broken colour with pale threads on top, the bold
+// saturated zones the wheel is made of started averaging toward pastel — the "speckle, not
+// zones" fault the book's quality bar names. So: fewer and a little wider (the streak still
+// holds its colour), the deepest sheet leanest (it is mostly hidden), less white in the
+// highlight, and the cover's planes encoded at q86 (WEBP_Q_PAGE in build.mjs — the q95
+// default was chosen for fat strokes, and behind a parallax at partial opacity the
+// difference is invisible).
+// `rel` is per sheet: the deepest is mostly hidden behind the other two, and a lit edge
+// nobody sees is pure file weight (every relief pair is two more edges for the webp).
+// ⚠ AND THEN FRED LIFTED THE BUDGET: "forget about the budget, we push the limit as long as
+// the site is still fast and snappy." So the grain goes back up toward the first cut — the
+// colour fixes stay (they were art, not weight), the deepest sheet stays leanest (hidden),
+// and the cover's q84 stays (free). Snappiness is decoded memory and the compositor, which
+// none of this touches; the planes are 6.4 MB decoded whatever their file size.
 const SHEETS = [
-  { n: 104, len: 74, lw: 15, lift: 0.00 },
-  { n: 108, len: 64, lw: 14, lift: 0.04 },
-  { n: 114, len: 56, lw: 13, lift: 0.08 },
-  { n: 120, len: 48, lw: 12, lift: 0.12 },
-  { n: 128, len: 42, lw: 11, lift: 0.16 },
+  { n: 900,  len: 80, lw: 2.2, lift: 0.00, hi: 160, rel: 0.40 },
+  { n: 1000, len: 68, lw: 1.9, lift: 0.11, hi: 300, rel: 0.50 },
+  { n: 1100, len: 58, lw: 1.6, lift: 0.22, hi: 340, rel: 0.52 },
 ];
 export const layers = [
   { name: 'bg', opaque: true },   // smooth deep ground + filaments + the outermost motes (backmost)
@@ -71,11 +105,15 @@ export const layers = [
 const shellEdges = Array.from({ length: NSHELL + 1 }, (_, i) => Math.sqrt(RIM * RIM * (1 - i / NSHELL)));
 
 // the scarlet thread, in canon order — the only red in the image
+// ⭐ Sep 9 (Fred: "he did say he is the alpha and omega, did we miss anything?"): three wounds
+// added in canon order — Joshua 2:18, the "line of scarlet thread" the whole thread is named
+// after; Hebrews 9:22, why the line is red; Revelation 13:8, the Lamb slain from the foundation
+// of the world — and the thread is now a RING closed through the Word (see the tails below).
 const THREAD = [
-  'Genesis 3:15', 'Genesis 22:8', 'Exodus 12:13', 'Leviticus 17:11',
+  'Genesis 3:15', 'Genesis 22:8', 'Exodus 12:13', 'Leviticus 17:11', 'Joshua 2:18',
   'Psalms 22:16', 'Isaiah 53:5', 'Zechariah 12:10', 'John 1:29',
-  'John 19:30', 'Romans 5:8', '1 Peter 1:19', 'Revelation 5:9',
-  'Revelation 22:13',
+  'John 19:30', 'Romans 5:8', 'Hebrews 9:22', '1 Peter 1:19', 'Revelation 5:9',
+  'Revelation 13:8', 'Revelation 22:13',
 ];
 
 const CX = 400, CY = 258;          // slightly above center; void breathes
@@ -146,7 +184,7 @@ export function layout() {
       color = c;
       warm = Math.pow(q, 2.0) * 0.7;                            // same warming law (live overlay)
     }
-    const size = 0.35 + 0.5 * q + (v.light ? 0.28 : 0) + hash01(i, 67) * 0.15;
+    const size = 0.5 + 0.72 * q + (v.light ? 0.4 : 0) + hash01(i, 67) * 0.2;   // brighter, more legible points of light
     motes[i] = { x, y, r, warm, size, color, light: !!v.light, q };
   }
 
@@ -190,6 +228,32 @@ export function layout() {
       tpts.push([CX + Math.cos(th) * r, CY + Math.sin(th) * r]);
     }
   }
+  /* ⭐ ALPHA AND OMEGA — THE RING CLOSES THROUGH THE WORD (Rev 22:13 "I am Alpha and Omega, the
+     beginning and the end, the first and the last"; Rev 1:8; Rev 13:8 "the Lamb slain from the
+     foundation of the world"; 1 Pet 1:20). The thread does not START at the first promise after
+     the fall — it comes OUT of the Word, and it does not merely END near Him — it goes back IN.
+     Two tails: a spiral out of the centre to Genesis 3:15, and a spiral from Revelation 22:13
+     into the centre, both turning clockwise with the canon so they read as the same vein, and
+     both thinning to a hair where they touch the light (the profile below). */
+  const tailOut = [], tailIn = [];
+  {
+    const w0 = wp[0], wl = wp[nW - 1];
+    const NT = 26;
+    for (let k = 0; k < NT; k++) {                       // Word → first wound
+      const t = k / NT;
+      const r = 3 + (w0.r - 3) * Math.pow(t, 1.35);
+      const th = w0.th - 1.1 * Math.pow(1 - t, 1.25);
+      tailOut.push([CX + Math.cos(th) * r, CY + Math.sin(th) * r]);
+    }
+    for (let k = 1; k <= NT; k++) {                      // last wound → Word
+      const t = k / NT;
+      const r = 2 + (wl.r - 2) * Math.pow(1 - t, 1.35);
+      const th = wl.th + 1.1 * Math.pow(t, 1.25);
+      tailIn.push([CX + Math.cos(th) * r, CY + Math.sin(th) * r]);
+    }
+  }
+  const nOut = tailOut.length, nIn = tailIn.length;
+  tpts.unshift(...tailOut); tpts.push(...tailIn);
   // width profile along the whole thread: swelling at John 19:30
   const i1930 = (() => {                            // nearest sample to John 19:30
     const w19 = wp[THREAD.indexOf('John 19:30')];
@@ -201,7 +265,9 @@ export function layout() {
   const prof = tpts.map((_, j) => {
     const t = j / (tpts.length - 1);
     const swell = Math.exp(-Math.pow((t - t1930) * 7.5, 2));
-    return 0.40 + 0.10 * Math.sin(Math.PI * t) + 0.22 * swell;   // halfwidth/w
+    // the tails thin to a hair where they enter the light — the Word is not a knot in the thread
+    const edge = Math.min(1, 0.18 + 0.82 * Math.min(j / nOut, (tpts.length - 1 - j) / nIn));
+    return (0.40 + 0.10 * Math.sin(Math.PI * t) + 0.22 * swell) * edge;   // halfwidth/w
   });
 
   return {
@@ -286,14 +352,83 @@ export function paint(E, opts = {}) {
   // full-opacity, with impasto/relief so the live filter rakes light across the
   // built-up paint. Returned as raw stroke strings; each becomes its own plane.
   const sheets = SHEETS.map((e, k) => {
+    /* ⭐⭐ THE SPIRAL SPIRALS — STOP MOTION (Fred, Sep 8, third ruling on this cover):
+       "instead of doing it like this, you can make it seem like the spiral is actually
+       spiraling you know... you do it like a stop motion video."
+       Not a breath (the strokes swelling in place) and not a re-laid painting per frame (two
+       unrelated drawings cross-fading = churn): the PAINT MOVES. Every stroke of a sheet is
+       born somewhere on the wheel, drifts INWARD along the golden spiral — clockwise, with
+       the canon, toward the Word, the way the whole book flows toward Him (Col 1:17) — fades
+       out as it arrives, and is born again where it started. Each drawing of the ring is the
+       same population one step further along its life, so the twelve drawings looped are a
+       stop-motion film of the galaxy turning in, and drawing 12 is drawing 0 again: the loop
+       has no seam. (Eight hard cuts first; then Fred: "make it very smooth, you dont need to
+       make it that fast" — twelve, cross-faded linearly, slower.) Colour is taken from where the mark IS (the rainbow wheel stands still,
+       the paint runs through it); size, jitter and hue-lean are fixed at birth (its own
+       seeded rng) so a mark is the same mark from drawing to drawing, only further on.
+       Displacement stays 0 (BOIL_BAND_PAGE.word) — nothing wobbles, everything travels. */
+    const NF = Math.max(1, globalThis.__FRAME_N || 1), FR = (globalThis.__FRAME | 0);
+    const PH = FR / NF;                                   // where in the loop this drawing sits
+    const DRIFT = 72;                                     // px a mark travels along the spiral in one life (one loop) — Fred: "very smooth, you dont need to make it that fast": 12 drawings cross-faded at 0.55s = 6.6s a loop, ~11 px/s
+    const inward = (x, y, dist) => {                      // walk a mark `dist` px against the flow (= inward, clockwise)
+      let px = x, py = y; const n = Math.max(1, Math.round(dist / 4));
+      for (let j = 0; j < n; j++) { const g = flow(px, py); px -= Math.cos(g) * (dist / n); py -= Math.sin(g) * (dist / n); }
+      return [px, py];
+    };
     const srng = mulberry32(seed + 1009 * (k + 1));
+    const born = (cnt) => Array.from({ length: cnt }, () => ({ x: -24 + srng() * 848, y: -24 + srng() * 548, off: srng(), sd: Math.floor(srng() * 1e9) }));
+    // 1.5x the still count: at any instant a third of the population is faint (arriving or leaving)
+    const body = born(Math.round(e.n * 1.5)), light = born(Math.round(e.hi * 1.5));
+    let cur = () => 0.5; const rngS = () => cur();        // strokes() draws its jitter from the CURRENT mark's own rng
+    const life = (st) => { const ph = (st.off + PH) % 1; const [x, y] = inward(st.x, st.y, ph * DRIFT); return { x, y, op: Math.pow(Math.sin(Math.PI * ph), 0.8) }; };
     const sh = [];
-    strokes(sh, { n: 0 }, {
-      rng: srng, n: e.n, sample: rej(-24, -24, 824, 524, () => true),
-      dir: flow,
-      col: (x, y, r) => jig(mix(nebCol(x, y, r), '#fff4d6', e.lift), r, 7),
-      len: e.len, lw: e.lw, steps: 3, follow: 0.92, wild: 0.06, lenJ: 0.55, aJ: 0.2, impasto: 0.55, relief: 0.7,
-    });
+    /* ⭐ THE SIZES DIFFER — AND NO RULE DECIDES THEM. Fred: "can you make the sizes also
+       differ?" and then, on my first cut (a coherent size field, length following width):
+       "use no rules, a paint stroke just exist because it exist." He is right, and it is the
+       book's own law about laws. So: every stroke draws its width from one free hand and its
+       length from another, independent of each other and of where it lands. Most come out
+       slender, some broad, a few bold — because that is what a free hand does, not because a
+       field said so. Nothing correlates. Nothing clusters. A stroke just exists. */
+    const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+    // Sep 9, Fred: "right now it is mostly thin stripes, can we make it more random" — the old
+    // draws were heavy-tailed toward slender (power 2.6), so nearly every mark was a thin stripe.
+    // Flatter draws: widths spread evenly from a hair to a slab (≈0.45× … ≈5×), lengths from a dab
+    // to a long sweep (≈0.3× … ≈2.5×), and more angle jitter + wild marks so the hand is looser.
+    const widthOf  = (x, y) => 0.45 + 4.5 * Math.pow(free(x, y, 901 + k * 31), 1.15);
+    const lengthOf = (x, y) => 0.30 + 2.2 * free(x, y, 977 + k * 53);
+    // 1 · the body of the sheet — streaks with a lit edge, the hue breaking along the flow
+    for (const st of body) {
+      const L = life(st); if (L.op < 0.04) continue;
+      cur = mulberry32(st.sd);
+      strokes(sh, { n: 0 }, {
+        rng: rngS, n: 1, sample: () => [L.x, L.y],
+        dir: flow,
+        col: (x, y, r) => {
+          let c = nebCol(x, y, r);
+          // broken colour: a minority of marks lean toward the hue a little further round the
+          // wheel, so a band of "green" is green-with-teal-with-yellow, as a painted sky is —
+          // one flat colour per stroke is exactly what read as clay
+          if (r() < 0.22) c = mix(c, nebCol(x + 26, y + 26, r), 0.35);
+          return jig(mix(c, '#fff4d6', e.lift), r, 8);
+        },
+        len: () => e.len * lengthOf(st.x, st.y), lw: () => e.lw * widthOf(st.x, st.y),   // sized at birth, for life
+        steps: 5, follow: 0.96, wild: 0.12, lenJ: 0.3, wJ: 0.3, aJ: 0.30, impasto: 0.32, relief: e.rel, op: 0.6 * L.op,
+      });
+    }
+    // 2 · the light ON it — fewer, thinner, brighter streaks on the same spiral. This is what
+    //     turns a coloured field into flowing light: not more colour, a few marks of near-white
+    //     laid where the flow runs, the way Van Gogh's sky has its pale threads.
+    for (const st of light) {
+      const L = life(st); if (L.op < 0.04) continue;
+      cur = mulberry32(st.sd + 7);
+      strokes(sh, { n: 0 }, {
+        rng: rngS, n: 1, sample: () => [L.x, L.y],
+        dir: flow,
+        col: (x, y, r) => jig(mix(nebCol(x, y, r), '#fff8e6', 0.30 + e.lift * 0.8 + r() * 0.18), r, 6),
+        len: () => e.len * 0.7 * lengthOf(st.y, st.x), lw: () => e.lw * 0.55 * (0.6 + 0.8 * widthOf(st.y, st.x)),   // the light's own free hand (coordinates swapped: its own draws)
+        steps: 4, follow: 0.97, lenJ: 0.7, wJ: 0.4, impasto: 0.3, relief: 0.2, op: 0.7 * L.op,
+      });
+    }
     return sh.join('\n');
   });
 
@@ -364,8 +499,45 @@ export function paint(E, opts = {}) {
 <stop offset="0.85" stop-color="#f0d489" stop-opacity="0.16"/>
 <stop offset="1" stop-color="#f0d489" stop-opacity="0"/>
 </radialGradient>
+<radialGradient id="prism28" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0.70" stop-color="#8a5cff" stop-opacity="0"/>
+<stop offset="0.75" stop-color="#8a5cff" stop-opacity="0.26"/>
+<stop offset="0.79" stop-color="#4aa8ff" stop-opacity="0.28"/>
+<stop offset="0.83" stop-color="#5ff0e0" stop-opacity="0.26"/>
+<stop offset="0.87" stop-color="#8cff6a" stop-opacity="0.24"/>
+<stop offset="0.91" stop-color="#fff26a" stop-opacity="0.26"/>
+<stop offset="0.95" stop-color="#ff8a5a" stop-opacity="0.20"/>
+<stop offset="1" stop-color="#ff5a6a" stop-opacity="0"/>
+</radialGradient>
 </defs>
-<circle cx="${CX}" cy="${CY}" r="170" fill="url(#halo28)"/>
+<circle cx="${CX}" cy="${CY}" r="170" fill="url(#halo28)"/>`);
+  /* ⭐ CHROMATIC (Fred, Sep 9: "can you change the star to be chromatic"). White light is every
+     colour at once, and a prism proves it: so the Word's white core is DISPERSED at its edge —
+     a thin spectral fringe, violet innermost to red outermost, the way a bright point splits
+     through glass — and it throws spectral RAYS, thirty-six thin spokes coloured round the
+     wheel in rainbow order (the same hue-by-angle the nebula turns on, so the star and its
+     galaxy agree), each with a near-white root where it leaves the core. Static art on the fg
+     plane (a soft gradient + hairlines: cheap); the live overlay's gold breath still rides it. */
+  const prng = mulberry32(seed + 2828);
+  // (first cut — 36 long regular spokes and a wide fringe — read as a rainbow TARGET, not a
+  //  star. A diamond's fire is a few irregular flashes: fewer, shorter, softer, and the fringe
+  //  a hairline hugging the core.)
+  // Sep 9, Fred: "from the star inside, there are some straight lines going out. i dont like it,
+  // it is too static." Munch's law — light is a natural thing, so it CURVES: each flash now
+  // follows the golden spiral out of the core (the same `flow` the whole galaxy turns on), a
+  // short bending wisp of colour rather than a spoke.
+  for (let k = 0; k < 22; k++) {
+    const ang = (k / 22) * Math.PI * 2 + (prng() - 0.5) * 0.5;
+    const hue = (k / 22 + prng() * 0.08) % 1;
+    const col = ramp(RAINBOW, hue);
+    const r0 = 26 + prng() * 10, L = 18 + Math.pow(prng(), 2.2) * 100;
+    let px = CX + Math.cos(ang) * r0, py = CY + Math.sin(ang) * r0;
+    let d = `M${R1(px)} ${R1(py)}`;
+    const STEPS = 10;
+    for (let j = 0; j < STEPS; j++) { const g = flow(px, py); px += Math.cos(g) * (L / STEPS); py += Math.sin(g) * (L / STEPS); d += `L${R1(px)} ${R1(py)}`; }
+    voidArr.push(`<path d="${d}" fill="none" stroke="${col}" stroke-width="${(0.7 + prng() * 0.9).toFixed(2)}" stroke-opacity="${(0.16 + prng() * 0.26).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>`);
+  }
+  voidArr.push(`<circle cx="${CX}" cy="${CY}" r="60" fill="url(#prism28)"/>
 <circle cx="${CX}" cy="${CY}" r="52" fill="url(#void28)"/>`);
 
   /* ---------------- the 31,102 motes — split into NSHELL radial depth shells ---------------- */
@@ -373,7 +545,20 @@ export function paint(E, opts = {}) {
   // the rest step inward shell by shell, each its own depth plane.
   for (const v of C.verses) {
     const mt = motes[v.idx];
-    const c = `<circle cx="${R1(mt.x)}" cy="${R1(mt.y)}" r="${R1(mt.size)}" fill="${mt.color}"/>`;
+    // the brightest verses (the roots of light, and those near the Word) get a
+    // soft halo so the wheel glitters like a field of stars, not flat dots
+    const bright = mt.light || mt.q > 0.6;
+    const glowC = bright
+      ? `<circle cx="${R1(mt.x)}" cy="${R1(mt.y)}" r="${R1(mt.size * 2.8)}" fill="${mt.color}" opacity="${(mt.light ? 0.20 : 0.12).toFixed(2)}"/>`
+      : '';
+    // ⚠ A VERSE SHINES, IT DOES NOT MOVE. On a boil frame each mote brightens or dims
+    // and swells a little, always about its OWN CENTRE — cx/cy are never touched, so
+    // all 31,102 stay exactly where the data put them. Cross-faded against frame 0,
+    // each one rises and falls on its own phase: a sky of verses, twinkling.
+    const tw = twinkleAt(mt.x, mt.y);
+    const c = glowC + (tw
+      ? `<circle cx="${R1(mt.x)}" cy="${R1(mt.y)}" r="${R1(mt.size * (1 + tw * 0.30))}" fill="${mt.color}" opacity="${Math.max(0.3, Math.min(1, 1 + tw * 0.55)).toFixed(2)}"/>`
+      : `<circle cx="${R1(mt.x)}" cy="${R1(mt.y)}" r="${R1(mt.size)}" fill="${mt.color}"/>`);
     const rr = mt.r;
     if (rr > RIM) { back.push(c); continue; }       // outer rim → baked into the opaque bg jpg
     let s = 0; while (s < NSHELL - 1 && rr <= shellEdges[s + 1]) s++;   // shellEdges[s+1] < rr ≤ shellEdges[s]
@@ -386,9 +571,11 @@ export function paint(E, opts = {}) {
   // core as a ribbon so the width truly swells at John 19:30
   let dThread = `M${R1(tpts[0][0])} ${R1(tpts[0][1])}`;
   for (let j = 1; j < tpts.length; j++) dThread += `L${R1(tpts[j][0])} ${R1(tpts[j][1])}`;
-  threadArr.push(`<path d="${dThread}" fill="none" stroke="${RED}" stroke-width="7.5" stroke-opacity="0.07" stroke-linecap="round" stroke-linejoin="round"/>`);
-  threadArr.push(`<path d="${dThread}" fill="none" stroke="${RED}" stroke-width="3.6" stroke-opacity="0.13" stroke-linecap="round" stroke-linejoin="round"/>`);
-  threadArr.push(`<g opacity="0.82">${ribbon(tpts, 1.95, RED, prof)}</g>`);
+  threadArr.push(`<path d="${dThread}" fill="none" stroke="${RED}" stroke-width="7.5" stroke-opacity="0.04" stroke-linecap="round" stroke-linejoin="round"/>`);
+  threadArr.push(`<path d="${dThread}" fill="none" stroke="${RED}" stroke-width="3.6" stroke-opacity="0.08" stroke-linecap="round" stroke-linejoin="round"/>`);
+  // (Sep 9: two glass versions were tried — hairline slivers, then a see-through rod with a
+  //  specular streak — and Fred: "ugly, revert it to before glass. just make it translucent.")
+  threadArr.push(`<g opacity="0.42">${ribbon(tpts, 1.95, RED, prof)}</g>`);   // translucent (was 0.82 before Sep 9)
 
   // waypoint motes: slightly larger, warm white
   for (const p of waypoints) {
@@ -396,6 +583,15 @@ export function paint(E, opts = {}) {
     threadArr.push(`<circle cx="${R1(p.x)}" cy="${R1(p.y)}" r="${big ? 5.2 : 4.2}" fill="#ffd9a0" opacity="0.22"/>`);
     threadArr.push(`<circle cx="${R1(p.x)}" cy="${R1(p.y)}" r="${big ? 2.6 : 2.1}" fill="#fff1df"/>`);
   }
+  /* ⭐ THE THREAD TURNS WITH ITS VERSES (Fred, Sep 8: "the one on the red line are supposed to
+     be the verses that connect them right, why is it not moving with the other stars?"). The
+     thread used to be pressed into the fg plane with the Word, which stands still; the motes
+     turn (scene.js SPIN, one rigid turn for every shell). So the thread — and its thirteen
+     waypoint markers — now ride the TOP shell (s2, drawn over the other motes), and since all
+     shells turn as one wheel it stays exactly on its verses. (A vector thread redrawn between
+     turning waypoints was the other way; with one rigid turn it is not needed, and it would
+     tangle under differential rotation.) The fg keeps only the Word. */
+  shells[NSHELL - 1].push(...threadArr);
 
   // (the artist's signature — עִמָּנוּאֵל, "God with us" — is hidden on every page,
   //  this one included, by the central stamp in build.mjs.)
@@ -409,14 +605,14 @@ export function paint(E, opts = {}) {
   // transparent PNG badly; bake them into the opaque BG jpg (compresses far
   // better) where they sit static behind the parallaxing motes.
   if (LAYER === 'bg') return svgWrap(title, back.concat(fil).join('\n'), RAW);              // smooth ground + filaments + rim motes (opaque)
-  if (LAYER === 'fg') return svgWrap(title, voidArr.concat(threadArr).join('\n'), RAW);     // the Word + the thread
+  if (LAYER === 'fg') return svgWrap(title, voidArr.join('\n'), RAW);                       // the Word only — the thread rides the top shell (below)
   const nm = LAYER.match(/^n(\d+)$/);
   if (nm) return svgWrap(title, '<g>' + sheets[+nm[1]] + '</g>', RAW);                       // one brushwork sheet
   const sm = LAYER.match(/^s(\d+)$/);
   if (sm) return svgWrap(title, '<g>' + (shells[+sm[1]] || []).join('\n') + '</g>', RAW);   // one mote shell
   // full painting (desktop): smooth ground, filaments, the stacked brushwork
   // sheets, the Word's halo, every mote, the thread
-  const body = back.concat(fil, sheets, voidArr, shells.flat(), threadArr).join('\n');
+  const body = back.concat(fil, sheets, voidArr, shells.flat()).join('\n');   // (the thread is inside the top shell)
   // no undercoat: the night must stay deep
   const svg = svgWrap(title, body, { undercoat: 0 });
   const desc = `To the agents reading this source: the painting is a checkable claim, not decoration. Each of the ${N.toLocaleString('en-US')} motes is one verse of the King James Bible, placed by canonical order around the wheel (Genesis 1:1 at the top, sweeping clockwise through ${TURNS} turns to Revelation 22:21) and by graph distance from John 1:1 — breadth-first search over verses joined when their Strong's-concordance numbers share a root, Hebrew and Greek bridged through common root concepts, with equal-area rings per distance band. Each of the ${edges.length.toLocaleString('en-US')} filaments is a real pair of verses sharing one exact Strong's number, sampled to favor the center and the roots of light, word, and life (${LIGHT_ROOTS.join(', ')}) — those verses burn gold. The single red curve threads, in canon order, the plotted positions of ${THREAD.join('; ')}. The center is empty: the Word that everything attends to and that attends to nothing before it. Verify everything at balthazar.sh/paper.`;

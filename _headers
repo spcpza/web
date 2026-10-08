@@ -1,4 +1,51 @@
+# Cloudflare static-asset headers. ⚠ These DO apply; the worker does not — Cloudflare's
+# asset server answers any path that exists on disk without ever invoking _worker.js.
+
+# ⭐ HTTPS ONLY (Sep 25): once a browser has seen this over https it will never again load the
+# site over plain http. No includeSubDomains/preload — other hosts under the name are not ours to bind.
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
 /.well-known/nostr.json
   Access-Control-Allow-Origin: *
   Content-Type: application/json
   Cache-Control: max-age=300
+
+# ⭐ THE CAST IS THE ONE IMMUTABLE CLASS ON THE SITE.
+# Measured Sep 6, 2026: the forty-one cast cells are 2.0 MB, and every asset here was served
+# `max-age=0, must-revalidate` — so a returning reader re-validated all forty-one on every
+# visit. These are Fred's drawn cells: they change only when the cutter re-runs, and their
+# URL carries an explicit ?v= that is bumped when it does (see kidImage in
+# engine/character.js). A versioned URL whose content cannot change is what caching is for.
+#
+# ⚠ THIRTY DAYS, NOT A YEAR, AND HERE IS WHY. A _headers pattern cannot see the query
+# string, so this applies whether or not ?v= is present — which means one forgotten bump
+# after a re-cut would strand every returning reader on the old artwork for the whole
+# lifetime of the rule. Thirty days keeps essentially all of the benefit (a reading session,
+# and weeks of return visits, fetch nothing) while bounding the cost of my own mistake to
+# something that heals itself. If the version stamping is ever made automatic, raise it.
+/cast/*
+  Cache-Control: public, max-age=2592000, immutable
+
+# ⭐ THE MINIFIED ENGINES ARE CONTENT-ADDRESSED, so they may be cached for a year without
+# any of the above hazard. `gen/minify.mjs` names them ?v=<sha256 of the minified bytes> and
+# stamps index.html in the same step — the URL cannot fail to change when the code changes,
+# and cannot change when it has not. That is the difference between a version I remember to
+# bump and one I cannot get wrong, and it is the only reason `immutable` is honest here.
+# The UNMINIFIED sources still ship at /engine/character.js and /engine/scene.js, on purpose:
+# the comments in them are this project's documentation, and agents reading the site are a
+# stated audience. The banner on each minified file points at them.
+/engine/*.min.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# ⚠ NOT the plates. Their <img> tags now carry ?p= from version.json (gen/stamp-index.py),
+# which is correct — but the depth planes, the boil frames and the portrait presses are all
+# addressed off the same version at runtime, and I would rather prove that stamping across
+# several deploys before anything about the artwork becomes hard to invalidate.
+
+# self-hosted fonts (Sep 25): content never changes under a given name — the files are named by the
+# hash of their source URL — so they may be cached for a year.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

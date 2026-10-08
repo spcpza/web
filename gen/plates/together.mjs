@@ -59,6 +59,17 @@ export function paint(E, opts = {}) {
   // travellers stand low-left, in the dark, and a bright road reaches up and
   // away from them toward the Light. They are about to walk it together.
   const HOME = { x: 612, y: 150 };                 // the distant radiant gold Light / home (source + goal)
+  /* ⚠⚠ THIS PAGE HAD NO ANIMATION AT ALL — no boil, no ring, nothing but a bird and ten
+     butterflies over a still painting. On a page whose whole subject is a JOURNEY toward a
+     Light, the Light and the road were the two things frozen.
+       Two things move now, and both are DRAWN rather than recoloured: the great Light at the
+     end pulses its radiance outward, and the road of light RUNS toward it — a current going
+     home under the travellers' feet. Each takes its own rng, reseeded per frame, so every
+     drawing places its marks afresh (see the note in come.mjs: reseeding is what "draw it
+     again" actually means, and a separate stream cannot desync anything downstream). */
+  const _FN = Math.max(1, globalThis.__FRAME_N || 1);
+  const _FR = (globalThis.__FRAME || 0) % _FN;
+  const PH = _FN > 1 ? _FR / _FN : 0;
   const RED = { x: 276, feet: 438 };               // the red child — the guide, turned back, leading
   const LED = { x: 214, feet: 448 };               // the led figure — close enough that the reaching hands actually CLASP
   const HANDR = [245, 409];                         // the red child's hand, reaching back — meets the led hand
@@ -121,11 +132,18 @@ export function paint(E, opts = {}) {
     c = mix(c, '#e8c468', Math.max(0, g - 0.45) * 1.35);                        // warmed where the Light reaches
     return jig(c, r, 9);
   };
+  // ⭐ DETAIL PASS (Sep 8). EVERY STROKE DRAWS ITS OWN WIDTH AND LENGTH (Fred: "use no
+  // rules") — hashes on POSITION, never the rng, so every drawing of the ring keeps its
+  // sequence. The night's slabs, the road's heap of lozenges (relief 0.85) and the halo
+  // become strokes, each its own size, at a hairline relief.
+  const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+  const widthOf  = (x, y, salt) => 0.40 + 3.2 * Math.pow(free(x, y, salt), 2.6);
+  const lengthOf = (x, y, salt) => 0.40 + 1.5 * Math.pow(free(x, y, salt + 17), 1.5);
   // the deep moving night — long streaming strokes that FOLLOW the great wheel
   strokes(out, counter, {
-    rng, n: 1050, sample: rej(-14, -14, 814, 514),
+    rng, n: 2600, sample: rej(-14, -14, 814, 514),
     dir: nightDir, col: nightCol,
-    len: 44, lw: 9.5, steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.5, impasto: 0.5, relief: 0.55,
+    len: (x, y) => 30 * lengthOf(x, y, 11), lw: (x, y) => 4.6 * widthOf(x, y, 13), steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.5, relief: 0.4,
   });
 
   /* ====================== 1.2 SKY-ARM SHEETS — the bold curling Van Gogh arms ======================
@@ -135,7 +153,7 @@ export function paint(E, opts = {}) {
      night but BELOW the distant Light + road, so the Light stays the brightest
      thing and the road/travellers are untouched. The night stays deep — only the
      crest EDGES catch light. */
-  [{ n: 300, len: 30, lw: 6.0, lift: 0.00 }, { n: 320, len: 26, lw: 5.4, lift: 0.05 }].forEach((e, k) => {
+  [{ n: 800, len: 28, lw: 3.0, lift: 0.00 }, { n: 860, len: 24, lw: 2.7, lift: 0.05 }].forEach((e, k) => {
     const srng = mulberry32(seed + 1009 * (k + 1));
     strokes(out, counter, {
       rng: srng, n: e.n, sample: rej(-14, -14, 814, 432),
@@ -149,7 +167,8 @@ export function paint(E, opts = {}) {
         if (e.lift) c = mix(c, '#ffffff', e.lift);
         return c;
       },
-      len: e.len, lw: e.lw, steps: 5, follow: 0.9, wild: 0.2, lenJ: 0.55, impasto: 0.6, relief: 0.5,
+      len: (x, y) => e.len * lengthOf(x, y, 21 + k), lw: (x, y) => e.lw * widthOf(x, y, 27 + k),
+      steps: 5, follow: 0.9, wild: 0.12, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.4,
       aJ: (x, y) => 0.16 + Math.max(0, 1.3 - nearV(x, y)) * 0.42,
     });
   });
@@ -171,7 +190,7 @@ export function paint(E, opts = {}) {
      Reserved gold (Rev 21:23 — the city needs no sun, the Light is its lamp). */
   // the broad gold glow pouring out from the home
   strokes(out, counter, {
-    rng, n: 540,
+    rng: mulberry32((seed ^ 0x40e1) + _FR * 7919), n: 900,
     sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.25) * 132; return [HOME.x + Math.cos(a) * d, HOME.y + Math.sin(a) * d * 0.9]; },
     dir: (x, y) => Math.atan2(x - HOME.x, -(y - HOME.y)),   // tangential — a turning halo of light
     col: (x, y, r) => {
@@ -179,11 +198,13 @@ export function paint(E, opts = {}) {
       if (d > 96 && d < 130 && r() < 0.05) return jig('#8a5aa0', r, 13);        // violet where the gold dies
       return jig(ramp([GOLD_HOT, GOLD_PALE, GOLD, '#d29440', '#8a6a3c', '#3e5a90'], Math.min(1, d / 150)), r, 8);
     },
-    len: 13, lw: 3, steps: 2, lenJ: 0.5, wild: 0.1, impasto: 0.6, relief: 0.75,
+    // the radiance reaches and draws back, the crest running outward from the home
+    len: (x, y) => 13 * (1 + 0.30 * Math.cos(2 * Math.PI * (PH - Math.hypot(x - HOME.x, (y - HOME.y) / 0.9) / 150))) * lengthOf(x, y, 31),
+    lw: (x, y) => 2.0 * widthOf(x, y, 33), steps: 2, lenJ: 0.3, wJ: 0.3, wild: 0.08, impasto: 0.6, relief: 0.4,
   });
   // the white-hot heart of the home — the brightest paint in the scene
   strokes(out, counter, {
-    rng, n: 200,
+    rng: mulberry32((seed ^ 0x40e2) + _FR * 7919), n: 200,
     sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.3) * 42; return [HOME.x + Math.cos(a) * d, HOME.y + Math.sin(a) * d * 0.92]; },
     dir: (x, y) => Math.atan2(x - HOME.x, -(y - HOME.y)),
     col: (x, y, r) => jig(ramp([GOLD_HOT, mix(GOLD_HOT, GOLD_PALE, 0.5), GOLD_PALE, GOLD], Math.hypot(x - HOME.x, (y - HOME.y) / 0.92) / 46), r, 6),
@@ -193,13 +214,32 @@ export function paint(E, opts = {}) {
   klimtGold(out, counter, rng, HOME.x, HOME.y, 52, 104, { rings: 5, opacity: 0.42, squash: 0.9 });
   goldSparks(out, counter, rng, HOME.x, HOME.y, 18, 150, 60, { squash: 0.9, big: 0.9, lightFn: gHome });
 
+  /* ⚠ CONTACT SHADOWS. The travellers are cast cells composited over the finished plate, so
+     they cast nothing of their own and read as floating over the road however well they are
+     placed. A small dark pool baked at each one's feet, thrown AWAY from the Light (which is
+     up-right, so the shadows fall down-left), is what sets them ON the road. Daubs, never a
+     soft ellipse — a gradient is a different medium and shows as one. Positions are the
+     actors' own (x, y) in CAST1[28]. */
+  {
+    const sRng = mulberry32(seed ^ 0x5ade);
+    for (const [ax, ay, aw] of [[258, 493, 32], [339, 441, 30]]) {
+      for (let i = 0; i < 46; i++) {
+        const t = sRng();
+        const px = ax - 6 - t * aw * 0.9 + (sRng() - 0.5) * aw * 0.7;
+        const py = ay + 3 + t * 7 + (sRng() - 0.5) * 5;
+        E.daub(out, counter, px, py, (2.2 + sRng() * 3.4) * (1 - t * 0.45),
+          jig(mix('#5a3c16', '#241c0c', 0.35 + sRng() * 0.55), sRng, 6), sRng);
+      }
+    }
+  }
+
   const bgRoadStart = out.length;
   /* ====================== 3. THE ROAD OF LIGHT — reaching toward the home ======================
      gold poured forward from the travellers' feet up the road toward the
      distant Light: confident slabs where they stand, fine touches reaching out
      thin toward the goal — the bright path home, brighter the nearer the Light. */
   strokes(out, counter, {
-    rng, n: 760,
+    rng: mulberry32((seed ^ 0x40e3) + _FR * 7919), n: 1400,
     sample: rej(120, 130, 700, 470, (x, y) => road(x, y) > 0.24),
     dir: (x, y) => Math.atan2(HOME.y - y, HOME.x - x) + (fbm(x / 80, y / 60, 43) - 0.5) * 0.4,
     col: (x, y, r) => {
@@ -207,10 +247,19 @@ export function paint(E, opts = {}) {
       return jig(ramp(['#9a6a3a', '#d29440', '#ecb84e', '#f8d472', '#fff0c2'], Math.min(1, g * 1.12)), r, 9);
     },
     // big near the travellers' feet (low-left), reaching to fine touches toward the Light
-    len: (x, y) => 6 + 20 * Math.max(0, 1 - Math.hypot(x - RED.x, y - RED.feet) / 460),
-    lw: (x, y) => 2.6 + 7 * Math.max(0, 1 - Math.hypot(x - RED.x, y - RED.feet) / 460),
-    steps: 2, follow: 0.95, wild: 0.06, lenJ: 0.5, impasto: 0.6, relief: 0.85,
+    // ⚠ and the road RUNS. Two crests travel up it toward the Light, so the way home is a
+    // current the travellers are walking with rather than a painted stripe they stand on.
+    len: (x, y) => {
+      const t = Math.min(1, Math.hypot(x - RED.x, y - RED.feet) / 460);
+      return (6 + 20 * (1 - t)) * (1 + 0.26 * Math.cos(2 * Math.PI * (2 * t - PH))) * lengthOf(x, y, 41);
+    },
+    lw: (x, y) => (1.8 + 4.2 * Math.max(0, 1 - Math.hypot(x - RED.x, y - RED.feet) / 460)) * widthOf(x, y, 43),
+    steps: 2, follow: 0.95, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.4,
   });
+  /* (Sep 23: a harvest field on the verges — John 4:35, Matt 9:37 — was tried twice and
+     removed: as separate stalks it read as a cloud of sparks, as a mass of short marks it read as
+     a hard-edged block of gravel round the road. The road floats in the night on purpose; if the
+     field returns it needs `road`'s named-wheat recipe and a horizon, not marks in a band.) */
   /* ====================== 3.5 FIREFLIES — the road's edges lit by small living lights ======================
      warm sparks with soft round halos strung loosely along BOTH verges of the
      road, denser toward the distant Light — as if the road home is lit by small
@@ -278,7 +327,7 @@ export function paint(E, opts = {}) {
     sample: r => { const a = r() * Math.PI, d = Math.pow(r(), 1.2) * 150; return [240 + Math.cos(a + Math.PI) * d * 1.3, 446 + Math.abs(Math.sin(a)) * d * 0.22]; },
     dir: () => 0.05,
     col: (x, y, r) => jig(mix(ramp(['#8a6a3c', '#c08544', '#e6ae4e'], Math.hypot((x - 240) / 1.3, (y - 446) * 2.4) / 170), '#f4cc68', 0.12), r, 8),
-    len: 14, lw: 3, steps: 2, lenJ: 0.55, wild: 0.1, relief: 0.8,
+    len: (x, y) => 13 * lengthOf(x, y, 51), lw: (x, y) => 2.0 * widthOf(x, y, 53), steps: 2, lenJ: 0.3, wJ: 0.3, wild: 0.08, relief: 0.35,
   });
   const midEnd = out.length;   // MID plane: the dark left behind + the warm floor pool
 
@@ -292,39 +341,27 @@ export function paint(E, opts = {}) {
 
   // the led figure FIRST (behind / to the left, deeper in the dark)
   const Lx = LED.x, Lf = LED.feet;
-  const ledCaps = personCaps(Lx, Lf - 64, 64, {
-    lean: 2,
-    rightHand: [Lx + 30, Lf - 38], leftHand: [Lx - 10, Lf - 28],   // RIGHT arm reaches out to the guide's hand; left trails in the dark
-    leftFoot: [Lx - 7, Lf], rightFoot: [Lx + 6, Lf],               // mid-step, lifting out of the dark
+  // the led one — a dark-blue little pilgrim, mid-step out of the shadow,
+  // one thin arm reaching forward to the guide's hand
+  E.paintMask(out, counter, rng, {
+    x: Lx, y: Lf, h: 64, facing: 1, lean: 2, stride: 0.5, lift: 0.3,
+    armR: [Lx + 30, Lf - 38],
+    cols: ['#3a4674', '#262e54', '#161c38'],
+    maskCols: ['#c8c2b4', '#b0aa9c', '#8e8878'],
+    eye: [1, -0.2], mood: 'wonder',
   });
-  castShadow(out, counter, ledCaps, { dir: -0.5 });
-  paintChild(out, counter, rng, ledCaps, { cols: ['#3a4674', '#262e54', '#161c38'], seed: 47 });
-  // a first glow waking on the led one's near (road-facing) flank — the light arriving
-  strokes(out, counter, {
-    rng, n: 30,
-    sample: rej(Lx, Lf - 58, Lx + 26, Lf - 6, (x, y) => ledCaps.some(c => inCap(x, y, c)) && !ledCaps.some(c => inCap(x - 5, y, c))),
-    dir: () => -Math.PI / 2 + 0.25,
-    col: (x, y, r) => jig(mix('#3a4364', GOLD_DEEP, 0.3 + light(x, y) * 0.6), r, 9),
-    len: 6, lw: 1.8, steps: 2,
-  });
+  // (the pilgrim cloak carries its own lit band toward the road)
 
   // the RED child — the guide, washed clean, glowing white aura, turned back
   const Rx = RED.x, Rf = RED.feet;
-  const redCaps = personCaps(Rx, Rf - 68, 68, {
-    lean: 1,
-    leftHand: [Rx - 32, Rf - 30], rightHand: [Rx + 26, Rf - 66],   // left arm reaches BACK to the led one's hand; right arm POINTS up the road to the Light
-    leftFoot: [Rx - 7, Rf], rightFoot: [Rx + 8, Rf],               // striding toward the Light
+  // the guide — the washed red pilgrim, one arm back to the led one's hand,
+  // the other POINTING up the road to the Light
+  E.paintMask(out, counter, rng, {
+    x: Rx, y: Rf, h: 68, facing: 1, lean: 1, stride: 0.5, lift: 0.3, aura: 10,
+    armL: [Rx - 32, Rf - 30], armR: [Rx + 26, Rf - 66],
+    eye: [1, -0.4], mood: 'joy',
   });
-  castShadow(out, counter, redCaps, { dir: -0.5 });
-  paintChild(out, counter, rng, redCaps, { whiteAura: true });
-  // gold rim down the red child's road-facing (right) flank — he carries the Light's glow
-  strokes(out, counter, {
-    rng, n: 40,
-    sample: rej(Rx - 2, Rf - 66, Rx + 30, Rf - 6, (x, y) => redCaps.some(c => inCap(x, y, c)) && !redCaps.some(c => inCap(x + 5, y, c))),
-    dir: () => -Math.PI / 2 - 0.2,
-    col: (x, y, r) => jig(mix(GOLD_DEEP, '#a3552c', r() * 0.5), r, 10),
-    len: 7, lw: 1.9, steps: 2,
-  });
+  // (his aura and lit cloak band carry the Light's glow)
 
   /* ====================== 6. THE CLASPED HANDS — the link ======================
      where the red child's reaching-back hand takes the led one's: a small warm
@@ -345,7 +382,7 @@ export function paint(E, opts = {}) {
      between the travellers and the Light they walk toward. A fourth-look secret. */
   E.inscriptionText(out, E.greekRef(3, 9), { x: 392, y: 326, h: 14, body: '#1a1204', edge: '#f6eecc', op: 0.78, edgeOp: 0.55 });
 
-  const ALT = 'A cold deep-blue night, sparkling faintly; far ahead on the horizon a great radiant gold Light glows like a home, ringed with golden light. A bright golden road reaches back from it across the dark to two small travellers low at the left: the recurring red child — washed clean, glowing with a soft white aura — has turned back, taken the hand of a darker figure still standing in the shadow, and points the way up the road toward the distant Light. He leads the other home; the Light ahead is the true source he only carries and reflects.';
+  const ALT = 'A cold deep-blue night, sparkling faintly; far ahead on the horizon a great radiant gold Light glows like a home, ringed with golden light. A bright golden road reaches back from it across the dark, to two small travellers low at the left: the recurring red child — washed clean, glowing with a soft white aura — has turned back, taken the hand of a darker figure still standing in the shadow, and points the way up the road toward the distant Light. He leads the other home; the Light ahead is the true source he only carries and reflects.';
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart on

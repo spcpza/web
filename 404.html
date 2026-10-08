@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lost — Alpha and Omega</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#141c44">
+  <link rel="stylesheet" href="/fonts/garamond.css">
+  <!-- A wrong address lands on its OWN painting (gen/plates/found.mjs): the lost coin of Luke 15:8 — a clay
+       lamp on a dark floor, nine coins on a cloth, a dropped broom pointing at the tenth coin's glint. The
+       words sit on the SAME paper card as the book (index.html, the story card), and there is one way out:
+       back to the story (Fred, Sep 26: "just make a nice 404 page" — no detour to another page).
+       Served by Cloudflare for any missing path (wrangler.toml: not_found_handling). -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #141c44; }
+    body { font-family: 'EB Garamond', Georgia, serif; overflow: hidden; }
+    picture img { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 72%; filter: saturate(1.2) contrast(1.05); }
+    .card { position: fixed; left: 4vw; bottom: calc(5vh + env(safe-area-inset-bottom)); width: min(92vw, 30em); box-sizing: border-box;
+      padding: 24px 28px 22px; isolation: isolate; filter: drop-shadow(0 5px 12px rgba(10,12,28,.22));
+      animation: open .5s cubic-bezier(.2,.7,.3,1) .5s both; }
+    .card::before { content: ''; position: absolute; inset: 0; z-index: -1;
+      background: linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) left 12px top 12px / calc(100% - 24px) 1px no-repeat, linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) left 12px bottom 12px / calc(100% - 24px) 1px no-repeat, linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) left 12px top 12px / 1px calc(100% - 24px) no-repeat, linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) right 12px top 12px / 1px calc(100% - 24px) no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) left 15px top 15px / calc(100% - 30px) 1px no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) left 15px bottom 15px / calc(100% - 30px) 1px no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) left 15px top 15px / 1px calc(100% - 30px) no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) right 15px top 15px / 1px calc(100% - 30px) no-repeat, url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27180%27%20height%3D%27180%27%3E%3Cfilter%20id%3D%27g%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.75%27%20numOctaves%3D%273%27%20seed%3D%2711%27%20stitchTiles%3D%27stitch%27%2F%3E%3CfeColorMatrix%20values%3D%270%200%200%200%200.42%20%200%200%200%200%200.32%20%200%200%200%200%200.18%20%200%200%200%200.16%200%27%2F%3E%3C%2Ffilter%3E%3Cfilter%20id%3D%27h%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.012%200.09%27%20numOctaves%3D%272%27%20seed%3D%274%27%20stitchTiles%3D%27stitch%27%2F%3E%3CfeColorMatrix%20values%3D%270%200%200%200%200.55%20%200%200%200%200%200.42%20%200%200%200%200%200.22%20%200%200%200%200.10%20-0.02%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27180%27%20height%3D%27180%27%20filter%3D%27url%28%23h%29%27%2F%3E%3Crect%20width%3D%27180%27%20height%3D%27180%27%20filter%3D%27url%28%23g%29%27%2F%3E%3C%2Fsvg%3E") 0 0 / 180px, radial-gradient(ellipse 75% 70% at 50% 45%, rgba(249,242,224,.70) 0%, rgba(245,234,210,.74) 55%, rgba(226,204,160,.9) 100%);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20400%20300%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27f%27%20x%3D%27-5%25%27%20y%3D%27-5%25%27%20width%3D%27110%25%27%20height%3D%27110%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.07%200.11%27%20numOctaves%3D%273%27%20seed%3D%273%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20scale%3D%279%27%2F%3E%3C%2Ffilter%3E%3Crect%20x%3D%277%27%20y%3D%277%27%20width%3D%27386%27%20height%3D%27286%27%20rx%3D%275%27%20fill%3D%27%23fff%27%20filter%3D%27url%28%23f%29%27%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20400%20300%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27f%27%20x%3D%27-5%25%27%20y%3D%27-5%25%27%20width%3D%27110%25%27%20height%3D%27110%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.07%200.11%27%20numOctaves%3D%273%27%20seed%3D%273%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20scale%3D%279%27%2F%3E%3C%2Ffilter%3E%3Crect%20x%3D%277%27%20y%3D%277%27%20width%3D%27386%27%20height%3D%27286%27%20rx%3D%275%27%20fill%3D%27%23fff%27%20filter%3D%27url%28%23f%29%27%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat; }
+    @keyframes open { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+    p.line { margin: 0; color: #231a2a; font-weight: 500; font-size: clamp(1.02rem, 1.2vw + 0.7rem, 1.32rem); line-height: 1.36; }
+    p.line em { color: #9a3b22; }
+    p.verse { margin: .9em 0 0; color: #4a3a3a; font-style: italic; font-size: clamp(0.84rem, 0.5vw + 0.68rem, 0.98rem); line-height: 1.38; }
+    p.verse b { display: block; font-style: normal; font-weight: 400; color: #8a5a22; }
+    a.home { display: inline-block; margin-top: 1.1em; color: #7a2e1c; font-size: 1.02rem; text-decoration: none; border-bottom: 1px solid rgba(122,46,28,.35); }
+    a.home:hover, a.home:focus-visible { border-bottom-color: #7a2e1c; outline: none; }
+    /* on a phone the lamp and the coins fill the lower half — the card goes up onto the dark wall */
+    @media (orientation: portrait) { .card { bottom: auto; top: max(40px, 7vh); } }
+  </style>
+</head>
+<body>
+  <picture>
+    <source media="(orientation: portrait)" srcset="/plates-vg/found-p.jpg">
+    <img src="/plates-vg/found.jpg" alt="Night inside a small house, seen from low on its earthen floor. A clay oil lamp burns; beside it nine silver coins lie together on a red cloth, and a dropped twig broom points away into the dark, where a tenth coin, half slipped into a crack in the floor, has just caught the flame in one small glint.">
+  </picture>
+  <main class="card">
+    <p class="line">There is nothing at this address.<br>Something here is lost —<br>and He keeps looking until it is <em>found</em>.</p>
+    <p class="verse">"…doth not light a candle, and sweep the house, and seek diligently till she find it?" <b>— Luke 15:8</b></p>
+    <a class="home" href="/">← back to the story</a>
+  </main>
+</body>
+</html>

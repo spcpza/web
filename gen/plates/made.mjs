@@ -64,10 +64,20 @@ export function paint(E, opts = {}) {
     vx = vx * 70 + 26; vy = vy * 70 + 13;            // steady diagonal drift, lower-left → upper-right
     return Math.atan2(vy, vx);
   };
-  strokes(out, counter, {
-    rng, n: 560, sample: rej(-10, -10, 810, 510),
-    dir: dir0,
-    col: (x, y, r) => {
+  // ⭐ DETAIL PASS (Sep 8): the field was 560 slabs at lw 8 with follow 0.7 — rounded pills
+  // floating apart on a flat rect, which on the page read as litter in the dark. Now it is
+  // thousands of flowing strokes, EVERY ONE ITS OWN WIDTH AND LENGTH (free hashes, no rule),
+  // and every drawing of the boil is a DIFFERENT PAINTING of the field (drng salted by the
+  // frame, displacement 0 in BOIL_BAND_PAGE.made) — never the same marks nudged.
+  const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+  const widthOf  = (x, y, salt) => 0.40 + 3.2 * Math.pow(free(x, y, salt), 2.6);
+  const lengthOf = (x, y, salt) => 0.40 + 1.5 * Math.pow(free(x, y, salt + 17), 1.5);
+  // ⚠ softer, with intent (Fred): the SAME field in every drawing; what differs is a slow
+  // breath toward the spark (length swells with a phase set by distance from the gap).
+  const drng = mulberry32(seed + 4409);
+  const _bb = E.boilBeat ? E.boilBeat() : 0;
+  const breatheM = (x, y) => 1 + 0.28 * Math.cos(2 * Math.PI * (_bb - Math.hypot(x - spark[0], y - spark[1]) / 380));
+  const deepCol = (x, y, r) => {
       const g = gS(x, y);
       // diagonal blend: blue in the lower-left, violet toward the upper-right
       const diag = (x / 800) * 0.55 + (1 - y / 500) * 0.45;
@@ -77,23 +87,75 @@ export function paint(E, opts = {}) {
       const edge = Math.max(0, (Math.hypot(x - spark[0], y - spark[1]) - 250) / 300);
       c = mix(c, '#0b0f2a', Math.min(0.6, edge));                 // VIGNETTE — deepen the corners so the gap holds the eye
       return jig(c, r, 9);
-    },
-    len: 36, lw: 8, steps: 3, follow: 0.7, wild: 0.1, lenJ: 0.55, impasto: 0.45, relief: 0.7,
-    aJ: (x, y) => 0.1 + gS(x, y) * 0.3,
+  };
+  // ⚠ the deep is too dark for the site's 1-in-10 complementary fleck — every flipped mark
+  // is a lime or orange chip on violet (rainbow confetti). The field paints at the approved
+  // 0.012; the glow and the arm keep the plate's own rate.
+  const _MD = E.getManifold(); E.setManifold(0.012);
+  strokes(out, counter, {
+    rng: drng, n: 3400, sample: rej(-10, -10, 810, 510),
+    dir: dir0, col: deepCol,
+    len: (x, y) => 30 * lengthOf(x, y, 101) * breatheM(x, y), lw: (x, y) => 3.6 * widthOf(x, y, 103),
+    steps: 4, follow: 0.9, wild: 0.04, lenJ: 0.3, wJ: 0.3, impasto: 0.45, relief: 0.5,
+    aJ: (x, y) => 0.08 + gS(x, y) * 0.25,
   });
+  // the crests: hair-fine strokes riding the same drift, a shade lit — the field has grain
+  strokes(out, counter, {
+    rng: drng, n: 1800, sample: rej(-10, -10, 810, 510),
+    dir: dir0,
+    col: (x, y, r) => jig(mix(deepCol(x, y, r), mix('#6a66c0', '#8a78d0', free(x, y, 211)), 0.14 + 0.1 * free(x, y, 213)), r, 6),
+    len: (x, y) => 20 * lengthOf(x, y, 107) * breatheM(x, y), lw: (x, y) => 1.3 * widthOf(x, y, 109),
+    steps: 4, follow: 0.92, lenJ: 0.3, wJ: 0.3, impasto: 0.0, relief: 0.25, op: 0.8,
+  });
+  E.setManifold(_MD);
+
+  /* ---------------- 1b. THE BEAUTY PASS (Sep 12) — "he made the stars also" ----------------
+     John 1:3: "All things were made by him." Genesis 1:16 adds, almost as an aside, "he made
+     the stars also." The deep field was an even violet noise from edge to edge, so the spark
+     had nothing to be the ONE light against. Two moves, one idea: the field goes DARK at its
+     corners (chiaroscuro — the dark deepens so the light can read) and it is seeded with stars,
+     brightest near the spark and fainter far off — every one of them a thing He made. */
+  {
+    const _MD2 = E.getManifold(); E.setManifold(0);
+    strokes(out, counter, {                 // the corners deepen — a vignette laid as paint, not a filter
+      rng, n: 1400,
+      sample: r => { const x = -14 + r() * 828, y = -14 + r() * 528; const d = Math.hypot((x - spark[0]) / 1.2, y - spark[1]); return d > 190 && r() < Math.min(1, (d - 190) / 260) ? [x, y] : null; },
+      dir: (x, y) => { const [a, b] = curlV(x, y, 41, 160); return Math.atan2(b + 0.12, a + 0.9); },
+      col: (x, y, r) => jig(mix('#1c1a4a', '#26225a', r() * 0.6), r, 4),
+      len: (x, y) => 26 * lengthOf(x, y, 131), lw: (x, y) => 4.5 * (0.5 + widthOf(x, y, 133) * 0.5), steps: 3, follow: 0.92, lenJ: 0.4, wJ: 0.3, impasto: 0, relief: 0.1,
+      op: 0.34,
+    });
+    const strng = mulberry32(seed + 1616);
+    for (let k = 0; k < 90; k++) {
+      const sx = -6 + strng() * 812, sy = -6 + strng() * 512;
+      const d = Math.hypot(sx - spark[0], sy - spark[1]);
+      if (d < 120) continue;                                            // the spark keeps its own space
+      if (sy < 0.55 * sx - 20 && sx < 400) continue;                   // not over the arm's lane (upper-left diagonal)
+      const near = Math.max(0, 1 - d / 520);
+      const sz = 0.5 + Math.pow(strng(), 2) * 1.4 + near * 0.8;
+      const bright = 0.35 + near * 0.55;
+      strokes(out, counter, { rng: strng, n: 1, sample: () => [sx, sy], dir: () => strng() * Math.PI,
+        col: (x, y, r) => jig(mix('#fff8e6', '#ffe08a', r() * 0.5), r, 3), len: sz * 1.5, lw: sz * 1.1, steps: 1, impasto: 0, relief: 0, op: bright });
+      if (strng() < 0.22 && near > 0.3) {                               // a few glint as four-point stars
+        for (const a of [0, Math.PI / 2]) paintPath(out, counter, strng, [[sx - Math.cos(a) * sz * 3, sy - Math.sin(a) * sz * 3], [sx + Math.cos(a) * sz * 3, sy + Math.sin(a) * sz * 3]],
+          (x, y, r) => jig('#fff4d0', r, 3), { lw: 0.5, len: 2, density: 0.9, jitter: 0.1 });
+      }
+    }
+    E.setManifold(_MD2);
+  }
 
   /* ---------------- 2. THE WARM GLOW BLOOMING FROM THE SPARK ---------------- */
   // gold blooming out of the gap into the field — the first light. A HORIZONTAL
   // lens (wider than tall, strokes laid roughly along the arm-axis), NOT a spiral.
   strokes(out, counter, {
-    rng, n: 330,
+    rng, n: 900,
     sample: r => { const a = r() * Math.PI * 2, d = 8 + Math.pow(r(), 1.5) * 88; return [spark[0] + Math.cos(a) * d * 1.35, spark[1] + Math.sin(a) * d * 0.7]; },
     dir: (x, y) => 0.3 + (fbm(x / 26, y / 26, 67) - 0.5) * 0.7,   // near-horizontal lay-in (the axis of the touch), gently rippling
     col: (x, y, r) => {
       const d = Math.hypot((x - spark[0]) / 1.35, (y - spark[1]) / 0.7);
       return gj(ramp(['#fffdf2', GOLD_HOT, GOLD_PALE, GOLD, GOLD_DEEP, '#7a5a40', '#3a3678'], d / 130), r);
     },
-    len: 13, lw: 2.6, steps: 2, lenJ: 0.5, aJ: 0.2, wild: 0.1, impasto: 0.6,
+    len: (x, y) => 11 * lengthOf(x, y, 121), lw: (x, y) => 1.7 * widthOf(x, y, 123), steps: 2, lenJ: 0.3, wJ: 0.3, aJ: 0.2, wild: 0.06, impasto: 0.6,
   });
   /* ---------------- 2b. LIFE — SWIFTS arcing AROUND the meeting arms ---------- */
   // five curved-wing fliers ring the making, celebrating it — "and fowl that may
@@ -124,6 +186,50 @@ export function paint(E, opts = {}) {
   swift(688, 84, 17, 0.1, 0.35);    // farthest and smallest, upper-right
   const bgEnd = out.length;   // BG plane: the deep field + the warm glow blooming from the gap (opaque)
 
+  /* ---------------- 2c. THE GROUND HE WAS MADE FROM (Sep 23) --[MID plane]--
+     Gen 2:7 — "the LORD God formed man of the dust of the ground, and breathed into his
+     nostrils the breath of life." In Hebrew the man is 'āḏām and the ground is 'ăḏāmâ, the
+     RED earth, and "formed" (yāṣar) is the potter's word. The child used to stand on
+     nothing — a figure hung in a purple field. Now a small round hill of red earth rises
+     from below the frame to his feet: warm terracotta where the spark's light falls on its
+     crown, going down into the violet of the field on its far flanks, and grass just waking
+     on the top where the light touches first. In MID, the plane the child's sprite moves
+     with, so he stands on it when the phone tilts. Own rng. */
+  const _hill = out.length;
+  {
+    const hr = mulberry32(seed + 207);
+    const HX = 470, HY = 392 + 2;                           // the child's feet (C.feet, CAST1[3].y)
+    /* ⚠ first cut was a round DOME with a lit rim line and short cobbled marks — it read as a
+       dark planet. A hill is broad and flat-crowned, it has no outline, and the light on it is
+       COLOUR (warm on the crown and the side facing the Light), not a drawn edge. */
+    const hillY = x => HY + 106 * Math.pow((x - HX) / 236, 2) + 4 * Math.sin(x / 53 + 0.7) * Math.min(1, Math.abs(x - HX) / 90);
+    const warm = (x, y) => Math.max(0, Math.min(1, 1 - (y - HY) / 95 - (x - HX) / 520 + 0.12));   // the crown and the Light's side
+    const _MH = E.getManifold(); E.setManifold(0);
+    strokes(out, counter, {
+      rng: hr, n: 1300,
+      sample: rej(200, HY - 4, 760, 512, (x, y) => y > hillY(x)),
+      dir: x => { const e = 4; return Math.atan2(hillY(x + e) - hillY(x - e), 2 * e) + (fbm(x / 40, 1, 207) - 0.5) * 0.3; },
+      col: (x, y, r) => {
+        const w = warm(x, y);
+        let c = ramp(['#4a2548', '#7a3440', '#b04e36', '#d8743e', '#f0a060', '#f8c888'], 0.1 + w * 0.82 + (fbm(x / 30, y / 14, 209) - 0.5) * 0.22);
+        c = mix(c, '#fff0c8', Math.pow(gS(x, y), 1.5) * 0.35);
+        return jig(c, r, 5);
+      },
+      len: (x, y) => 9 + 7 * Math.min(1, (y - HY) / 80), lw: (x, y) => 2.2 + 1.6 * Math.min(1, (y - HY) / 80), steps: 3, follow: 0.9, lenJ: 0.4, wJ: 0.4, relief: 0.12, impasto: 0.12, flow: 0,   // low: relief tiles a dark ground into cobbles
+    });
+    // the first grass, waking where the light falls — thickest on the crown, gone by the flanks
+    for (let i = 0; i < 170; i++) {
+      const x = HX - 150 + hr() * 300, y0 = hillY(x) + 1 + hr() * 10, g = Math.max(gS(x, y0), warm(x, y0) * 0.5);
+      if (hr() > g * 1.6 || (Math.abs(x - HX) < 12 && y0 < HY + 4)) continue;   // thickest where the light is; not under his feet
+      const h = 3 + hr() * 6 * (0.6 + g), lean = (hr() - 0.5) * 3;
+      paintPath(out, counter, hr, [[x, y0], [x + lean * 0.4, y0 - h * 0.6], [x + lean, y0 - h]], (xx, yy, r) => jig(mix('#5aa85a', '#c6ec8a', Math.min(1, g * 1.5 + (y0 - yy) / (h + 1) * 0.3)), r, 7), { lw: 0.9, len: 2.5, density: 0.95, jitter: 0.3 });
+    }
+    // and he stands ON it: a contact shadow thrown away from the spark (down-right)
+    E.groundShadow(out, counter, HX + 3, HY + 1, 13, 3.2, { dir: 0.7, reach: 1, op: 0.9, tint: '#3b1b3a' });
+    E.setManifold(_MH);
+  }
+  midRanges.push([_hill, out.length]);
+
   /* ---------------- 3. THE GIVING ARM OF LIGHT — from the UPPER-LEFT, radiant gold --[MID plane]-- */
   const _midArm = out.length;
   // a great forearm + hand reaches in horizontally from the upper-left corner; it is
@@ -141,12 +247,12 @@ export function paint(E, opts = {}) {
   // CYLINDER shading so the arm reads round, not flat: bright highlight rippling
   // down its TOP edge, deep shadow along its UNDER edge
   strokes(out, counter, {
-    rng, n: 150, sample: rej(-14, 30, 330, 230, (x, y) => fore.some(c => inCap(x, y, c)) && !fore.some(c => inCap(x, y - 5, c))),
-    dir: () => 0.42, col: (x, y, r) => gj(mix(GOLD_PALE, '#fff6df', r() * 0.5), r), len: 7, lw: 2.0, steps: 2, relief: 0.4,
+    rng, n: 420, sample: rej(-14, 30, 330, 230, (x, y) => fore.some(c => inCap(x, y, c)) && !fore.some(c => inCap(x, y - 5, c))),
+    dir: () => 0.42, col: (x, y, r) => gj(mix(GOLD_PALE, '#fff6df', r() * 0.5), r), len: (x, y) => 6 * lengthOf(x, y, 131), lw: (x, y) => 1.4 * widthOf(x, y, 133), steps: 2, lenJ: 0.3, wJ: 0.3, relief: 0.4,
   });
   strokes(out, counter, {
-    rng, n: 140, sample: rej(-14, 30, 330, 240, (x, y) => fore.some(c => inCap(x, y, c)) && !fore.some(c => inCap(x, y + 6, c))),
-    dir: () => 0.42, col: (x, y, r) => gj(mix('#9a6f30', '#5e3f1a', r() * 0.6), r), len: 7, lw: 2.2, steps: 2, relief: 0.5,
+    rng, n: 400, sample: rej(-14, 30, 330, 240, (x, y) => fore.some(c => inCap(x, y, c)) && !fore.some(c => inCap(x, y + 6, c))),
+    dir: () => 0.42, col: (x, y, r) => gj(mix('#9a6f30', '#5e3f1a', r() * 0.6), r), len: (x, y) => 6 * lengthOf(x, y, 141), lw: (x, y) => 1.5 * widthOf(x, y, 143), steps: 2, lenJ: 0.3, wJ: 0.3, relief: 0.5,
   });
   // wrist + open giving hand, the index finger reaching RIGHT toward the gap
   const dHand = [
@@ -184,38 +290,15 @@ export function paint(E, opts = {}) {
   // the Light's hand — newly made, looking up to his Maker. (The Light reaches DOWN
   // from upper-left; the child reaches UP from lower-right; the spark leaps the gap.)
   const C = { x: 470, feet: 392 };
-  const caps = personCaps(C.x, C.feet - 116, 116, {
-    leftHand: childTip,                        // the near (left) arm reaching UP-LEFT toward the Light's fingertip / spark
-    rightHand: [C.x + 24, C.feet - 44],        // the other arm relaxed at his side
-    leftFoot: [C.x - 11, C.feet], rightFoot: [C.x + 11, C.feet],
-    lean: -5,                                  // leaning toward the Light
-    headTilt: -3,                              // face lifted up to his Maker
-  });
-  // THE MAIN CHARACTER — "you", newly made: deep red clothes + bold dark outline
-  paintChild(out, counter, rng, caps, { outlineW: 4 });
-  // rim light up the child's Light-facing flank (the side turned to the spark)
-  strokes(out, counter, {
-    rng, n: 64,
-    sample: rej(childTip[0] - 6, C.feet - 178, C.x - 20, C.feet - 120, (x, y) => caps.some(c => inCap(x, y, c)) && !caps.some(c => inCap(x - 3, y - 3, c))),
-    dir: () => -Math.PI / 2 - 0.5,
-    col: (x, y, r) => jig(mix(GOLD_DEEP, '#a3552c', r() * 0.5), r, 10),
-    len: 6, lw: 1.8, steps: 2,
+  // THE MAIN CHARACTER — the little pilgrim, newly made, face lifted to his
+  // Maker, one thin arm reaching UP toward the Light's fingertip and the spark
+  E.paintMask(out, counter, rng, {
+    x: C.x, y: C.feet, h: 116, facing: -1, lean: -6,
+    armL: childTip, armR: [C.x + 24, C.feet - 44],
+    eye: [-1, -1], mood: 'wonder',
   });
 
-  /* ---------------- 5. THE FACE, LIFTED toward the Light ---------------- */
-  const face = [C.x - 68, C.feet - 170];
-  strokes(out, counter, {
-    rng, n: 60,
-    sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.25) * 10; return [face[0] + Math.cos(a) * d * 0.85, face[1] + Math.sin(a) * d]; },
-    dir: (x, y) => 0.5 + (fbm(x / 7, y / 7, 79) - 0.5) * 0.8,
-    col: (x, y, r) => {
-      const d = Math.hypot(x - face[0], y - face[1]);
-      return jig(ramp([GOLD_HOT, GOLD_PALE, GOLD, '#c98e4e', '#8a5a34'], d / 12 + (r() - 0.5) * 0.15), r, 7);
-    },
-    len: 5, lw: 1.8, steps: 2, wJ: 0.5, lenJ: 0.5, impasto: 0.7,
-  });
-  // a closed, calm eye — one short dark stroke turned toward the Light; reverence
-  paintPath(out, counter, rng, [[face[0] - 4, face[1] - 1.5], [face[0], face[1] - 3]], (x, y, r) => jig('#5e3a1e', r, 6), { lw: 1.3, len: 2.2, density: 0.9, jitter: 0.3 });
+  /* ---------------- 5. THE REACH — the fingertip at the gap ---------------- */
   // a hot fingertip rim where the child's hand reaches the gap
   strokes(out, counter, {
     rng, n: 20,
@@ -225,10 +308,17 @@ export function paint(E, opts = {}) {
     len: 3.5, lw: 1.4, steps: 2,
   });
 
-  /* ---------------- 6. THE SPARK — the brightest point, leaping the GAP ---------------- */
-  // life kindled in the charged gap between the two nearly-touching fingertips:
-  // a brilliant white-gold flame, the brightest thing on the plate, leaping in curves.
-  strokes(out, counter, {
+  /* ---------------- 6. THE SPARK — the brightest point, leaping the GAP ----------------
+     ⚠ DE-BAKED FOR THE PLANES, exactly as `beginning`'s star is (Fred: "make the starburst
+     the same as the one before"). The spark is the one thing on this plate that should be
+     alive, so it is not painted into the depth planes at all: the rigs stand on it and
+     draw the heart, the arms and the light leaving it. What stays painted is everything
+     that should hold still — the deep field, the two reaching arms, the child.
+     It stays PAINTED in the flat desktop plate and the contact sheet, which have no rig.
+     The arcing licks across the gap and the drifting sparks stay painted too: they belong
+     to the two hands, not to the star. */
+  const sparkArt = (LAYER === 'full') ? out : [];
+  strokes(sparkArt, counter, {
     rng, n: 150,
     sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.5) * 12; return [spark[0] + Math.cos(a) * d, spark[1] + Math.sin(a) * d]; },
     dir: (x, y) => Math.atan2(x - spark[0], -(y - spark[1])) + (fbm(x / 6, y / 6, 83) - 0.5) * 0.6,
@@ -264,8 +354,8 @@ export function paint(E, opts = {}) {
     col: (x, y, r) => jig(mix('#fffffa', '#fff7d6', r()), r, 5),
     len: 4, lw: 1.5, steps: 2,
   });
-  out.push(`<circle cx="${R1(spark[0])}" cy="${R1(spark[1])}" r="6" fill="#fffffa"/>`);
-  out.push(`<circle cx="${R1(spark[0])}" cy="${R1(spark[1])}" r="3" fill="#ffffff"/>`);
+  sparkArt.push(`<circle cx="${R1(spark[0])}" cy="${R1(spark[1])}" r="6" fill="#fffffa"/>`);
+  sparkArt.push(`<circle cx="${R1(spark[0])}" cy="${R1(spark[1])}" r="3" fill="#ffffff"/>`);
   counter.n += 2;
   // radiating light RAYS — a crisp starburst so the spark reads as a POINT of light,
   // not a cloud (4 long cardinal rays, alternating medium/short between)
@@ -275,7 +365,7 @@ export function paint(E, opts = {}) {
       const a = (i / nrays) * Math.PI * 2 + 0.25;
       const long = (i % 4 === 0) ? 48 : (i % 2 === 0 ? 30 : 19);
       const ex = spark[0] + Math.cos(a) * long, ey = spark[1] + Math.sin(a) * long;
-      out.push(ribbon([[spark[0], spark[1]], [spark[0] + Math.cos(a) * long * 0.5, spark[1] + Math.sin(a) * long * 0.5], [ex, ey]], 2.6, jig(mix('#fffef6', GOLD_HOT, 0.4), rng, 5), [0.95, 0.4, 0.0]));
+      sparkArt.push(ribbon([[spark[0], spark[1]], [spark[0] + Math.cos(a) * long * 0.5, spark[1] + Math.sin(a) * long * 0.5], [ex, ey]], 2.6, jig(mix('#fffef6', GOLD_HOT, 0.4), rng, 5), [0.95, 0.4, 0.0]));
       counter.n++;
     }
   }
@@ -318,7 +408,7 @@ export function paint(E, opts = {}) {
   E.inscriptionText(out, E.greekRef(1, 3), { x: 400, y: 432, h: 14, body: '#1a1430', edge: '#fff0c4', op: 0.8, edgeOp: 0.5 });
   const eggRange = [_egg, out.length];   // the cut verse rides with the deep field (bg)
 
-  const ALT = 'Horizontal Creation of Adam: from the upper-left a great radiant gold hand and forearm of the Light reaches in, index finger extended; from the lower-right a small child in deep red reaches up, fingertip extended toward the Light. Between their nearly-touching fingertips a brilliant white-gold spark leaps across the charged gap — life being kindled — against a deep blue-and-violet field.';
+  const ALT = 'From the upper-left a great radiant gold arm of the Light reaches in, index finger extended; below it a small child stands on the crown of a little round hill of red earth, reaching up toward the Light, grass just waking on the hilltop where the light falls. Between the Light\'s fingertip and the child a brilliant white-gold spark leaps the gap — life being kindled — against a deep blue-and-violet sky full of stars. Made from the dust of the ground, and given the breath of life.';
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.

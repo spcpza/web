@@ -34,14 +34,16 @@ export const focal = { x: 444, y: 296 }; // portrait window: the bent tree + she
 // the stacked STORM-SWIRL SHEETS — two independent bold, gapped passes of the
 // turbulent cloud (paint on paint), each its own depth plane + own rng. Derived
 // from the original dense churn (n:1280, len:32, lw:3.8).
+// ⭐ DETAIL PASS (Sep 8): finer sheets, every stroke its own width and length (free hashes,
+// no rule — see widthOf/lengthOf in paint()); the storm keeps its flow and its lightning.
 export const SKY_SHEETS = [
-  { n: 200, len: 42, lw: 6.6, lift: 0.00 },   // bold broad cloud MASSES (not confetti)
-  { n: 165, len: 34, lw: 5.6, lift: 0.06 },
+  { n: 640, len: 38, lw: 3.2, lift: 0.00 },
+  { n: 560, len: 32, lw: 2.8, lift: 0.06 },
 ];
 export const layers = [
   { name: 'sky', opaque: true },  // smooth storm-sky ground + rain (backmost, opaque)
   ...SKY_SHEETS.map((_, i) => ({ name: 'sky' + (i + 1) })),   // stacked storm-swirl sheets
-  { name: 'mid' },                // the bent tree, roots, sheltering child, cutaway earth + crest fringe
+  { name: 'mid', op: 1 },         // the bent tree, roots, cutaway EARTH (solid ground, not see-through) + crest fringe
   { name: 'fg' },                 // the jewel bushes (closest)
 ];
 
@@ -54,6 +56,24 @@ export function paint(E, opts = {}) {
   } = E;
 
   const rng = mulberry32(seed);
+  // ⚠ THE GALE HAS TO CARRY THINGS AWAY, NOT JUST SHAKE THEM. The boil bends the tree —
+  // every mark displaced and returned — but displacement can only ever OSCILLATE, and a
+  // storm strips a tree. Torn leaves need to TRAVEL, so they are drawn at six successive
+  // points along their own flight and the ring plays them: each leaf crosses the plate
+  // once per turn and wraps. Same law as the rest of the book — draw the movement, never
+  // fake it with an effect.
+  const _F = (globalThis.__FRAME || 0), _FN = Math.max(2, globalThis.__FRAME_N || 6);
+  // ⭐ EVERY STROKE DRAWS ITS OWN WIDTH AND LENGTH (Fred: "use no rules, a paint stroke
+  // just exist because it exist") — two independent hashes per mark, no field, no coupling.
+  const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+  const widthOf  = (x, y, salt) => 0.40 + 3.2 * Math.pow(free(x, y, salt), 2.6);
+  const lengthOf = (x, y, salt) => 0.40 + 1.5 * Math.pow(free(x, y, salt + 17), 1.5);
+  const PH = (_F % _FN) / _FN;
+  // ⚠ ONE GUST PER TURN, AND EVERYTHING ANSWERS IT. Aligned with the boil's own phase
+  // (dx ∝ cos(2π·F/N)) so the trunk's furthest bend east and the crown's furthest stream
+  // happen on the SAME drawing. A tree whose trunk bends on one beat and whose leaves
+  // stream on another is two animations, not one wind.
+  const GUST = 0.5 + 0.5 * Math.cos(PH * Math.PI * 2);
   const out = [];
   const counter = { n: 0 };
   // MOBILE 3D LAYERS: tag ranges per band; MID = the whole rooted-tree system.
@@ -116,11 +136,18 @@ export function paint(E, opts = {}) {
   const skyCol = (x, y, r, lift) => {
     let near = 1e9; for (const v of V) near = Math.min(near, Math.hypot(x - v.x, y - v.y) / v.f);
     if (near < 1.3 && r() < 0.05) return jig(r() < 0.5 ? '#fffdf6' : '#f7c0d6', r, 12); // lightning glints at the tear-cores
-    const rift = Math.exp(-Math.hypot(x - EYE[0], y - EYE[1]) / 210);  // 1 at the break → 0 in the deep corners
-    const t = Math.max(0, Math.min(1, 0.22 + rift * 0.68 + fbm(x / 100, y / 100, 29) * 0.30));
+    /* ⚠ THE BREAK WAS THE WHOLE SKY (Sep 21). This page's own note asks for "deep brooding
+       storm-blue masses in the corners, ONE luminous break of light" — but with a 210-unit falloff
+       and a floor of 0.22, a point 400 units from the eye still sat at t≈0.47: dusk mauve. Nothing
+       ever reached the indigo end of the ramp, the eddies' rose glow lifted what was left, and the
+       page that says "storms still came" wore a pastel lilac swirl. Tightened so the light is a
+       BREAK — bright over the tree and the Rock, gone by the corners — which is also what makes
+       the gold roots below blaze: bright only reads against dark. Never black: the floor is indigo. */
+    const rift = Math.exp(-Math.pow(Math.hypot(x - EYE[0], (y - EYE[1]) * 1.25) / 150, 1.35));  // 1 at the break → 0 in the deep corners
+    const t = Math.max(0, Math.min(1, 0.05 + rift * 0.86 + fbm(x / 100, y / 100, 29) * 0.26));
     // deep indigo/storm-blue masses → dusk mauve → a warm gold-cream break of light
-    let c = ramp(['#1f3560', '#2b4a76', '#3f6592', '#7791b4', '#c2adba', '#f2d29e', '#fdf3e4'], t);
-    for (const [ex, ey, ec] of EGLOW) { const d2 = Math.hypot(x - ex, y - ey); c = mix(c, ec, Math.exp(-d2 / 95) * 0.42); } // eddy cores breathe jewel light
+    let c = ramp(['#16264e', '#1f3560', '#2b4a76', '#3f6592', '#7791b4', '#c2adba', '#f2d29e', '#fdf3e4'], t);
+    for (const [ex, ey, ec] of EGLOW) { const d2 = Math.hypot(x - ex, y - ey); c = mix(c, ec, Math.exp(-d2 / 70) * 0.24); } // eddy cores breathe jewel light (a breath, not a wash — at 0.42 over 95 they turned the storm rose)
     if (lift) c = mix(c, '#fff4dd', lift);
     return jig(c, r, 9);
   };
@@ -128,9 +155,9 @@ export function paint(E, opts = {}) {
   // strokes that trace the great wheel (high follow); the turbulent sheets above
   // add the gapped churn, so their gaps reveal this paint
   strokes(out, counter, {
-    rng, n: 430, sample: rej(-10, -10, 810, 326, (x, y) => y < soilY(x) + 6),
+    rng, n: 1300, sample: rej(-10, -10, 810, 326, (x, y) => y < soilY(x) + 6),
     dir: skyDir, col: (x, y, r) => skyCol(x, y, r, 0),
-    len: 44, lw: 9.5, steps: 4, follow: 0.91, wild: 0.05, aJ: slash, lenJ: 0.5, impasto: 0.5, relief: 0.55,
+    len: (x, y) => 30 * lengthOf(x, y, 11), lw: (x, y) => 4.6 * widthOf(x, y, 13), steps: 4, follow: 0.91, wild: 0.05, aJ: slash, lenJ: 0.3, wJ: 0.3, impasto: 0.5, relief: 0.4,
   });
   const skyGroundEnd = out.length;   // the smooth sky ground is the opaque SKY plane
 
@@ -153,7 +180,25 @@ export function paint(E, opts = {}) {
   // Romans 5:3 ("tribulation worketh patience") in ORIGINAL KOINE GREEK numerals,
   // Εʹ·Γʹ (Ε=5, Γ=3), hidden in the storm's upper-left churn — a fourth-look whisper.
   E.inscriptionText(out, E.greekRef(5, 3), { x: 108, y: 76, h: 22, body: '#dfe6f0', edge: '#1a2440', op: 0.82, edgeOp: 0.5 });
-  const skyEnd = out.length;   // opaque SKY plane: smooth ground + rain + the 5:3 egg
+  /* ⭐ "AND IT SHALL COME TO PASS, WHEN I BRING A CLOUD OVER THE EARTH, THAT THE BOW SHALL BE SEEN IN
+     THE CLOUD" (Gen 9:14). The page says "Storms still came… He would not let you go" — and the
+     sign He gave for exactly that is a bow IN the cloud. It stands in the dark mass to the west,
+     opposite the break of light (a bow is always opposite the light), laid in the sky's own
+     base plane so the torn cloud sheets above it veil it in places: seen IN the cloud, not
+     pasted on it. Faint — it is a token, not the subject. (Sep 21.) */
+  {
+    const BX = 176, BY = 338, B0 = 204, B1 = 222;
+    strokes(out, counter, {
+      rng: mulberry32(seed ^ 0x914), n: 520,
+      sample: r => { const a2 = Math.PI * (1.08 + r() * 0.60), rr = B0 + r() * (B1 - B0);
+                     const x = BX + Math.cos(a2) * rr, y = BY + Math.sin(a2) * rr;
+                     return (y < soilY(x) - 8 && Math.hypot(x - EYE[0], y - EYE[1]) > 120) ? [x, y] : null; },
+      dir: (x, y) => Math.atan2(y - BY, x - BX) + Math.PI / 2,
+      col: (x, y, r) => jig(ramp(['#b79cf0', '#6fa8f0', '#5fd0a0', '#e8e27a', '#f2a860', '#ee7a7a'], (Math.hypot(x - BX, y - BY) - B0) / (B1 - B0)), r, 6),
+      len: 26, lw: 2.6, steps: 5, follow: 1, lenJ: 0.4, wJ: 0.3, aJ: 0.04, relief: 0, impasto: 0, op: 0.34, flow: 0,
+    });
+  }
+  const skyEnd = out.length;   // opaque SKY plane: smooth ground + rain + the 5:3 egg + the bow
   // the stacked STORM-SWIRL SHEETS — each an independent bold, gapped pass of the
   // turbulent cloud (paint on paint), own rng per sheet, woven above the ground.
   const skySheets = SKY_SHEETS.map((e, k) => {
@@ -164,7 +209,8 @@ export function paint(E, opts = {}) {
       sample: rej(-10, -10, 810, 326, (x, y) => y < soilY(x) + 6),
       dir: skyDir,
       col: (x, y, r) => skyCol(x, y, r, e.lift),
-      len: e.len, lw: e.lw, steps: 5, follow: 0.9, wild: 0.13, lenJ: 0.55, impasto: 0.6, relief: 0.5,
+      len: (x, y) => e.len * lengthOf(x, y, 21 + k), lw: (x, y) => e.lw * widthOf(x, y, 27 + k),
+      steps: 5, follow: 0.9, wild: 0.1, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.4,
     });
     return sh.join('\n');
   });
@@ -187,7 +233,8 @@ export function paint(E, opts = {}) {
     const wsum = Math.min(1, 200 / (50 + Math.hypot(x - TB[0], y - TB[1])));
     return Math.atan2(Math.sin(a) * wsum + d * 0.6, Math.cos(a) * wsum + (x < TB[0] ? -1 : 1) * (1 - wsum) + c * 0.6);
   };
-  strokes(out, counter, { rng, n: 880, sample: rej(-10, 270, 810, 510, (x, y) => y > soilY(x)), dir: earthDir, col: earthCol, len: 30, lw: 5, steps: 3, follow: 0.88, wild: 0.09, lenJ: 0.5 });
+  strokes(out, counter, { rng, n: 2000, sample: rej(-10, 270, 810, 510, (x, y) => y > soilY(x)), dir: earthDir, col: earthCol,
+    len: (x, y) => 26 * lengthOf(x, y, 31), lw: (x, y) => 2.8 * widthOf(x, y, 33), steps: 3, follow: 0.88, wild: 0.06, lenJ: 0.3, wJ: 0.3, relief: 0.35 });   // ⚠ relief was the default 1 — slabs
   // buried stones: a few cold knots the roots had to grow around
   for (const [sx, sy, sr] of [[300, 392, 13], [560, 430, 15], [380, 462, 11], [505, 352, 9]]) {
     strokes(out, counter, {
@@ -199,11 +246,98 @@ export function paint(E, opts = {}) {
     });
   }
 
+  /* ══ 4b · THE ROCK IT IS FOUNDED UPON ══════════════════════════════════════
+     ⚠ THE PAGE'S OWN VERSE NAMES FOUR THINGS AND THE PLATE HAD ONLY THREE.
+     Matt 7:25: "And the RAIN descended, and the FLOODS came, and the WINDS blew, and beat
+     upon that house; and it fell not: FOR IT WAS FOUNDED UPON A ROCK." The rain is here,
+     the wind is here, the roots go deep — but the one thing the verse gives as the REASON
+     it held was nowhere in the picture. The roots simply ended in dark soil.
+     So the whole system comes down onto bedrock. It is the darkest mass on the plate and
+     it lies under the brightest thing on it, which is also the right way round: the light
+     is what the roots are, the rock is what they hold. */
+  {
+    const RK = { x: 452, y: 500, rx: 152, ry: 54 };
+    strokes(out, counter, {
+      rng, n: 1600,
+      sample: r => { const a2 = r() * Math.PI * 2, d = Math.pow(r(), 0.55);
+                     const x = RK.x + Math.cos(a2) * RK.rx * d, y = RK.y + Math.sin(a2) * RK.ry * d;
+                     return y < 447 ? null : [x, y]; },
+      // bedding planes: a stone is the one INERT thing down here, so it lies in flat
+      // courses while every living thing on the page curves (Munch)
+      dir: (x, y) => 0.04 + (fbm(x / 44, y / 26, 71) - 0.5) * 0.42,
+      col: (x, y, r) => {
+        const up = Math.max(0, Math.min(1, (RK.y - y) / RK.ry));
+        // ⚠ A ROCK THE COLOUR OF THE SOIL IS NOT A ROCK. The first pass ran '#20232b'
+        // upward — within a few steps of the dark blue earth around it — and the root glow
+        // then washed straight over the top, so the stone simply vanished and the grip
+        // roots appeared to clamp onto nothing. Stone has to differ from soil in VALUE and
+        // in surface, not just in the direction of its strokes.
+        let c = ramp(['#333849', '#434a5e', '#565e73', '#6b7488', '#87909f'], up * 0.5 + r() * 0.3);
+        c = mix(c, GOLD_DEEP, light(x, y) * up * 0.8);       // the buried light rakes its top face
+        return jig(c, r, 6);
+      },
+      len: (x, y) => 12 * lengthOf(x, y, 41), lw: (x, y) => 2.4 * widthOf(x, y, 43), steps: 2, lenJ: 0.3, wJ: 0.3, impasto: 0.55, relief: 0.3,
+    });
+    // ⚠ AND IT NEEDS A CROWN. What makes a buried stone read is the one lit edge along its
+    // top, where the light in the roots grazes it — without that there is no silhouette for
+    // the eye to find, only a slightly different patch of dark.
+    strokes(out, counter, {
+      rng, n: 420,
+      sample: r => { const u = -1 + r() * 2;
+                     const x = RK.x + u * RK.rx * 0.99;
+                     const yTop = RK.y - RK.ry * Math.sqrt(Math.max(0, 1 - u * u));
+                     return [x, yTop + Math.pow(r(), 1.6) * 13]; },
+      dir: (x) => { const u = (x - RK.x) / RK.rx; return Math.atan2(u * 0.9, 1); },
+      col: (x, y, r) => jig(mix(ramp(['#7b8394', '#949cab', '#b0b7c2'], r()),
+        GOLD_PALE, Math.min(0.72, light(x, y) * 0.9)), r, 7),
+      len: (x, y) => 8 * lengthOf(x, y, 51), lw: (x, y) => 1.6 * widthOf(x, y, 53), steps: 2, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.35,
+    });
+    for (const seam of [[[346, 466], [402, 500]], [[506, 458], [472, 500]], [[566, 474], [540, 500]]])
+      paintPath(out, counter, rng, seam, (x, y, r) => jig('#161923', r, 5), { lw: 1.7, len: 5, density: 0.7, jitter: 0.9 });
+    /* ⭐ "O THOU AFFLICTED, TOSSED WITH TEMPEST, AND NOT COMFORTED, BEHOLD, I WILL LAY THY STONES WITH
+       FAIR COLOURS, AND LAY THY FOUNDATIONS WITH SAPPHIRES" (Isa 54:11) — spoken TO someone in a
+       storm, which is this page. The rock the roots hold was grey all the way down. Its lowest
+       course is sapphire now: cut stones (made → straight) in the deep blues, each with its lit
+       bevel, glinting where the buried light reaches — the foundation under the foundation.
+       And round it, in the dark earth, the "stones with fair colours" — agate and carbuncle
+       among them (54:12) — rounded, because a stone in the ground is a natural thing. (Sep 21.) */
+    const gR = mulberry32(seed ^ 0x5411);
+    const SAPH = ['#1f4fc4', '#2a63d8', '#3b7be6', '#1a3f9e', '#4a8ff0'];
+    // ⚠ SECOND CUT. The first course was seventeen identical tiles in a ruled row — it read as a
+    // strip of INTERFACE along the bottom of the page. A foundation is LAID: stones of different
+    // lengths, in two courses that break joint, the upper course only where the rock is deep
+    // enough to hold it, and each stone its own depth of blue.
+    out.push(`<path d="M${R1(RK.x - RK.rx * 0.9)} 500L${R1(RK.x - RK.rx * 0.74)} 477L${R1(RK.x + RK.rx * 0.74)} 477L${R1(RK.x + RK.rx * 0.9)} 500Z" fill="#07080f"/>`); counter.n++;   // the pûḵ: the black bed they are set in
+    for (const [y0, y1, off] of [[488.5, 499.5, 0], [477.5, 488, 7]]) {
+      let x = RK.x - RK.rx * 0.92 + off;
+      while (x < RK.x + RK.rx * 0.92) {
+        const w = 11 + gR() * 11, mx = x + w / 2, u = (mx - RK.x) / RK.rx;
+        const top = RK.y - RK.ry * Math.sqrt(Math.max(0, 1 - u * u));
+        if (top < y0 - 3 && Math.abs(u) < 0.94)
+          E.cutGem(out, counter, x + 1.1, y0 + 0.7, x + w - 1.1, y1 - 0.7, mix(mix(SAPH[(gR() * SAPH.length) | 0], '#0e1a4a', gR() * 0.35), GOLD_DEEP, light(mx, y0) * 0.22), { glint: 0.55 });
+        x += w;
+      }
+    }
+    /* ⚠⚠ THE COLOURED STONES ARE GONE, AND THIS IS WHY (Sep 21). Fred: "the rocks below the ground on
+       storm is colourful. it is kind of weird. just wondering why you did this." I had read the
+       KJV's "I will lay thy stones with FAIR COLOURS" as many-coloured stones and scattered
+       pebbles through the earth. The Hebrew word is pûḵ (H6320) — and everywhere else it appears
+       it is EYE-PAINT: Jezebel "painted her face" (2 Kgs 9:30), "rentest thy face with painting"
+       (Jer 4:30); in 1 Chr 29:2 it is the "glistering stones" David stored for the Temple. Pûḵ is
+       antimony, the black kohl that makes an eye shine by darkening round it. So the verse does
+       not promise coloured stones: it promises stones SET IN DARK MORTAR so that they glisten —
+       and its subject is a city being rebuilt (foundations, windows, gates, borders, v.12), not
+       loose pebbles. His eye was right and my reading was only the English surface.
+       What the verse does say plainly — "lay thy foundations with sapphires" — stays, and is now
+       laid the way pûḵ means: each sapphire bedded in black, the dark joint round it doing for
+       the stone what kohl does for an eye. */
+  }
+
   /* ---------------- 5. ROOT GLOW — the buried light ---------------- */
   // a warm pool breathing around the root system before the roots are laid:
   // dense small strokes, brightest along the spine, dying into the soil
   strokes(out, counter, {
-    rng, n: 480,
+    rng, n: 900,
     sample: r => {
       const t = r();
       const p = taproot(t);
@@ -216,7 +350,7 @@ export function paint(E, opts = {}) {
       const g = light(x, y);
       return jig(ramp([GOLD_DEEP, '#a8843a', '#6e5526', '#3c2c2a'], Math.max(0, 1 - g * 1.6)), r, 9);
     },
-    len: 14, lw: 2.8, steps: 2, impasto: 0.52,
+    len: (x, y) => 13 * lengthOf(x, y, 61), lw: (x, y) => 1.8 * widthOf(x, y, 63), steps: 2, lenJ: 0.3, wJ: 0.3, impasto: 0.52, relief: 0.3,
   });
 
   /* ---------------- 6. THE ROOTS — deeper than the tree is tall ---------------- */
@@ -230,6 +364,12 @@ export function paint(E, opts = {}) {
     [[440, TB[1] + 4], [456, 348], [466, 406], [478, 450]],                        // inner east
     [[422, TB[1] + 2], [378, 302], [336, 316], [300, 336]],                        // shallow west reach
     [[444, TB[1] + 2], [494, 304], [540, 320], [576, 342]],                        // shallow east reach
+    // ⚠ AND TWO THAT TAKE HOLD OF THE ROCK. A taproot that merely reaches the stone is
+    // resting on it; roots that splay along its top and curl down over both shoulders are
+    // GRIPPING it, and that is the difference between a tree standing on rock and a tree
+    // founded on it. They branch off the taproot just above the bedrock's crown (y~447).
+    [[440, 420], [424, 444], [390, 454], [350, 460], [322, 474]],                  // west grip
+    [[446, 420], [468, 446], [506, 454], [548, 460], [578, 474]],                  // east grip
   ];
   const rootCol = (x, y, r, t) => jig(ramp([GOLD_HOT, GOLD_PALE, GOLD, GOLD_DEEP, '#8a6526'],
     Math.max(0, Math.min(1, 0.18 + (1 - light(x, y)) * 0.9 + t * 0.12))), r, 8);
@@ -290,7 +430,7 @@ export function paint(E, opts = {}) {
   // a tight dark band along the crest: the lid the storm beats against.
   // Only right at the trunk does a thin warm seam leak up from below.
   strokes(out, counter, {
-    rng, n: 300,
+    rng, n: 600,
     sample: rej(-10, 262, 810, 332, (x, y) => y > soilY(x) - 3 && y < soilY(x) + 16),
     dir: x => { const e = 6; return Math.atan2(soilY(x + e) - soilY(x - e), 2 * e); },
     col: (x, y, r) => {
@@ -298,8 +438,31 @@ export function paint(E, opts = {}) {
       let c = mix('#181426', '#2c2438', fbm(x / 55, y / 20, 47));
       return jig(mix(c, '#6e5526', warm * 0.55), r, 7);
     },
-    len: 20, lw: 3.4, steps: 3, wild: 0.08,
+    len: (x, y) => 18 * lengthOf(x, y, 71), lw: (x, y) => 2.2 * widthOf(x, y, 73), steps: 3, wild: 0.06, lenJ: 0.3, wJ: 0.3, relief: 0.3,
   });
+
+  /* ══ 8b · AND THE FLOODS CAME ══════════════════════════════════════════════
+     The third thing the verse names. Rain was falling but nothing was RUNNING: the crest
+     took the whole storm and stayed dry. Sheets of water sluice off it now, raked the same
+     way the wind drives everything else on this page, and each one throws a little white
+     where it breaks — so the ground reads as being beaten on, which is what the sentence
+     says is happening while the roots hold. */
+  {
+    strokes(out, counter, {                                   // sheets running off the crest
+      rng, n: 240,
+      sample: rej(-10, 258, 810, 344, (x, y) => y > soilY(x) - 8 && y < soilY(x) + 26),
+      dir: (x, y) => 0.34 + (fbm(x / 30, y / 14, 91) - 0.5) * 0.4,
+      col: (x, y, r) => jig(ramp(['#5f7290', '#7b90ac', '#9fb4c8', '#cfe0ec'], r() * 0.9), r, 7),
+      len: 22, lw: 1.7, steps: 2, lenJ: 0.7, relief: 0, op: 0.5,
+    });
+    for (let i = 0; i < 60; i++) {                            // and where it breaks, white
+      const x = -8 + rng() * 816, y = soilY(x) + 2 + rng() * 16;
+      const s2 = 0.7 + rng() * 1.5;
+      E.daub(out, counter, x, y, s2, jig('#e8f2fa', rng, 5), rng);
+      paintPath(out, counter, rng, [[x - s2 * 2, y - s2 * 1.6], [x + s2 * 2.4, y - s2 * 2.2]],
+        (px, py, r) => jig('#cfe0ec', r, 6), { lw: 0.8, len: 2, density: 0.8, jitter: 0.6 });
+    }
+  }
 
   /* ---------------- BACKGROUND LIFE — birds in the gale (Matt 6:26) ---------------- */
   for (const [bx, by, s] of [[180, 92, 0.9], [240, 70, 0.8], [150, 120, 0.7]]) {
@@ -347,30 +510,42 @@ export function paint(E, opts = {}) {
     col: (x, y, r) => jig(mix('#241e36', '#3c3450', r() * 0.7), r, 6),
     len: 9, lw: 1.8, steps: 2,
   });
-  // two whip branches streaming east off the upper trunk
-  for (const [t0, dx, dy, bw] of [[0.72, 58, -10, 3.2], [0.9, 66, 4, 2.8]]) {
-    const b = trunk(t0);
-    const tip = [b[0] + dx, b[1] + dy];
-    const ctl = [b[0] + dx * 0.45, b[1] + dy * 0.5 - 9];
-    for (let t = 0; t < 1; t += 0.12) {
-      const u = 1 - t, u2 = 1 - (t + 0.14);
-      const p = [u * u * b[0] + 2 * u * t * ctl[0] + t * t * tip[0], u * u * b[1] + 2 * u * t * ctl[1] + t * t * tip[1]];
-      const tt = Math.min(1, t + 0.14);
-      const p2 = [u2 * u2 * b[0] + 2 * u2 * tt * ctl[0] + tt * tt * tip[0], u2 * u2 * b[1] + 2 * u2 * tt * ctl[1] + tt * tt * tip[1]];
-      out.push(ribbon([p, p2], bw * (1 - t * 0.8) + 0.7, jig(mix('#241e36', '#3a3148', rng() * 0.6), rng, 6)));
-      counter.n++;
-    }
-  }
+  // ⚠ THE TWO WHIP BRANCHES ARE GONE (Fred, Aug 2026: "remove the lines"). They were
+  // meant as limbs stripped bare by the gale, but drawn as two thin hard near-straight
+  // ribbons ending in a point in open sky they read as scratches on the painting — on a
+  // plate made of broad brushmarks, a thin hard line is a stray mark, not a branch. The
+  // canopy streaming east already tells the story, and the runtime leaf gust now carries
+  // what the wind has torn off.
   // canopy: leaves streamed hard east of the crown — dark storm-olive mass,
   // every stroke combed by the wind; pale undersides flash where it tears
   const CR = trunk(0.93);
   const canCx = CR[0] + 52, canCy = CR[1] - 4;
   strokes(out, counter, {
     rng, n: 430,
-    sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8); return [canCx + Math.cos(a) * d * 88, canCy + Math.sin(a) * d * 26 + Math.cos(a) * d * 10]; },
-    dir: (x, y) => 0.08 + (fbm(x / 40, y / 40, 67) - 0.5) * 0.5,
+    // ⚠⚠ THE CROWN IS REDRAWN EACH FRAME, NOT SLID. Fred, circling the canopy: "can you
+    // draw several version of this tree and then cycle it so it looks like the tree is
+    // blown by the wind?" — and he is right that displacement alone cannot do it. The boil
+    // moves every mark of this plane by the SAME vector, so the canopy travelled sideways
+    // as one rigid sheet: a sprite sliding, not foliage in a gale.
+    // Here the crown is a different DRAWING on every frame. Each leaf is carried downwind
+    // in proportion to how far out along the crown it already sits — squared, so the tip
+    // is flung and the leaves against the trunk barely stir — and the whole mass lifts a
+    // little as it streams. Same leaves, same count, same lengths: only the SHAPE changes,
+    // so the ink is identical frame to frame and nothing flickers.
+    sample: r => {
+      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8);
+      let x = canCx + Math.cos(a) * d * 88;
+      let y = canCy + Math.sin(a) * d * 26 + Math.cos(a) * d * 10;
+      const w = Math.max(0, Math.min(1, (x - (CR[0] + 4)) / 145));   // 0 at the trunk, 1 at the tip
+      x += GUST * 30 * w * w;                                        // dragged east, tip furthest
+      y -= GUST * 9 * w;                                             // and lifted as it streams
+      return [x, y];
+    },
+    dir: (x, y) => 0.08 + GUST * 0.12 + (fbm(x / 40, y / 40, 67) - 0.5) * 0.5,   // combed harder at the gust
     col: (x, y, r) => {
-      if (r() < 0.07) return jig(mix('#7d967e', '#9ab295', r()), r, 10); // underside flash
+      // leaves turn over in a gust and show their pale backs — a real thing, and the one
+      // cue that says WIND rather than a tree simply leaning
+      if (r() < 0.06 + GUST * 0.05) return jig(mix('#7d967e', '#9ab295', r()), r, 10); // underside flash
       return jig(ramp(['#1c2a26', '#2c3e2c', '#41522f', '#566236'], fbm(x / 30, y / 30, 71) + r() * 0.25), r, 9);
     },
     len: 16, lw: 2.6, steps: 3, follow: 0.95, wild: 0.12, lenJ: 0.55, aJ: 0.3,
@@ -378,11 +553,45 @@ export function paint(E, opts = {}) {
   // torn leaves flying downwind, scattering east off the canopy
   strokes(out, counter, {
     rng, n: 26,
-    sample: r => [canCx + 60 + r() * 130, canCy - 18 + r() * 50],
-    dir: () => 0.2,
+    sample: r => [canCx + 60 + GUST * 26 + r() * 130, canCy - 18 - GUST * 8 + r() * 50],
+    dir: () => 0.2 + GUST * 0.14,
     col: (x, y, r) => jig(mix('#41522f', '#6b7a48', r()), r, 10),
     len: 6, lw: 1.7, steps: 2,
   });
+
+  /* ══ 9b · WHAT THE WIND TEARS OFF ═════════════════════════════════════════
+     Leaves torn out of the crown and driven downwind, each one drawn at where it has got
+     to on this drawing of the ring. Their positions never repeat within a turn and every
+     leaf exists in every drawing, so the ink on the plate is constant — a travelling
+     thing, not a flicker. They tumble as they go (a leaf in air spins), they fade as they
+     go (torn green drying to pale), and they run with the same eastward drift the rain and
+     the whole sky already run with, so the page has ONE wind and everything answers it. */
+  {
+    const lRng = mulberry32(seed ^ 0x7ea51ea5);
+    const NL = 26;
+    const leaf = (cx2, cy2, s2, rot, col, vein) => {
+      const c2 = Math.cos(rot), s3 = Math.sin(rot);
+      const P = (dx, dy) => [cx2 + dx * c2 - dy * s3, cy2 + dx * s3 + dy * c2];
+      const a2 = P(-s2, 0), b2 = P(s2, 0), m1 = P(0, -s2 * 0.5), m2 = P(0, s2 * 0.5);
+      out.push(`<path d="M${R1(a2[0])} ${R1(a2[1])} Q${R1(m1[0])} ${R1(m1[1])} ${R1(b2[0])} ${R1(b2[1])} Q${R1(m2[0])} ${R1(m2[1])} ${R1(a2[0])} ${R1(a2[1])} Z" fill="${col}" opacity="0.95"/>`);
+      counter.n++;
+      out.push(`<path d="M${R1(a2[0])} ${R1(a2[1])} L${R1(b2[0])} ${R1(b2[1])}" stroke="${vein}" stroke-width="${R1(s2 * 0.16)}" fill="none" opacity="0.75"/>`);
+      counter.n++;
+    };
+    for (let i = 0; i < NL; i++) {
+      const sx = 442 + lRng() * 280, sy = 164 + lRng() * 94;      // torn out of the crown
+      const run = 250 + lRng() * 260, drop = 24 + lRng() * 120;
+      const spin = 3.2 + lRng() * 5.5, ph0 = lRng();
+      const s2 = 3.4 + lRng() * 3.6;   // big enough to read at page size, not so big they are birds
+      const u = (PH + ph0 + i / NL) % 1;
+      const px = sx + run * u;
+      const py = sy + drop * u * u + Math.sin(u * 7.4 + i * 1.7) * 10;
+      if (px < -14 || px > 816 || py > soilY(px) + 4) continue;    // gone from the frame, or landed
+      // it dries as it goes: canopy green at the moment it tears, pale by the time it leaves
+      const g = ramp(['#4a6a2c', '#5e7d33', '#7d9440', '#9aa653', '#b8b06a'], u * 0.85 + lRng() * 0.15);
+      leaf(px, py, s2, spin * u + i, jig(g, lRng, 9), jig('#33461f', lRng, 6));
+    }
+  }
 
   /* ---------------- 10. THE CHILD — sheltering at the trunk ---------------- */
   // small, in deep red, pressed to the leeward (east) side of the trunk,
@@ -391,16 +600,9 @@ export function paint(E, opts = {}) {
   const cx = 447;
   // articulated child standing FIRM, braced, leaning slightly into the wind,
   // feet planted wide, arms drawn in close to steady itself
-  const childCaps = personCaps(cx, fy - 32, 33, {
-    lean: -2,                          // upper body leans into the wind
-    headTilt: -1,
-    leftHand: [cx - 8, fy - 9],        // arm held in close, bracing
-    rightHand: [cx + 7, fy - 8],
-    leftFoot: [cx - 7, fy + 1],        // planted wide & firm
-    rightFoot: [cx + 7, fy + 1],
-  });
-  // calm warm pool at the tree's foot (the glow leaking up through the seam)
-  const nearChild = (x, y, m) => childCaps.some(c => segDist(x, y, c.ax, c.ay, c.bx, c.by) <= c.r + m);
+  // calm warm pool at the tree's foot (the glow leaking up through the seam);
+  // a simple circular exclusion keeps it out from under the pilgrim's feet
+  const nearChild = (x, y, m) => Math.hypot(x - cx, y - (fy - 14)) <= 22 + m;
   strokes(out, counter, {
     rng, n: 130,
     sample: r => {
@@ -412,39 +614,8 @@ export function paint(E, opts = {}) {
     col: (x, y, r) => jig(ramp([mix(GOLD_DEEP, '#4a3a20', 0.3), '#5c4524', '#2c2438', '#181426'], Math.abs(x - TB[0] - 8) / 52), r, 7),
     len: 11, lw: 2.4, steps: 2, relief: 0,
   });
-  // THE MAIN CHARACTER — "you": consistent deep-red clothes + bold dark outline
-  // via the shared helper, so the same child reads across the whole book.
-  castShadow(out, counter, childCaps, { dir: 0.2 });
-  paintChild(out, counter, rng, childCaps, { whiteAura: true });
-  // glow rim from BELOW: the buried gold catches the child's lower flank
-  strokes(out, counter, {
-    rng, n: 22,
-    sample: rej(cx - 16, fy - 18, cx + 12, fy + 2, (x, y) => childCaps.some(c => inCap(x, y, c)) && !childCaps.some(c => inCap(x, y + 3.5, c))),
-    dir: () => 0.12,
-    col: (x, y, r) => jig(mix(GOLD_DEEP, '#a8742c', r() * 0.5), r, 9),
-    len: 3.6, lw: 1.4, steps: 2, relief: 0,
-  });
-  // and a cold storm rim on the head's windward crown — rain-light, not gold
-  strokes(out, counter, {
-    rng, n: 9,
-    sample: rej(cx - 5, fy - 31, cx + 7, fy - 22, (x, y) => inCap(x, y, childCaps[0]) && !inCap(x, y - 3, childCaps[0])),
-    dir: () => 0.3,
-    col: (x, y, r) => jig('#5d7490', r, 8),
-    len: 3, lw: 1.2, steps: 2, relief: 0,
-  });
+  // (the pilgrim himself is painted LAST, above the grass fringe — see below)
 
-  /* ---------- CHILD PROMINENCE (append-only, per seeds §8) ----------
-     One more push so the red reads at thumbnail size against the dark
-     trunk: re-lay the consistent main-character figure, then the glow
-     rim from below again. */
-  paintChild(out, counter, rng, childCaps, { whiteAura: true });
-  strokes(out, counter, {
-    rng, n: 24,
-    sample: rej(cx - 16, fy - 18, cx + 12, fy + 2, (x, y) => childCaps.some(c => inCap(x, y, c)) && !childCaps.some(c => inCap(x, y + 3.5, c))),
-    dir: () => 0.12,
-    col: (x, y, r) => jig(mix(GOLD_DEEP, '#b87e2e', r() * 0.5), r, 9),
-    len: 3.6, lw: 1.5, steps: 2, relief: 0,
-  });
   // wind-bent grass FRINGE along the soil crest so the storm-sky↔ground seam
   // reads organic, not a ruled line (MID)
   E.horizonFringe(out, counter, rng, { horizonFn: soilY, x0: -10, x1: 810, cols: ['#2c4a32', '#3a5e3a', '#4e7e42', '#6a9a4e'], hMax: 18, lightFn: light, seed: 314, dirJitter: 0.5 });
@@ -518,10 +689,44 @@ export function paint(E, opts = {}) {
   // FRUITFUL soil — low jewel bushes bearing through the gale (the land is never
   // barren, even in the storm); on the soil line, warmed by the buried root-light  [FG plane]
   const _fgBushes = out.length;
-  E.jewelBush(out, counter, rng, 120, 305, 22, 14, E.LEAF_PALETTES[1], light);
-  E.jewelBush(out, counter, rng, 720, 300, 20, 13, E.LEAF_PALETTES[3], light);
-  E.jewelBush(out, counter, rng, 250, 308, 16, 10, E.LEAF_PALETTES[4], light);
+  E.jewelBush(out, counter, rng, 120, soilY(120) - 1, 22, 14, E.LEAF_PALETTES[1], light);
+  E.jewelBush(out, counter, rng, 720, soilY(720) - 6, 20, 13, E.LEAF_PALETTES[3], light);
+  E.jewelBush(out, counter, rng, 250, soilY(250) + 2, 16, 10, E.LEAF_PALETTES[4], light);
+  E.jewelBush(out, counter, rng, 596, soilY(596) + 1, 18, 12, E.LEAF_PALETTES[2], light);
+  E.jewelBush(out, counter, rng, 62,  soilY(62)  + 3, 14, 9,  E.LEAF_PALETTES[4], light);
+  // WIND-BENT GRASS along the whole soil line. The gale is the antagonist of this page,
+  // so the grass has to LEAN with it — every blade raked the same way the rain falls,
+  // bowed but rooted, like the tree. Munch: living things curve.
+  {
+    const _g0 = out.length;
+    E.strokes(out, counter, {
+      rng, n: 520,
+      sample: E.rej(-10, 250, 810, 330, (x, y) => y > soilY(x) - 14 && y < soilY(x) + 5),
+      dir: (x, y) => -Math.PI / 2 + 0.62 + (rng() - 0.5) * 0.34,     // raked hard into the wind
+      col: (x, y, r) => {
+        const g = light(x, y);
+        let c = E.ramp(['#1e3a2a', '#2f5a36', '#4a7c40', '#6f9a48'], r());
+        c = E.mix(c, '#f0d68a', g * 0.5); c = E.mix(c, '#101c2c', (1 - g) * 0.5);
+        return E.jig(c, r, 12);
+      },
+      len: (x, y) => 9 + rng() * 11, lw: 2.1, steps: 2, impasto: 0.45, lenJ: 0.6,
+    });
+    fgRanges.push([_g0, out.length]);
+  }
   fgRanges.push([_fgBushes, out.length]);   // ← the jewel bushes are foreground
+
+  /* ---------- THE MAIN CHARACTER — painted LAST, above fringe and grass ---------- */
+  {
+    const _fgChild = out.length;
+    // the little pilgrim, braced into the wind at the trunk's leeward side,
+    // hem blown, eyes narrowed against the rain — but planted
+    E.paintMask(out, counter, rng, {
+      x: cx, y: fy + 1, h: 33, facing: -1,
+      lean: -4, wind: 0.5, aura: 8,
+      eye: [-0.6, 0], mood: 'wary',
+    });
+    fgRanges.push([_fgChild, out.length]);
+  }
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.

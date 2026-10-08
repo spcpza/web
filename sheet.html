@@ -1,0 +1,112 @@
+<!doctype html>
+<!-- data-ep=1: character.js picks its cast table from this root attribute
+     (__EP1 -> CAST1). Without it the factory exports the OLD ep2 cast (indexes
+     0-14) and every overlay draws the wrong book's figures — or none. -->
+<html data-ep="1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>the whole book — one glance</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #10142a; color: #cfd4ea; font: 13px/1.35 Georgia, serif; }
+  h1 { font-size: 15px; font-weight: normal; letter-spacing: .12em; margin: 14px 16px 6px; color: #e8d9a0; }
+  p.hint { margin: 0 16px 12px; opacity: .55; font-style: italic; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 0 12px 40px; }
+  figure { margin: 0; position: relative; }
+  img { width: 100%; aspect-ratio: 5/8; object-fit: cover; border-radius: 6px; display: block; background: #1a2040; }
+  canvas.cast { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 5/8; pointer-events: none; }
+  figcaption { padding: 3px 2px 0; opacity: .8; }
+  figcaption b { color: #e8d9a0; font-weight: normal; }
+</style>
+<h1>ALPHA AND OMEGA — the whole book</h1>
+<p class="hint">all 33 pages, book order, portrait crop (what a phone reader sees), with the
+runtime characters drawn in at their true positions. Critters, tap-life and motion still live
+only in the book itself.</p>
+<div class="grid" id="g"></div>
+<!-- character.js opens with `if (!document.getElementById('book')) return;` — it bails on
+     any page that isn't the book, factory and all. An empty hidden #book satisfies the
+     guard; zero .page children keep every other part of the script inert. -->
+<div id="book" hidden></div>
+<script>
+  // book order — mirrors the DIO map in engine/scene.js. The cover plate returns as the
+  // back cover, so the book's 33 page-turns are 32 paintings; both appearances shown.
+  var PAGES = [
+    ['word', '0 · cover (front)'], ['beginning', '1 · in the beginning'], ['flame', '2 · he made the world'],
+    ['made', '3 · made to shine'], ['love', '4 · what was He like'], ['turning', '5 · but you turned away'],
+    ['garden', '6 · he came looking'], ['lost', '7 · lost'], ['string', '8 · but you let go'],
+    ['looking', '9 · love came looking'], ['road', '10 · now you wanted home'], ['bridge', '11 · the bridge'],
+    ['paid', '12 · it cost everything'], ['grave', '13 · three days'], ['risen', '14 · he is risen'],
+    ['ran', '15 · he ran'], ['gift', '16 · the way home stood open'], ['twoways', '17 · carried home'],
+    ['washed', '18 · washed white'], ['born', '19 · born again'], ['seeds', '20 · seeds'],
+    ['bread', '21 · he feeds you'], ['storm', '22 · storms still came'], ['hands', '23 · you were not alone'],
+    ['family', '24 · the family'], ['prayer', '25 · when the dark came close'], ['light', '26 · he is the light'],
+    ['come', '27 · come'], ['together', '28 · side by side'], ['candle', '29 · go and shine'],
+    ['comes', '30 · he is coming'], ['nonight', '31 · no more night'],
+    ['word', '32 · back cover (the same galaxy)'],
+  ];
+  var v = Date.now();   // always the freshest build — this page exists to catch stale art
+  var g = document.getElementById('g');
+  PAGES.forEach(function (p, i) {
+    var f = document.createElement('figure');
+    // the whole tile is a link into the book at that page — tap to jump
+    f.innerHTML = '<a href="/#' + i + '"><img loading="lazy" src="/plates-vg/' + p[0] + '-p.jpg?s=' + v + '" alt=""></a>' +
+                  '<figcaption><b>' + p[1] + '</b><br>' + p[0] + '</figcaption>';
+    f.dataset.idx = i;
+    g.appendChild(f);
+  });
+
+  // THE CHARACTERS — drawn by the very character.js the book runs, at the cast's own
+  // plate coordinates, so the sheet shows what a page really holds. The portrait crop
+  // is the window fx0 .. fx0+312 of the 800x500 plate; one transform maps plate space
+  // onto each thumbnail. Static pose (no sway), arms as authored.
+  var sc = document.createElement('script');
+  sc.src = '/engine/character.js?cb=' + v;
+  sc.onload = function () {
+    var F = window.__charFactory;
+    if (!F || !F.CAST || !F.drawPilgrim) return;
+    // ⚠ WAIT FOR THE PROTAGONIST'S ART. drawKid returns false until its cell has decoded,
+    // and this page draws the instant the script loads — so without a wait the whole sheet
+    // silently falls back to the old pilgrim and reports a book that no longer exists.
+    // ⚠ ASK THE BOOK WHICH CELLS THERE ARE — never keep a list here. This page held
+    // its own seven names, so the moment Fred drew more poses it waited for the wrong
+    // ones, drew early, and fell back to the old pilgrim on exactly the pages the new
+    // drawings were meant to fix. The drift this page exists to catch, in this page.
+    if (F.onKidReady) { F.onKidReady(draw); setTimeout(draw, 8000); }
+    else draw();
+  };
+  var drawn = false;                       // script scope — draw() lives out here too
+  function draw() {
+    if (drawn) return; drawn = true;
+    var F = window.__charFactory;
+    document.querySelectorAll('figure').forEach(function (f) {
+      var i = +f.dataset.idx;
+      if (i === 32) i = 0;                       // the back cover is the cover
+      var cast = F.CAST[i];
+      if (!cast || !cast.actors || !cast.actors.length) return;
+      var fx0 = cast.fx0 != null ? cast.fx0 : 244;
+      var cv = document.createElement('canvas');
+      cv.className = 'cast'; cv.width = 624; cv.height = 1000;   // 2x of the 312x500 window
+      var ctx = cv.getContext('2d');
+      ctx.setTransform(2, 0, 0, 2, -fx0 * 2, 0);
+      cast.actors.forEach(function (a) {
+        if (a.t !== 'p' && a.t !== 'r') return;
+        var p = {}; for (var k in a) p[k] = a[k];
+        try {
+          // ⚠ THE SHEET MUST SHOW WHAT THE BOOK SHOWS. It calls the painters directly, so
+          // when the protagonist changed the book changed and this page did not — and this
+          // page exists precisely to catch that kind of drift.
+          if (!a.wings && F.kidPalFor) p.kidPal = F.kidPalFor(a, (a.x || 0) + (a.h || 0));
+          (a.t === 'r' ? F.drawRadiant
+            : (!a.wings && F.drawKid && F.drawKid(ctx, p, { swayX: 0, bobY: 0 }) ? function () {} : F.drawPilgrim))(ctx, p, {
+            swayX: 0, bobY: 0, breeze: 0,
+            gazeX: a.eye ? a.eye[0] * 0.35 : 0, gazeY: a.eye ? a.eye[1] * 0.25 : 0,
+            lid: 0, smile: false,
+          });
+        } catch (e) { /* one bad actor must not blank the sheet */ }
+      });
+      f.appendChild(cv);
+    });
+  }
+  document.head.appendChild(sc);
+</script>

@@ -14,6 +14,18 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // ⭐ HTTPS ONLY (Sep 25). Plain http:// used to serve the whole book unencrypted. The asset
+    // server never calls this worker for files on disk, so wrangler.toml's `run_worker_first`
+    // routes the PAGE ENTRY POINTS here (/, /paper…) — once a reader lands on https, every
+    // relative plate/script URL follows on https — and `_headers` sends HSTS so the browser
+    // refuses plain http for this host from then on.
+    // and www.balthazar.sh is one address, not a second copy of the site
+    if (url.protocol === "http:" || url.hostname === "www.balthazar.sh") {
+      url.protocol = "https:";
+      url.hostname = "balthazar.sh";
+      return Response.redirect(url.toString(), 301);
+    }
+
     // Handle LNURL-pay for balthazar@balthazar.sh
     if (url.pathname === "/.well-known/lnurlp/balthazar") {
       try {
@@ -49,6 +61,11 @@ export default {
     }
 
     // All other routes → static assets (nostr.json, index.html, etc.)
+    // ⚠ NOTE: this line does NOT run for files that exist on disk — Cloudflare's asset
+    // server answers those directly and never invokes the worker. Cache policy for static
+    // assets therefore belongs in `_headers`, not here; I set it here first and it silently
+    // did nothing (the lnurlp route proved the worker was alive, /cast/ proved it was not
+    // being consulted).
     return env.ASSETS.fetch(request);
   },
 };

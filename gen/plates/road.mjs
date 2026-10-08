@@ -27,9 +27,11 @@ export const focal = { x: 430, y: 300 }; // portrait window: the brink, the chil
 // the SKY is a smooth opaque GROUND plus two independent bold, gapped swirl-
 // SHEETS (paint on paint, like the covers); each sheet is its own depth plane
 // so their gaps reveal the paint beneath as the view turns.
+// ⭐ DETAIL PASS (Sep 8): finer sheets, every stroke its own width and length (free hashes,
+// no rule — see widthOf/lengthOf in paint()); the sky is still drawn fresh per frame.
 export const SKY_SHEETS = [
-  { n: 405, len: 42, lw: 6.5, lift: 0.00 },
-  { n: 440, len: 37, lw: 6.0, lift: 0.07 },
+  { n: 1000, len: 34, lw: 3.2, lift: 0.00 },
+  { n: 1080, len: 30, lw: 3.0, lift: 0.07 },
 ];
 export const layers = [
   { name: 'sky', opaque: true },  // smooth sky ground + far plateau + home + the whole gulf (backmost)
@@ -44,7 +46,7 @@ export const layers = [
 export function paint(E, opts = {}) {
   const {
     mulberry32, fbm, curlV, goldenSpiralV, mix, ramp, jig, strokes, rej,
-    paintFigure, paintPath, underpaintCapsules, paintChild, castShadow, personCaps, inCap, lightRadial,
+    paintFigure, paintPath, underpaintCapsules, paintChild, castShadow, personCaps, inCap, lightRadial, setReliefLight,
     svgWrap, R1, W, H,
     GOLD, GOLD_PALE, GOLD_DEEP, GOLD_HOT, NIGHT, DARKEST,
     fruitTree, LEAF_PALETTES, horizonFringe,
@@ -57,6 +59,11 @@ export function paint(E, opts = {}) {
   // below the opaque far backdrop.
   const LAYER = opts.layer || 'full';
   const fgRanges = [];
+  // ⭐ EVERY STROKE DRAWS ITS OWN WIDTH AND LENGTH (Fred: "use no rules, a paint stroke
+  // just exist because it exist") — two independent hashes per mark, no field, no coupling.
+  const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+  const widthOf  = (x, y, salt) => 0.40 + 3.2 * Math.pow(free(x, y, salt), 2.6);
+  const lengthOf = (x, y, salt) => 0.40 + 1.5 * Math.pow(free(x, y, salt + 17), 1.5);
   out.push(`<rect width="${W}" height="${H}" fill="${DARKEST}"/>`);
 
   /* ---------------- GEOMETRY ---------------- */
@@ -70,6 +77,7 @@ export function paint(E, opts = {}) {
   // the home, warm and gold, on the far rim across the gulf — the destination
   const home = [556, 212];
   const homeLight = lightRadial(home[0], home[1], 250);
+  setReliefLight({ x: home[0], y: home[1] });   // nocturne: every form's shadow falls away from the glowing home
   const lightAt = (x, y) => Math.min(1, homeLight(x, y));
 
   // THE ROAD — one way only. It climbs from the far country (lower-left), over a
@@ -108,23 +116,37 @@ export function paint(E, opts = {}) {
      the crest edges catching silver — swirls within swirls, the deep moving water,
      the same alive hand as looking/garden. Kept twilight-DARK; the far home stays
      the brightest thing. */
-  const EDDIES = [[140, 78, -60], [360, 60, 58], [640, 96, -52], [470, 168, 46]];
+  /* ⚠ THIS SKY IS DRAWN FRESH FOR EVERY FRAME. The phase below comes from the build
+     (globalThis.__FRAME of __FRAME_N), and everything that makes the sky's shape is moved
+     by it: the eddies travel their own small closed orbits, the fine turbulence field is
+     sampled from a moving point, and the jewel cores go with them. So frame 3 is not frame
+     0 shifted — it is the same sky a moment later, with every stroke drawn where that
+     moment puts it. The orbits are CLOSED, so the last frame runs back into the first and
+     the loop never jumps. */
+  const _FRN = Math.max(1, globalThis.__FRAME_N || 6);
+  const PH = ((globalThis.__FRAME || 0) % _FRN) / _FRN * Math.PI * 2;
+  const orb = (r, k = 1) => [Math.cos(PH * k) * r, Math.sin(PH * k) * r * 0.55];
+  const [ox1, oy1] = orb(13), [ox2, oy2] = orb(9, 1), [ox3, oy3] = orb(11), [ox4, oy4] = orb(8);
+  const [tx, ty] = orb(46);            // the turbulence field itself travels
+  const EDDIES = [[140 + ox1, 78 + oy1, -60], [360 - ox2, 60 - oy2, 58],
+                  [640 + ox3, 96 + oy3, -52], [470 - ox4, 168 - oy4, 46]];
   const nearE = (x, y) => { let m = 1e9; for (const [ex, ey] of EDDIES) m = Math.min(m, Math.hypot(x - ex, y - ey) / 80); return m; };
   const skyDir = (x, y) => {
     let vx = 0, vy = 0;
-    { const [a, b] = goldenSpiralV(x, y, 548, 150, 115, 260); vx += a; vy += b; }   // MACRO — the great wheel, centred on the home
+    { const [a, b] = goldenSpiralV(x, y, 548 + ox1 * 0.5, 150 + oy1 * 0.5, 115, 260); vx += a; vy += b; }   // MACRO — the great wheel, turning on its own axle
     for (const [ex, ey, s] of EDDIES) { const [a, b] = goldenSpiralV(x, y, ex, ey, s, 80); vx += a; vy += b; }   // MID — eddies turning inside it
-    const [cx2, cy2] = curlV(x, y, 31, 120); vx += cx2 * 26; vy += cy2 * 26;        // MICRO — fine turbulence in every stroke
+    const [cx2, cy2] = curlV(x + tx, y + ty, 31, 120); vx += cx2 * 26; vy += cy2 * 26;   // MICRO — fine turbulence, and it TRAVELS between frames
     vy -= 12; vx += 5;                                                              // a gentle rising drift (the arising)
     return Math.atan2(vy, vx);
   };
-  const EGLOW = [[140, 78, '#3f549e'], [360, 60, '#41337e'], [640, 96, '#2f5a92'], [470, 168, '#4a3f92']];
+  const EGLOW = [[140 + ox1, 78 + oy1, '#3f549e'], [360 - ox2, 60 - oy2, '#41337e'],
+                 [640 + ox3, 96 + oy3, '#2f5a92'], [470 - ox4, 168 - oy4, '#4a3f92']];   // the jewels ride with their eddies
   const skyCol = (x, y, r, lift) => {
     const near = nearE(x, y);
     const g = lightAt(x, y);
     if (g > 0.16 && g < 0.3 && r() < 0.03) return jig('#d96f2e', r, 18);            // a breath of the home's warmth
     if (near < 0.7 && r() < 0.05) return jig(mix(GOLD_DEEP, '#9a8a5a', r()), r, 12); // a faint warm knot at an eddy core
-    let c = ramp(NIGHT, Math.max(0, Math.min(1, 0.6 + fbm(x / 85, y / 85, 13) * 0.3)));
+    let c = ramp(NIGHT, Math.max(0, Math.min(1, 0.6 + fbm((x + tx) / 85, (y + ty) / 85, 13) * 0.3)));
     c = g > 0.05 ? mix(c, '#b08a40', g * 0.45) : mix(c, '#1a2340', 0.16);           // luminous, never black
     for (const [ex, ey, ec] of EGLOW) { const d2 = Math.hypot(x - ex, y - ey); c = mix(c, ec, Math.exp(-d2 / 95) * 0.5); }   // eddy cores breathe deep jewel light
     if (lift) c = mix(c, '#ffffff', lift);
@@ -135,18 +157,65 @@ export function paint(E, opts = {}) {
   // the silver crests live in the stacked sheets above, so their gaps reveal this
   // paint beneath (paint on paint, like the covers)
   strokes(out, counter, {
-    rng, n: 610, sample: rej(-10, -10, 810, 250, (x, y) => y < farRim(x) + 8), dir: skyDir,
+    rng, n: 1500, sample: rej(-10, -10, 810, 250, (x, y) => y < farRim(x) + 8), dir: skyDir,
     col: (x, y, r) => skyCol(x, y, r, 0),
-    len: 44, lw: 10, steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.5, impasto: 0.5, relief: 0.6,
+    len: (x, y) => 30 * lengthOf(x, y, 11), lw: (x, y) => 4.6 * widthOf(x, y, 13), steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.5, relief: 0.4,
   });
   const skyGroundEnd = out.length;   // the smooth sky ground (the SKY plane); plateau/home/gulf follow and stay IN FRONT of the sheets
 
+  /* ⚠ THE RANGES ARE PAINTED FIRST, because they stand BEHIND everything across the gulf.
+     My first cut of them ran after the plateau and buried the house and its whole glow —
+     the one thing on this page that must never be covered. Depth is an ORDER, not just a
+     set of colours: what is furthest away goes down first. */
+  /* -------- 3.6 THE NIGHT GETS ITS DEPTH ------------------------------------------
+     Fred: "add few more layers in the background for the night." Distance in a night
+     landscape is not one far plateau and then sky — it is RANGE BEHIND RANGE, each one
+     paler, cooler and flatter than the one in front, until the last is barely separable
+     from the air. Four of them now stand behind the home's plateau, plus a band of low
+     night haze along their feet, so the dark has somewhere to go. Nothing here is bright:
+     they are read by their EDGES against each other, which is how you see hills at night. */
+  for (let g = 0; g < 4; g++) {
+    const t = g / 3;                                   // 0 nearest range → 1 furthest
+    const base = farRim(400) - 8 - g * 15;
+    const ridge = x => base - (16 - g * 3) * Math.sin(x / (150 + g * 60) + g * 2.1)
+                            - (9 - g * 2) * Math.sin(x / (61 + g * 17) + g);
+    strokes(out, counter, {
+      rng, n: 1000 - g * 140,
+      sample: r => {
+        const x = -12 + r() * 824;
+        const top = ridge(x);
+        const y = top + Math.pow(r(), 0.7) * (34 - g * 6);
+        return y < farRim(x) - 2 ? [x, y] : null;
+      },
+      dir: x => 0.03 + Math.sin(x / 130) * 0.12,
+      col: (x, y, r) => {
+        // each range further off is paler and cooler — aerial perspective, at night
+        const c = ramp(['#232a52', '#2b3160', '#343a6c', '#3f4478'], t + fbm(x / 90, y / 30, 361) * 0.18);
+        return jig(mix(c, '#6a5a3c', homeLight(x, y) * 0.30 * (1 - t)), r, 5);
+      },
+      len: (x, y) => (28 - g * 4) * lengthOf(x, y, 21 + g), lw: (x, y) => (3.6 - g * 0.5) * widthOf(x, y, 25 + g), steps: 3, follow: 0.97, lenJ: 0.3, wJ: 0.3, impasto: 0.12, relief: 0.3, op: 0.9 - t * 0.3,
+    });
+    // the lit edge of each range: at night a hill is its own top line, nothing else
+    paintPath(out, counter, rng,
+      Array.from({ length: 30 }, (_, i) => { const x = -12 + i * 28; return [x, ridge(x)]; }),
+      (x, y, r) => jig(mix(ramp(['#3d4478', '#4a5088', '#585d96'], t), '#8a7448', homeLight(x, y) * 0.5 * (1 - t)), r, 6),
+      { lw: 1.6, len: 5, density: 0.55, jitter: 0.7 });
+  }
+  // and the haze lying at their feet, so the ranges stack instead of touching
+  strokes(out, counter, {
+    rng, n: 520,
+    sample: r => { const x = -12 + r() * 824; const y = farRim(x) - 10 - Math.pow(r(), 0.8) * 26; return [x, y]; },
+    dir: x => 0.01 + Math.sin(x / 110) * 0.09,
+    col: (x, y, r) => jig(mix('#39406e', '#59608e', Math.abs(fbm(x / 100, y / 22, 367))), r, 5),
+    len: 54, lw: 5, steps: 3, follow: 0.99, lenJ: 0.6, impasto: 0, op: 0.22,
+  });
+
   /* ---------------- 2. THE FAR PLATEAU + HOME (across the gulf) ---------------- */
   strokes(out, counter, {
-    rng, n: 460, sample: rej(-10, 220, 810, 320, (x, y) => y > farRim(x) - 4 && y < farRim(x) + 30),
+    rng, n: 900, sample: rej(-10, 220, 810, 320, (x, y) => y > farRim(x) - 4 && y < farRim(x) + 30),
     dir: x => { const e = 7; return Math.atan2(farRim(x + e) - farRim(x - e), 2 * e); },
-    col: (x, y, r) => jig(ramp(['#2c2c4e', '#41384e', '#5c4a36', '#85692f', '#a8863e'], Math.min(1, homeLight(x, y) * 1.5 + fbm(x / 70, y / 70, 19) * 0.25)), r, 7),
-    len: 26, lw: 4.4, steps: 3, wild: 0.07, lenJ: 0.5, impasto: 0.66,
+    col: (x, y, r) => jig(ramp(['#1e1e3c', '#332a46', '#5c4a36', '#8f7030', '#cc9e46'], Math.min(1, homeLight(x, y) * 1.7 + fbm(x / 70, y / 70, 19) * 0.18)), r, 7),
+    len: (x, y) => 22 * lengthOf(x, y, 31), lw: (x, y) => 2.6 * widthOf(x, y, 33), steps: 3, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.66, relief: 0.35,
   });
   { // the Father's house — a RADIANT BEACON of light across the gulf, the home
     //  of the Light (it always blazes, even across the dark — Rev 21:23)
@@ -156,17 +225,14 @@ export function paint(E, opts = {}) {
       rng, n: 440, sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.92) * 142; return [hx + Math.cos(a) * d, hy + 4 + Math.sin(a) * d * 0.66]; },
       dir: () => 0.05, col: (x, y, r) => jig(ramp([GOLD_HOT, GOLD_PALE, GOLD, GOLD_DEEP, '#a8843e', '#5a4a3a'], Math.hypot(x - hx, (y - hy - 4) / 0.66) / 142), r, 8), len: 12, lw: 3.2, steps: 2, impasto: 0.5,
     });
-    // a clearly DRAWN little house — gold walls, a distinct roof, bright windows,
-    //  a glowing door (so it reads as a HOUSE, not a soft blur)
-    const hw3 = 24, bTop = hy - 3, bBot = hy + 16, peak = hy - 24;
-    out.push(`<path d="M${hx - hw3} ${R1(bBot)}L${hx - hw3} ${R1(bTop)}L${hx + hw3} ${R1(bTop)}L${hx + hw3} ${R1(bBot)}Z" fill="#f0d894"/>`); counter.n++;
-    out.push(`<path d="M${hx - hw3 - 4} ${R1(bTop + 1)}L${hx} ${R1(peak)}L${hx + hw3 + 4} ${R1(bTop + 1)}Z" fill="#c87a44"/>`); counter.n++;
-    strokes(out, counter, { rng, n: 56, sample: rej(hx - hw3 + 1, bTop + 1, hx + hw3 - 1, bBot - 1), dir: () => 0, col: (x, y, r) => jig(ramp([GOLD_PALE, GOLD, '#e0c068'], fbm(x / 10, y / 10, 23) * 0.5 + 0.2), r, 6), len: 5, lw: 2, steps: 2, impasto: 0.3 });
-    paintPath(out, counter, rng, [[hx - hw3 - 4, bTop + 1], [hx, peak], [hx + hw3 + 4, bTop + 1]], (x, y, r) => jig(mix('#a85e30', '#d89456', r() * 0.5), r, 8), { lw: 2, len: 4, density: 0.6, jitter: 0.6 });
-    out.push(`<rect x="${R1(hx - 16)}" y="${R1(bTop + 4)}" width="8" height="10" rx="1.4" fill="#fffaf0"/>`);
-    out.push(`<rect x="${R1(hx + 8)}" y="${R1(bTop + 4)}" width="8" height="10" rx="1.4" fill="#fffaf0"/>`);
-    out.push(`<rect x="${R1(hx - 4)}" y="${R1(bBot - 11)}" width="8" height="11" rx="1.2" fill="#fff2c8"/>`); // a glowing door
-    counter.n += 3;
+    // ⚠ IT IS THE CITY, NOT A COTTAGE. Fred: "the house there is still not updated to the
+    // castle we worked on." Right, and it matters more than a detail: what he is walking
+    // toward is the Father's house — "in my Father's house are many mansions" (John 14:2),
+    // the City with gates that are never shut (Rev 21:25) — and we built that as
+    // `paintPalace` for `ran` and `gift`. A little red-roofed cottage on the far rim tells
+    // a child the destination is somebody's bungalow. Same palace as those pages, small
+    // with distance, its gate lit.
+    E.paintPalace(out, counter, rng, hx, hy + 20, 0.30, { gate: true });
   }
 
   /* ---------------- 3. THE GREAT VALLEY — the gulf you cannot cross ----------------
@@ -174,54 +240,79 @@ export function paint(E, opts = {}) {
      near the rim, the depth lost in night-blue (no black). Strokes fall steeply,
      dragging the eye DOWN into it — this is the divide. */
   strokes(out, counter, {
-    rng, n: 1500,
+    rng, n: 3000,
     sample: rej(-10, 232, 810, 376, inGulf),
-    dir: (x, y) => Math.PI / 2 + Math.sin(x / 90) * 0.18 + (fbm(x / 70, y / 70, 23) - 0.5) * 0.5,
+    /* ⚠ Sep 23 — A GULF IS A FAR WALL AND A DEPTH, not a curtain. Luke 16:26: "between us and
+       you there is a great gulf fixed: so that they which would pass from hence to you cannot."
+       On the page this band was a wall of vertical blue strokes — reeds, a drape — and read as
+       a dark stripe behind the wheat, not as a drop. Now the upper part is the FAR CLIFF: rock
+       in horizontal strata, warm where the home's light falls over the rim, going down into
+       shadow; below it the depth, near-black blue, where the marks do fall. (Same rng draws in
+       the same order — only direction and colour changed — so nothing after this re-rolls.) */
+    dir: (x, y) => {
+      const v = (y - farRim(x)) / Math.max(1, nearRim(x) - farRim(x));
+      return v < 0.52 ? 0.05 + Math.sin(x / 70) * 0.06 + (fbm(x / 50, y / 20, 23) - 0.5) * 0.35   // strata
+                      : Math.PI / 2 + Math.sin(x / 90) * 0.18 + (fbm(x / 70, y / 70, 23) - 0.5) * 0.5;   // the plunge
+    },
     col: (x, y, r) => {
       const v = (y - farRim(x)) / Math.max(1, nearRim(x) - farRim(x));   // 0 far wall → 1 near rim
-      const mid = Math.abs(v - 0.5);                                     // darkest in the deep middle
-      let c = ramp(['#3a3f70', '#283561', '#1b2750', '#141d40', '#10182f'], (0.5 - mid) * 1.6 + fbm(x / 60, y / 60, 29) * 0.2);
-      if (v < 0.28) c = mix(c, '#6e5536', homeLight(x, y) * 0.55 * (1 - v / 0.28));   // far wall lit by home
+      let c;
+      if (v < 0.52) {                                                    // the far cliff face
+        const lit = homeLight(x, y) * (1 - v / 0.52), band = fbm(x / 80, y / 5.5, 29);
+        c = ramp(['#141c3e', '#23295a', '#383a6e', '#5a4e7c', '#8a6e74', '#b08a66'], Math.min(1, 0.12 + (1 - v / 0.52) * 0.42 + lit * 0.55 + (band - 0.5) * 0.3));
+      } else {                                                           // the depth
+        c = ramp(['#1a2246', '#131a38', '#0f152e', '#121a36'], (v - 0.52) / 0.48 + fbm(x / 60, y / 60, 31) * 0.15);
+      }
       if (v > 0.5 && v < 0.62 && r() < 0.02) c = mix(c, '#5a4a86', 0.6);              // a violet shudder in the depth
       return jig(c, r, 8);
     },
-    len: 22, lw: 4, steps: 3, follow: 0.85, wild: 0.1, lenJ: 0.5,
+    len: (x, y) => 20 * lengthOf(x, y, 41), lw: (x, y) => 2.4 * widthOf(x, y, 43), steps: 3, follow: 0.85, wild: 0.06, lenJ: 0.3, wJ: 0.3, relief: 0.3,
   });
   // the far wall's lip — a kinked seam where home's ground breaks into the gulf
   paintPath(out, counter, rng,
     Array.from({ length: 28 }, (_, i) => { const x = -10 + i * 30; return [x, farRim(x) + 6 + Math.sin(x / 21) * 2]; }),
     (x, y, r) => jig(mix('#2a2546', mix(GOLD_DEEP, '#6e5026', 0.4), homeLight(x, y) * 0.8), r, 8), { lw: 2, len: 5, density: 0.5, jitter: 0.8 });
-  /* -------- 3.5 HOMING DOVES — they cross the gulf the child cannot --------
-     a loose rising line of pale wings over the deep, arrowing for the far
-     house: the road runs out, but the dove flies home (Luke 15:18; Ps 55:6
-     "Oh that I had wings like a dove! for then would I fly away, and be at
-     rest"). Pale against the gulf's night-blue; curved wingbeats (living =
-     curved). They ride the opaque SKY plane with the gulf + home, so they
-     parallax as part of the far world.  [SKY plane] */
+  /* -------- 3.2 REFINEMENT (Sep 12): the gulf has a BODY — strata on the far wall, and mist
+     rising out of the deep. Fred: "check the art and refine it and make it more artistic and
+     detailed". A wall of blue strokes is a curtain; rock has layers, and a canyon at dusk
+     breathes mist up out of its dark. Both stay inside the gulf's own blues. */
   {
-    const drng = mulberry32(seed + 55006);   // own rng: downstream texture untouched
-    const doves = [
-      [340, 306, 1.20, 1.00],   // nearest, biggest, full upbeat
-      [394, 293, 1.05, 0.72],   // mid-beat glide
-      [452, 287, 0.92, 1.05],
-      [504, 273, 0.82, 0.88],   // farthest, almost at the far wall's light
-    ];
-    for (const [dx, dy, s, k] of doves) {
-      const a = Math.atan2(home[1] - 6 - dy, home[0] - dx);     // heading for the house
-      const ca = Math.cos(a), sa = Math.sin(a);
-      const P = (u, v) => [dx + u * ca - v * sa, dy + u * sa + v * ca];
-      const wing = (sd, col, lw) => paintPath(out, counter, drng,
-        [P(0.5 * s, sd * 1.4 * s), P(-1.4 * s, sd * 5.8 * s * k), P(-5.4 * s, sd * 10.5 * s * k)],
-        col, { lw, len: 3, density: 0.95, jitter: 0.45 });
-      // upper wing pale-bright, lower a breath greyer (form) — both curved
-      wing(-1, (x, y, r) => jig(mix('#e9e4d2', '#f8f2de', lightAt(x, y) * 0.8 + r() * 0.2), r, 7), 2.1 * s);
-      wing(1, (x, y, r) => jig(mix('#a9a8bc', '#d8d4d2', r() * 0.5), r, 6), 1.8 * s);
-      // the little body arrowing home — one warm gold accent on the breast
-      paintPath(out, counter, drng, [P(-2.6 * s, 0), P(1.4 * s, 0), P(3.6 * s, 0.3 * s)],
-        (x, y, r) => jig(mix('#efe9d4', GOLD_PALE, 0.25 + lightAt(x, y) * 0.6), r, 6),
-        { lw: 2.0 * s, len: 2.6, density: 1, jitter: 0.3 });
+    // strata: thin bands following the far rim's line, stepping down the far wall
+    // (v2 still read as four power-lines across the wall: continuous, evenly spaced. Strata are
+    //  BROKEN — a ledge shows for a stretch, then the rock face hides it — so each band is
+    //  drawn only where a slow noise says the ledge is exposed, and the bands are uneven.)
+    for (let k = 0; k < 4; k++) {
+      const drop = 9 + k * 9 + (k % 2) * 4;
+      let run = [];
+      const flush = () => { if (run.length > 2) paintPath(out, counter, rng, run, (x, y, r) => jig(mix(mix('#4a4f86', '#232c58', k / 6), '#8a6a3a', homeLight(x, y) * 0.5 * (1 - k / 6)), r, 6), { lw: 0.9 + (k % 2) * 0.4, len: 5, density: 0.35, jitter: 1.0 }); run = []; };
+      for (let i = 0; i < 60; i++) {
+        const x = -10 + i * 14;
+        if (fbm(x / 55 + k * 3.1, k * 1.7, 311) < 0.5) { flush(); continue; }
+        run.push([x, farRim(x) + drop + Math.sin(x / 33 + k) * 1.6 + (fbm(x / 40, k, 313) - 0.5) * 3]);
+      }
+      flush();
+    }
+    // mist: three soft bands lying across the gulf, palest where the home's light reaches
+    // ⚠ first cut was a fog WALL — three dense bands hid the plunge, the very thing the page is
+    // about. Mist here is a few torn wisps, low, near the near rim, and the gulf stays visible.
+    for (const [yf, op, n] of [[0.68, 0.07, 160], [0.86, 0.10, 240]]) {
+      strokes(out, counter, {
+        rng, n,
+        sample: r => { const x = -10 + r() * 820; if (fbm(x / 120, yf * 10, 349) < 0.42) return null; const y = farRim(x) + (nearRim(x) - farRim(x)) * (yf + (r() - 0.5) * 0.10); return inGulf(x, y) ? [x, y] : null; },
+        dir: (x, y) => 0.03 + (fbm(x / 90, y / 30, 331) - 0.5) * 0.35,
+        col: (x, y, r) => jig(mix(ramp(['#4e5596', '#6a70ae', '#8a90c4'], fbm(x / 80, y / 24, 337)), '#e6cfa0', homeLight(x, y) * 0.45), r, 4),
+        len: (x, y) => 18 * lengthOf(x, y, 341), lw: (x, y) => 2.6 * (0.5 + widthOf(x, y, 343) * 0.5), steps: 3, follow: 0.97, lenJ: 0.5, wJ: 0.4, impasto: 0, relief: 0, op,
+      });
     }
   }
+
+  /* -------- 3.5 THE DOVES ARE GONE (Fred: "remove the bird emoji") --------
+     They were meant as Ps 55:6 — the dove flies home over the gulf the child cannot cross
+     — but at that size a pale two-stroke wing IS a glyph, and a glyph in a painting reads
+     as a sticker, not as a bird. The three birds I added inside the gulf on the previous
+     attempt went with them. If this page ever wants a bird again it should be a runtime
+     sprite that actually flies, like the flock on `ran`. -------- */
+
   const skyEnd = out.length;   // FAR plane: sky + far plateau + home + gulf + doves (down to the near rim)
   // the stacked SKY-SWIRL SHEETS — each an independent bold, gapped pass of the
   // turbulent eddies + bright cloud crests + curling Van Gogh arms (paint on
@@ -240,7 +331,8 @@ export function paint(E, opts = {}) {
         if (k2 > 0.76) return jig('#d4ddf4', r, 8);                                          // pale-silver twilight cloud-crests (only the crest edges catch light)
         return skyCol(x, y, r, e.lift);
       },
-      len: e.len, lw: e.lw, steps: 5, follow: 0.91, wild: 0.08, lenJ: 0.55, impasto: 0.6, relief: 0.5,
+      len: (x, y) => e.len * lengthOf(x, y, 51 + k), lw: (x, y) => e.lw * widthOf(x, y, 57 + k),
+      steps: 5, follow: 0.91, wild: 0.06, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.4,
       aJ: (x, y) => 0.1 + Math.max(0, 0.7 - nearE(x, y)) * 0.3,
     });
     return sh.join('\n');
@@ -249,7 +341,7 @@ export function paint(E, opts = {}) {
   /* ---------------- 4. NEAR WHEAT HILLS (the road's country) ---------------- */
   out.push(`<path d="M-2 ${R1(nearRim(-2))}L805 ${R1(nearRim(805))}V504H-2Z" fill="#7a5a26"/>`); counter.n++; // near hills base — MID plane
   strokes(out, counter, {
-    rng, n: 1180,
+    rng, n: 2600,
     sample: rej(-10, 336, 810, 510, (x, y) => y > nearRim(x) - 6 && !onRoad(x, y)),
     dir: (x, y) => { const [vx, vy] = curlV(x, y, 37, 90); return Math.atan2(vy * 0.5 - 0.06, Math.abs(vx) + 0.8); },
     col: (x, y, r) => {
@@ -258,7 +350,7 @@ export function paint(E, opts = {}) {
       let c = ramp(['#6b4e1d', '#8a6526', '#a3762a', '#c98e2e', '#d9a93f'], fbm(x / 60, y / 60, 31) * 0.7 + (y - nearRim(x)) / 240);
       return jig(mix(c, '#473d52', (1 - g) * 0.22), r, 11);
     },
-    len: 20, lw: 4.2, steps: 3, wild: 0.16, lenJ: 0.55, impasto: 0.72, aJ: 0.2,
+    len: (x, y) => 16 * lengthOf(x, y, 61), lw: (x, y) => 2.6 * widthOf(x, y, 63), steps: 3, wild: 0.1, lenJ: 0.3, wJ: 0.3, impasto: 0.72, aJ: 0.2, relief: 0.35,   // ⚠ relief was the default 1
   });
   // the near rim's lip — the brink the road stops at, dark earth
   paintPath(out, counter, rng,
@@ -282,7 +374,7 @@ export function paint(E, opts = {}) {
     counter.n++;
   }
   strokes(out, counter, {
-    rng, n: 540,
+    rng, n: 1000,
     sample: r => { const t = r(); const p = crP(t); const a = roadDir(t) + Math.PI / 2; const off = (r() + r() - 1) * roadW(t) * 0.46; return [p[0] + Math.cos(a) * off, p[1] + Math.sin(a) * off]; },
     dir: (x, y) => roadDir(roadInfo(x, y).t),
     col: (x, y, r) => {
@@ -293,7 +385,7 @@ export function paint(E, opts = {}) {
       c = mix(c, ramp([GOLD_PALE, GOLD, '#e0c478'], edge), g * 0.6);      // warms toward the brink/home
       return jig(c, r, 8);
     },
-    len: 14, lw: 3, steps: 3, lenJ: 0.5, wild: 0.1,
+    len: (x, y) => 12 * lengthOf(x, y, 71), lw: (x, y) => 2.0 * widthOf(x, y, 73), steps: 3, lenJ: 0.3, wJ: 0.3, wild: 0.06, relief: 0.3,
   });
   // sparse dark wheat leaning over the road edges
   strokes(out, counter, {
@@ -302,6 +394,53 @@ export function paint(E, opts = {}) {
     dir: (x, y) => roadDir(roadInfo(x, y).t) + 0.5,
     col: (x, y, r) => jig(mix('#6b4e1d', '#52401e', r()), r, 9), len: 8, lw: 2.2, steps: 2,
   });
+
+  /* ---------------- 5.2 REFINEMENT (Sep 12): WHEAT you can name, and a road that has been used --
+     The near hills were a bed of gold strokes; a child should be able to say "wheat". So:
+     stalks with heads, all leaning one way (the sky's turn comes from the left), thickest at
+     the brink and beside the road; two wheel-ruts down the road and stones kicked to its
+     edges — a road somebody has travelled, going the way he is going. */
+  {
+    const LEAN_W = 0.30;
+    const stalk = (bx, by, hh, lit) => {
+      const a = -Math.PI / 2 + LEAN_W + (fbm(bx / 30, by / 30, 401) - 0.5) * 0.5;
+      const tip = [bx + Math.cos(a) * hh, by + Math.sin(a) * hh];
+      const mid = [bx + Math.cos(a - 0.12) * hh * 0.5, by + Math.sin(a - 0.12) * hh * 0.5];
+      paintPath(out, counter, rng, [[bx, by], mid, tip],
+        (x, y, r) => jig(mix(mix('#6b4e1d', '#a3762a', r() * 0.6), '#e2b95a', lit * 0.5), r, 7), { lw: 0.8, len: 3, density: 0.7, jitter: 0.4 });
+      // the head: a few short dabs either side of the top of the stalk
+      strokes(out, counter, {   // (first cut: heads too big and pale — matchsticks along the brink)
+        rng, n: 3, sample: r => [tip[0] + (r() - 0.5) * 1.6, tip[1] + r() * hh * 0.18],
+        dir: () => a + (rng() - 0.5) * 0.5,
+        col: (x, y, r) => jig(mix(mix('#7a5a22', '#b07f2a', r()), '#e6c060', lit * 0.4), r, 6),
+        len: 1.6, lw: 1.0, steps: 1, impasto: 0.2, relief: 0.3,
+      });
+    };
+    for (let i = 0; i < 380; i++) {
+      const x = -10 + rng() * 820;
+      const yTop = nearRim(x) - 6, y = yTop + Math.pow(rng(), 0.95) * (504 - yTop);   // spread over the hills, not piled on the brink
+      if (onRoad(x, y) || y < nearRim(x) - 8) continue;
+      const depth = (y - 340) / 164;
+      stalk(x, y, 6 + depth * 12 * (0.6 + rng() * 0.8), lightAt(x, y));
+    }
+    // ruts: two darker lines the width of a cart apart, following the road
+    for (const side of [-1, 1]) {
+      const pts = [];
+      for (let t = 0.02; t <= 0.98; t += 0.03) { const p = crP(t); const a = roadDir(t) + Math.PI / 2; const off = side * roadW(t) * 0.26; pts.push([p[0] + Math.cos(a) * off, p[1] + Math.sin(a) * off]); }
+      paintPath(out, counter, rng, pts, (x, y, r) => jig(mix('#9a8660', '#7a6a4a', r() * 0.7), r, 6), { lw: 1.1, len: 4, density: 0.55, jitter: 0.5 });
+    }
+    // stones kicked to the road's edges, each with a lit crown toward home
+    for (let i = 0; i < 34; i++) {
+      const t = 0.1 + rng() * 0.88; const p = crP(t); const a = roadDir(t) + Math.PI / 2; const side = rng() < 0.5 ? 1 : -1;
+      const off = roadW(t) * (0.42 + rng() * 0.2) * side; const sx = p[0] + Math.cos(a) * off, sy = p[1] + Math.sin(a) * off;
+      const sw = 0.8 + t * 2.4 * (0.5 + rng()), lit = lightAt(sx, sy);
+      strokes(out, counter, {
+        rng, n: 5, sample: r => { const q = r() * Math.PI * 2, d = Math.sqrt(r()); return [sx + Math.cos(q) * sw * d, sy - Math.abs(Math.sin(q)) * sw * 0.6 * d]; },
+        dir: () => 0.1, col: (x, y, r) => jig(mix(mix('#4a3f36', '#7a6a58', (sy - y) / (sw * 0.6 + 0.1)), '#e0c078', lit * Math.max(0, (sy - y) / (sw * 0.6 + 0.1) - 0.4)), r, 5),
+        len: 2, lw: 1.3, steps: 1, impasto: 0.2, relief: 0.4,
+      });
+    }
+  }
 
   /* ---------------- 5.5 BACKGROUND LIFE — the world filled out ----------------
      the fowls of the air (Matt 6:26), trees of the field that clap their hands
@@ -322,7 +461,7 @@ export function paint(E, opts = {}) {
       len: 9, lw: 2.2, steps: 3, follow: 0.95, lenJ: 0.5,
     });
   };
-  cypress(706, 432, 60, 9); cypress(92, 472, 40, 6.5);
+  cypress(706, 432, 96, 13); cypress(92, 472, 66, 10);   // and the cypresses grow with them
   // low round bushes scattered on the hillsides
   const bush = (bx, by, w, h) => strokes(out, counter, {
     rng, n: Math.round(w * 1.5),
@@ -337,13 +476,19 @@ export function paint(E, opts = {}) {
   // fruit-trees as TRUE-DEPTH BILLBOARDS (each its own band, anchored at its base:
   // the ground map would vertically shear an upright, a billboard scales it whole)
   let _t = out.length;
-  fruitTree(out, counter, rng, 104, 492, 60, 27, LEAF_PALETTES[0], lightAt);  // violet, near-left
+  // Sep 15, Fred (the proportion pass): "on road the trees should be bigger" — at 48–64 units beside a
+  // 46-unit child they were bushes. A near fruit tree stands two to three of him.
+  // ⚠ Sep 26, Fred: "why are the trees' proportion off?" — still toys. Measured by perspective: the child is 46 at
+  // y 361 (125 below the far rim at 236); a fruit tree at y ~500 is twice as near, so a 4 m tree is ~300 there.
+  // The two near trees are now FRAMING trees at the plate's edges (the road, gulf and home stay open between
+  // them); the pomegranate went back onto the far rim, sized for that distance.
+  fruitTree(out, counter, rng, 96, 504, 300, 130, ['#2a5f30','#4b8f3c','#79b74d','#b77ce0'], lightAt, 1, { species: 'olive' });  // green + violet accent, near-left — an olive (after his kind, Sep 15)
   const taRange = [_t, out.length];
   _t = out.length;
-  fruitTree(out, counter, rng, 700, 498, 64, 29, LEAF_PALETTES[2], lightAt);  // teal, near-right
+  fruitTree(out, counter, rng, 724, 508, 320, 140, ['#265a3a','#3f8a4a','#6fae52','#5ad8b8'], lightAt, 1, { species: 'fig' });  // green + teal accent, near-right — a fig
   const tbRange = [_t, out.length];
   _t = out.length;
-  fruitTree(out, counter, rng, 556, 466, 48, 23, LEAF_PALETTES[1], lightAt);  // pink, mid
+  fruitTree(out, counter, rng, 760, 370, 108, 48, ['#2f6b34','#57993f','#86c055','#f07ab0'], lightAt, 1, { species: 'pomegranate' });  // green + pink accent, on the far rim — a pomegranate
   const tcRange = [_t, out.length];
   // sheep come home — small woolly forms grazing on the near hill
   const sheep = (sx, sy, s) => {
@@ -372,22 +517,12 @@ export function paint(E, opts = {}) {
     const cx2 = cp[0], cy2 = cp[1] - 1;
     // articulated child at the brink, one hand reaching OUT toward distant home,
     // the other low at its side — longing, leaning toward the far valley edge
-    const caps = personCaps(cx2 + 1, cy2 - 32, 33, {
-      lean: 1, headTilt: 1,
-      rightHand: [cx2 + 13, cy2 - 17],   // reaching forward toward home across the gulf
-      leftHand: [cx2 - 5, cy2 - 7],      // other hand low at the side
-      leftFoot: [cx2 - 5, cy2 + 1],
-      rightFoot: [cx2 + 5, cy2 + 1],
-    });
-    // THE MAIN CHARACTER — "you": consistent deep-red clothes + dark outline so the
-    // reader can follow the same child across the whole book.
-    castShadow(out, counter, caps, { dir: 0.3 });
-    paintChild(out, counter, rng, caps, { outlineW: 4 });
-    // the home's gold catching the child's reaching flank
-    strokes(out, counter, {
-      rng, n: 13,
-      sample: rej(cx2 - 1, cy2 - 30, cx2 + 10, cy2 - 4, (x, y) => caps.some(c => inCap(x, y, c)) && !caps.some(c => inCap(x + 3, y - 2, c))),
-      dir: () => -0.5, col: (x, y, r) => jig(GOLD_DEEP, r, 10), len: 3.5, lw: 1.4, steps: 2,
+    // the little pilgrim at the brink, one arm reaching OUT toward the far home —
+    // longing across the gulf, face lifted to the warm windows
+    E.paintMask(out, counter, rng, {
+      x: cx2 + 1, y: cy2 + 1, h: 33, facing: 1,
+      lean: 2, armR: [cx2 + 14, cy2 - 16],
+      eye: [1, -0.4], mood: 'wonder',
     });
   }
   fgRanges.push([_fgChild, out.length]);   // ← the child at the brink is foreground

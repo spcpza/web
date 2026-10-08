@@ -37,16 +37,20 @@ export const focal = { x: 300, y: 372 }; // portrait window: the walking Light, 
 // the stacked SKY-SWIRL SHEETS — each an independent bold, gapped pass of the
 // arcing night brushwork (paint on paint), own rng per sheet; their gaps reveal
 // the smooth opaque sky ground beneath.
+// ⭐ DETAIL PASS (Sep 8): finer sheets, every stroke its own width and length (free hashes,
+// no rule — see widthOf/lengthOf in paint())
 export const SKY_SHEETS = [
-  { n: 430, len: 21, lw: 5.0, lift: 0.00 },
-  { n: 465, len: 18, lw: 4.5, lift: 0.07 },
+  { n: 900, len: 20, lw: 3.0, lift: 0.00 },
+  { n: 960, len: 18, lw: 2.7, lift: 0.07 },
 ];
 export const layers = [
   { name: 'sky', opaque: true },  // smooth night sky ground (backmost, opaque)
   ...SKY_SHEETS.map((_, i) => ({ name: 'sky' + (i + 1) })),   // stacked sky-swirl sheets
   { name: 'far' },                // distant night hills + the horizon fringe
   { name: 'mid' },                // cobble floor, light road, walking Light, cypresses, PLANTED trees
-  { name: 'fg' },                 // you, hiding behind the cypress
+  { name: 'front' },              // the hiding rock/cypress — named front so it renders ABOVE
+                                  // the sprite layer: the child HIDES BEHIND it (Gen 3:8), so it
+                                  // must occlude the runtime actor, not sit under it
 ];
 
 export function paint(E, opts = {}) {
@@ -64,6 +68,11 @@ export function paint(E, opts = {}) {
   // unclaimed below the sky. The build emits one cel per band.
   const LAYER = opts.layer || 'full';
   const farRanges = [], fgRanges = [];
+  // ⭐ EVERY STROKE DRAWS ITS OWN WIDTH AND LENGTH (Fred: "use no rules, a paint stroke
+  // just exist because it exist") — two independent hashes per mark, no field, no coupling.
+  const free = (x, y, salt) => { const n = Math.sin(x * 12.9898 + y * 78.233 + salt) * 43758.5453; return n - Math.floor(n); };
+  const widthOf  = (x, y, salt) => 0.40 + 3.2 * Math.pow(free(x, y, salt), 2.6);
+  const lengthOf = (x, y, salt) => 0.40 + 1.5 * Math.pow(free(x, y, salt + 17), 1.5);
 
   // the deepest dark in this painting is a nameable blue — never black. This is
   // the HIDING-in-the-dark page, so the night runs deep; only the searching
@@ -80,11 +89,15 @@ export function paint(E, opts = {}) {
   const groundDir = (x, y) => Math.atan2(y - VP.y, x - VP.x) + (fbm(x / 90, y / 70, 43) - 0.5) * 0.5;
 
   // ONE light: the walking column at COLX, and the luminous road it lays down
-  const COLX = 186, COLBASE = 452, COLTOP = 104;
+  const COLX = 208, COLBASE = 452, COLTOP = 236;   // +22: at 186 the flame's left
+  // edge fell outside the portrait window (fx0 144) and read as CUT. The child hides
+  // at ~439, so the Light on the left and the child on the right both sit in frame.   // FIRE, not a pillar to the sky:
+  // the crown drops from 104 to 236 so the flame is a blaze a child could stand
+  // beside — smaller reads as HOTTER, because the eye compares it to the garden.
   const column = (x, y) => {
     const yc = Math.max(COLTOP, Math.min(COLBASE, y));
     const d = Math.hypot((x - COLX) * 1.18, (y - yc) * 0.92);
-    return Math.exp(-d / 150);
+    return Math.exp(-d / 118);   // tighter falloff: fire lights a POOL around itself, it does not wash a whole night
   };
   // the road: a bright spine from the column's foot toward the hiding cypress,
   // widening toward the viewer (perspective) — the brightest path home
@@ -138,9 +151,9 @@ export function paint(E, opts = {}) {
   // the smooth sky GROUND — broad soft masses (opaque base); the arcing
   // brushwork lives in the stacked sheets above, so their gaps reveal paint
   strokes(out, counter, {
-    rng, n: 640, sample: rej(-14, -14, 814, 332, (x, y) => y < horizon(x) + 8),
+    rng, n: 1600, sample: rej(-14, -14, 814, 332, (x, y) => y < horizon(x) + 8),
     dir: skyDir, col: (x, y, r) => skyCol(x, y, r, 0),
-    len: 40, lw: 10, steps: 4, follow: 0.88, wild: 0.05, lenJ: 0.5, impasto: 0.5, relief: 0.6,
+    len: (x, y) => 30 * lengthOf(x, y, 11), lw: (x, y) => 4.6 * widthOf(x, y, 13), steps: 4, follow: 0.88, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.5, relief: 0.4,
   });
 
   /* ====================== 2. THE STARS ====================== */
@@ -184,7 +197,8 @@ export function paint(E, opts = {}) {
     strokes(sh, { n: 0 }, {
       rng: srng, n: e.n, sample: rej(-14, -14, 814, 332, (x, y) => y < horizon(x) + 8),
       dir: skyDir, col: (x, y, r) => skyCol(x, y, r, e.lift),
-      len: e.len, lw: e.lw, steps: 5, follow: 0.9, wild: 0.2, lenJ: 0.55, impasto: 0.6, relief: 0.5,
+      len: (x, y) => e.len * lengthOf(x, y, 31 + k), lw: (x, y) => e.lw * widthOf(x, y, 37 + k),
+      steps: 5, follow: 0.9, wild: 0.12, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.4,
     });
     return sh.join('\n');
   });
@@ -233,8 +247,8 @@ export function paint(E, opts = {}) {
     rng, n: 540,
     sample: rej(-14, 280, 814, 334, (x, y) => Math.abs(y - horizon(x)) < 13),
     dir: (x, y) => (fbm(x / 38, y / 38, 57) - 0.5) * 0.55,
-    col: (x, y, r) => jig(mix(ramp(['#10283e', '#143640', '#19443c'], fbm(x / 60, y / 50, 59)), '#caa45e', column(x, y) * 0.5), r, 6),
-    len: 11, lw: 5, steps: 2, lenJ: 0.5, relief: 0.4,
+    col: (x, y, r) => jig(mix(mix(ramp(['#0c2038', '#102e3a', '#153c36'], fbm(x / 60, y / 50, 59)), '#0a1430', (1 - column(x, y)) * 0.35), '#e8823a', column(x, y) * 0.62), r, 6),
+    len: (x, y) => 10 * lengthOf(x, y, 41), lw: (x, y) => 3.0 * widthOf(x, y, 43), steps: 2, lenJ: 0.3, wJ: 0.3, relief: 0.3,
   });
 
   /* ====================== 4. THE COBBLE FLOOR (perspective) ====================== */
@@ -247,7 +261,7 @@ export function paint(E, opts = {}) {
       const g = light(x, y);
       return jig(mix(ramp(['#1a1c50', '#262662', '#322c64'], fbm(x / 90, y / 50, 39)), '#7a5838', g * 0.9), r, 6);
     },
-    len: (x, y) => 16 + 30 * depth(x, y), lw: (x, y) => 8 + 12 * depth(x, y), steps: 2, follow: 0.95, lenJ: 0.4, relief: 0.35,
+    len: (x, y) => (16 + 30 * depth(x, y)) * lengthOf(x, y, 51), lw: (x, y) => (5 + 7 * depth(x, y)) * (0.5 + free(x, y, 53)), steps: 2, follow: 0.95, lenJ: 0.3, wJ: 0.3, relief: 0.25,   // a bed: its own width each, no giants
   });
   // the cobbles themselves — dabs that shrink toward VP, rose-violet floor,
   // molten gold where the road and column pour over them
@@ -258,12 +272,12 @@ export function paint(E, opts = {}) {
     return jig(c, r, 10);
   };
   strokes(out, counter, {
-    rng, n: 1700,
+    rng, n: 3400,
     sample: rej(-14, 288, 814, 514, (x, y) => y > horizon(x)),
     dir: groundDir,
     col: groundCol,
-    len: (x, y) => 5 + 19 * depth(x, y), lw: (x, y) => 2.6 + 7.4 * depth(x, y),
-    steps: 2, follow: 0.95, wild: 0.05, lenJ: 0.5, relief: 0.8,
+    len: (x, y) => (5 + 19 * depth(x, y)) * lengthOf(x, y, 61), lw: (x, y) => (1.8 + 4.6 * depth(x, y)) * widthOf(x, y, 63),
+    steps: 2, follow: 0.95, wild: 0.04, lenJ: 0.3, wJ: 0.3, relief: 0.4,   // ⚠ relief 0.8 → 0.4: the floor was flagstones
   });
   // undergrowth licks, only in the unlit margins — the garden pressing in
   strokes(out, counter, {
@@ -278,15 +292,15 @@ export function paint(E, opts = {}) {
   // gold poured along the perspective road — confident slabs near, fine touches
   // far; this is the brightest path, and it leads toward the hiding place
   strokes(out, counter, {
-    rng, n: 760,
+    rng, n: 1500,
     sample: rej(-14, 300, 760, 512, (x, y) => y > horizon(x) + 4 && road(x, y) > 0.28),
     dir: groundDir,
     col: (x, y, r) => {
       const g = road(x, y);
       return jig(ramp(['#9a6a3a', '#d29440', '#ecb84e', '#f8d472', '#fff0c2'], Math.min(1, g * 1.15)), r, 9);
     },
-    len: (x, y) => 5 + 20 * depth(x, y), lw: (x, y) => 2.6 + 8 * depth(x, y),
-    steps: 2, follow: 0.95, wild: 0.06, lenJ: 0.5, impasto: 0.62, relief: 0.9,
+    len: (x, y) => (5 + 20 * depth(x, y)) * lengthOf(x, y, 71), lw: (x, y) => (1.8 + 5 * depth(x, y)) * widthOf(x, y, 73),
+    steps: 2, follow: 0.95, wild: 0.04, lenJ: 0.3, wJ: 0.3, impasto: 0.62, relief: 0.4,
   });
 
   /* ====================== 6. THE CYPRESSES (drawn flames) ====================== */
@@ -298,6 +312,12 @@ export function paint(E, opts = {}) {
     { x: 724, base: 452, top: 268, w: 34 },            // a second, deeper in the dark
   ];
   for (const C of cypresses) {
+    // BOTH cypresses are DE-BAKED — each is a runtime sprite in CRITTERS[6] so it can
+    // sway. This rule has now been wrong in both directions: it bakes NEITHER. (It once
+    // read `if (C.big) continue`, which baked the RIGHT one on top of its own runtime
+    // sprite — the doubled tree, whose baked copy carried the blunt crown.) The array
+    // below is kept because the hiding figures and the fruit tree are placed off it.
+    continue;
     const span = C.base - C.top;
     const half = y => {
       const t = (C.base - y) / span; if (t < 0 || t > 1) return 0;
@@ -316,7 +336,7 @@ export function paint(E, opts = {}) {
         let c = (x > cx + h * 0.15)
           ? ramp(['#142a5e', '#173658', '#1b4654'], t)
           : ramp(['#184a4a', '#206042', '#2c7648', '#3a8a52'], t);
-        if (x < cx - h * 0.4) c = mix(c, '#c8a044', column(x, y) * 0.85 + road(x, y) * 0.4); // gold rim
+        if (x < cx - h * 0.4) c = mix(c, '#f0842e', column(x, y) * 0.9 + road(x, y) * 0.4);  // FIRE rim, not gold
         return jig(c, r, 8);
       },
       len: (x, y) => (C.big ? 20 : 14) * (0.7 + 0.5 * (C.base - y) / span), // longer flames low, shorter at the tip
@@ -333,30 +353,11 @@ export function paint(E, opts = {}) {
      This same fruitfulness, after the Light, will blaze in the open day. */
   const FRUIT = ['#f6c63e', '#ee5c84', '#ffa53e', '#b77ce0', '#5ec0e0', '#f29ad0'];
   const BLOSSOM = ['#f29ad0', '#f6e07a', '#fafafa', '#b79ad8', '#8fd0e0'];
-  const fruitTree = (cx, baseY, h, w, leafCols) => {
-    paintPath(out, counter, rng, [[cx, baseY], [cx + (rng() - 0.5) * w * 0.2, baseY - h * 0.46]],
-      (x, y, r) => jig(mix('#241433', '#3a2a22', r()), r, 6), { lw: Math.max(2, w * 0.14), len: 6, density: 0.85, jitter: 0.5 });
-    const ccy = baseY - h * 0.62, cw = w, ch = h * 0.58;
-    strokes(out, counter, {        // canopy — a full cloud of BRIGHT jewel leaves (visible in the night)
-      rng, n: Math.round(cw * ch / 5),
-      sample: r => { const a = r() * Math.PI * 2, dd = Math.pow(r(), 0.55); return [cx + Math.cos(a) * cw * dd, ccy - Math.sin(a) * ch * dd]; },
-      dir: (x, y) => -Math.PI / 2 + (fbm(x / 12, y / 12, 151) - 0.5) * 1.5,
-      col: (x, y, r) => { const g = light(x, y); let c = ramp(leafCols, fbm(x / 14, y / 14, 153) * 0.8 + r() * 0.3); c = mix(c, '#fbe79a', g * 0.85); return jig(c, r, 13); },
-      len: 5 + h * 0.05, lw: 2.8, steps: 2, lenJ: 0.5, impasto: 0.4,
-    });
-    for (let i = 0; i < Math.round(w * 0.9); i++) {   // FRUIT — fat bright dabs, glowing even at night
-      const a = rng() * Math.PI * 2, dd = Math.pow(rng(), 0.42);
-      const fx2 = cx + Math.cos(a) * cw * dd * 0.92, fy3 = ccy - Math.sin(a) * ch * dd * 0.92;
-      const fr = 3.0 + rng() * 2.4, fc = FRUIT[Math.floor(rng() * FRUIT.length)], lit = light(fx2, fy3);
-      out.push(ribbon([[fx2 - fr * 0.7, fy3], [fx2 + fr * 0.7, fy3]], fr * 1.8, mix(fc, '#fff0c0', lit * 0.5))); counter.n++;
-      out.push(ribbon([[fx2 - fr * 0.28, fy3 - fr * 0.28], [fx2, fy3 - fr * 0.12]], fr * 0.6, '#fff6dc')); counter.n++;
-    }
-    for (let i = 0; i < Math.round(w * 0.4); i++) {   // blossoms of every colour
-      const a = rng() * Math.PI * 2, dd = Math.pow(rng(), 0.5);
-      const bx2 = cx + Math.cos(a) * cw * dd, by2 = ccy - Math.sin(a) * ch * dd;
-      out.push(ribbon([[bx2 - 1.8, by2], [bx2 + 1.8, by2]], 2.5, BLOSSOM[Math.floor(rng() * BLOSSOM.length)])); counter.n++;
-    }
-  };
+  // ⭐ AFTER HIS KIND (Sep 15). The four jewel trees keep their free colour (Munch) but each is a
+  // kind Eden held — "every tree that is pleasant to the sight, and good for food" (Gen 2:9):
+  // the FIG beside the hiding place is the one whose leaves they sewed (Gen 3:7).
+  const fruitTree = (cx, baseY, h, w, leafCols, sp, ex = {}) => E.paintTree(out, counter, rng, cx, baseY, h * 1.12,
+    { species: sp, lightFn: light, crownCols: E.crownRamp(leafCols), blossom: 3, fruitK: 1, shadowDir: cx < 400 ? -1 : 1, ...ex });
   // the HORIZON FRINGE — ragged dark foliage rising off the soil line so the
   // night-sky↔ground seam reads as the garden pressing in, not a ruled line.  [FAR]
   const _far = out.length;
@@ -366,10 +367,22 @@ export function paint(E, opts = {}) {
   E.horizonFringe(out, counter, rng, { horizonFn: horizon, x0: -10, x1: 810, cols: ['#15403e', '#1f5640', '#296644', '#3a7a52'], hMax: 22, lightFn: light, seed: 521 });
   farRanges.push([_far, out.length]);
   // jewel fruit-trees PLANTED in the dark garden (MID) — base stays with the ground
-  fruitTree(92, 498, 104, 48, ['#7a4ab0', '#9a5ac8', '#b87ae0']);   // BRIGHT violet, far-left
-  fruitTree(232, 456, 64, 30, ['#c83a82', '#e05a9a', '#f07ab0']);   // BRIGHT pink, left of the hiding cypress
-  fruitTree(770, 504, 108, 50, ['#2c9a86', '#3ac0a0', '#5ad8b8']);  // BRIGHT teal, far-right
-  fruitTree(652, 430, 60, 30, ['#3a6ad0', '#4a7ae0', '#6a9af0']);   // BRIGHT blue, mid-right gap
+  // ⭐ COMPOSED, NOT SCATTERED (Oct 6 — Fred: "there's like trees in the fire… random trees with no intent").
+  // Sep 26 only made every tree bigger; the fig then stood IN the fire. Each tree now has one job:
+  //  · the FIRE (COLX 208, 160–256 wide, up to y≈236) is kept clear — no crown crosses it;
+  //  · Gen 3:8 "hid themselves… amongst the trees of the garden": the child (428,470) hides BETWEEN two trees —
+  //    the FIG (Gen 3:7, its leaves were the covering) on the Light's side, its trunk and low boughs between him
+  //    and the fire; the cypress (runtime sprite, x 500) on his other side;
+  //  · the apple and the palm FRAME the garden at the plate's edges; the pomegranate stands far back for depth.
+  // ⭐ SIZED BY PERSPECTIVE (Oct 6, Fred: "fix the proportion and the composition"). Horizon ≈302, the child is
+  // 100 tall at y 470 → one child-height at depth y = 100·(y−302)/168. Each tree in CHILD-HEIGHTS, by its kind:
+  // fig 2.7 (his hiding tree — the crown arches over his head, the trunk between him and the fire), apple 3.2
+  // and palm 3.8 framing the edges (cut by the frame), pomegranate 2.4 far back. fruitTree multiplies h by 1.12.
+  const KIDU = y => 100 * (y - 302) / 168, TREE = (units, y) => units * KIDU(y) / 1.12;
+  fruitTree(-14, 508, TREE(3.2, 508), 130, ['#7a4ab0', '#9a5ac8', '#b87ae0'], 'apple');        // BRIGHT violet, frame left — an apple
+  fruitTree(384, 478, TREE(2.4, 478), 110, ['#c83a82', '#e05a9a', '#f07ab0'], 'fig', { trunkK: 1.75 });   // BRIGHT pink — THE fig he hides UNDER (Gen 3:7-8): crown lifted on its trunk so it arches over his head instead of a haystack behind him
+  fruitTree(812, 512, TREE(3.4, 512), 130, ['#2c9a86', '#3ac0a0', '#5ad8b8'], 'palm');         // BRIGHT teal, frame right — a palm
+  fruitTree(650, 400, TREE(2.4, 400), 60, ['#3a6ad0', '#4a7ae0', '#6a9af0'], 'pomegranate');   // BRIGHT blue, far back — a pomegranate
 
   /* lush jewel undergrowth + a fruitful scatter of garden flowers, visible even
      in the dark (brighter where the Light falls) — the ground itself is alive */
@@ -377,7 +390,7 @@ export function paint(E, opts = {}) {
     rng, n: Math.round(w * 2.2),
     sample: r => { const a = r() * Math.PI * 2, dd = Math.pow(r(), 0.7); return [bx + Math.cos(a) * w * dd, by - Math.abs(Math.sin(a)) * h * dd]; },
     dir: (x, y) => -Math.PI / 2 + (fbm(x / 10, y / 10, 259) - 0.5) * 1.3,
-    col: (x, y, r) => { const g = light(x, y); let c = ramp(cols, fbm(x / 12, y / 12, 261) + r() * 0.3); return jig(mix(c, '#f0d27a', g * 0.7), r, 10); },
+    col: (x, y, r) => { const g = light(x, y); let c = ramp(cols, fbm(x / 12, y / 12, 261) + r() * 0.3); return jig(mix(mix(c, '#ffab4a', g * 0.72), '#0c1830', (1 - g) * 0.3), r, 10); },
     len: 7, lw: 2.4, steps: 2, lenJ: 0.5,
   });
   jewelBush(36, 504, 24, 17, ['#5a2060', '#7a2a70', '#9a3a82']);
@@ -388,7 +401,7 @@ export function paint(E, opts = {}) {
     rng, n: 220,
     sample: rej(-10, 320, 814, 512, (x, y) => y > horizon(x) + 10 && road(x, y) < 0.5),
     dir: () => -Math.PI / 2,
-    col: (x, y, r) => { const g = light(x, y); const k = r(); const c = k < 0.22 ? '#ee5c84' : k < 0.44 ? '#b77ce0' : k < 0.64 ? '#f6c63e' : k < 0.82 ? '#5ec0e0' : '#f29ad0'; return jig(mix(c, '#fff0c0', g * 0.5), r, 12); },
+    col: (x, y, r) => { const g = light(x, y); const k = r(); const c = k < 0.22 ? '#ee5c84' : k < 0.44 ? '#b77ce0' : k < 0.64 ? '#f6c63e' : k < 0.82 ? '#5ec0e0' : '#f29ad0'; return jig(mix(c, '#ffd08a', g * 0.55), r, 12); },
     len: (x, y) => 3 + depth(x, y) * 5, lw: (x, y) => 2 + depth(x, y) * 2, steps: 1, lenJ: 0.5,
   });
 
@@ -415,36 +428,38 @@ export function paint(E, opts = {}) {
   // crown, flaring where it stands on the road — a pillar of fire, not a plume
   const colHalf = y => {
     const t = (COLBASE - y) / (COLBASE - COLTOP); if (t < 0 || t > 1) return 0;
-    const flare = 1 + 0.45 * Math.exp(-(COLBASE - y) / 60);          // foot flare
-    return (58 - 26 * t) * flare;                                     // ~84→32, tapering up
+    const flare = 1 + 0.5 * Math.exp(-(COLBASE - y) / 46);            // it sits WIDE on the ground
+    // and tapers to a tongue — a real flame is a teardrop, fat at the base, licking
+    // to a point. t^1.6 makes the taper accelerate toward the crown.
+    return (46 - 34 * Math.pow(t, 1.6)) * flare;
   };
   // FIRE IS NATURAL — so the Light does not stand in straight streaks; it FLAMES.
   // The strokes rise but lick and curl (Munch: all that is living is curved; only
   // made things — cobbles, roads, houses — run straight).
-  const colDir = (x, y) => { const [a, b] = curlV(x, y, 137, 52); return Math.atan2(-1.0 + b * 1.9, (x - COLX) * 0.012 + a * 1.9); };
-  strokes(out, counter, {        // the broad streaming halo — gold ripening outward to blue
-    rng, n: 560,
-    sample: r => { const y = COLTOP - 10 + r() * (COLBASE - COLTOP + 22); const h = colHalf(y) + 14; return [COLX + (r() * 2 - 1) * h + (r() - 0.5) * 6, y]; },
+  // MORE MOVEMENT (Fred). A tighter curl field (52 -> 34) and a stronger swirl term
+  // make the strokes lick and twist instead of streaming; fire is the most curved
+  // thing in the book (Munch: all that lives is curved).
+  const colDir = (x, y) => { const [a, b] = curlV(x, y, 137, 34); return Math.atan2(-1.0 + b * 2.9, (x - COLX) * 0.02 + a * 2.9); };
+  // ⚠ THE FLAME BODY IS NOT BAKED — it is drawn at RUNTIME in brush-marks so it can
+  // burn (drawBonfire in engine/character.js, placed by CRITTERS[6]). Everything the
+  // fire DOES to the garden is still baked right here: `column()` above warms the
+  // cypress, the ground and every leaf, and the footfall pool below lies on the road.
+  // Light baked, flame alive — and tuning the flame no longer costs a plate rebuild.
+  // A low EMBER BED stays baked so the plate never has a hole in it.
+  strokes(out, counter, {
+    rng, n: 170,
+    sample: r => { const a2 = r() * Math.PI * 2, d = Math.sqrt(r()); return [COLX + Math.cos(a2) * d * 48, COLBASE - 8 + Math.sin(a2) * d * 17]; },
     dir: colDir,
-    col: (x, y, r) => {
-      const d = Math.abs(x - COLX) / (colHalf(y) + 16);
-      if (d > 0.72 && r() < 0.06) return jig('#8a5aa0', r, 12);
-      return jig(ramp([GOLD_PALE, GOLD, '#e6a544', '#b08a3c', '#6f8a4c', '#3e6090'], Math.min(1, d * 1.02)), r, 8);
-    },
-    len: (x, y) => 20 + 16 * (COLBASE - y) / (COLBASE - COLTOP), lw: 4, steps: 5, follow: 0.9, wild: 0.12, lenJ: 0.5, relief: 0.75,
+    col: (x, y, r) => jig(ramp(['#fff2c8', '#ffc65a', '#f2802a', '#a8402c'], Math.hypot((x - COLX) / 48, (y - COLBASE + 8) / 17)), r, 8),
+    op: 0.72, len: 12, lw: 3.6, steps: 3, follow: 0.9, lenJ: 0.5, impasto: 0.4,
   });
-  strokes(out, counter, {        // the solid burning core — dense, bright, with body
-    rng, n: 520,
-    sample: r => { const y = COLTOP + r() * (COLBASE - COLTOP); const o = (r() + r() - 1) * colHalf(y) * 0.52; return [COLX + o, y]; },
-    dir: colDir,
-    col: (x, y, r) => jig(ramp([GOLD_HOT, mix(GOLD_HOT, GOLD_PALE, 0.5), GOLD_PALE, GOLD, '#e6a544'], Math.abs(x - COLX) / (colHalf(y) * 0.62) + (rng() - 0.5) * 0.08), r, 6),
-    len: (x, y) => 20 + 14 * (COLBASE - y) / (COLBASE - COLTOP), lw: 3.6, steps: 4, follow: 0.92, wild: 0.1, lenJ: 0.45, impasto: 0.5,
-  });
+
   strokes(out, counter, {        // footfall: gold splashing forward onto the road
     rng, n: 240,
     sample: r => { const a = r() * Math.PI, d = Math.pow(r(), 1.2) * 96; return [COLX + 8 + Math.cos(a + Math.PI) * d * 1.7, COLBASE - 2 + Math.abs(Math.sin(a)) * d * 0.34]; },
     dir: () => 0.05,
-    col: (x, y, r) => jig(ramp([GOLD_PALE, GOLD, '#d2933e', '#8a5a6a'], Math.hypot((x - COLX - 8) / 1.7, (y - COLBASE) * 2.0) / 100), r, 8),
+    col: (x, y, r) => jig(ramp(['#fff2c8', '#ffc65a', '#f2802a', '#a8402c', '#5e2436'], Math.hypot((x - COLX - 8) / 1.7, (y - COLBASE) * 2.0) / 100), r, 8),
+    op: 0.58,   // the pool it throws is light on the ground, not pigment
     len: (x, y) => 8 + 8 * depth(x, y), lw: 3, steps: 2, relief: 0.9,
   });
 
@@ -470,30 +485,12 @@ export function paint(E, opts = {}) {
   // Curl seated on the ground, facing LEFT, knees drawn up. Head a clear ball on
   // top, bowed forward over the knees. Bigger overall so it reads, lifted a touch
   // out of the foliage. h≈46; head r≈6, torso r≈3.4, leg r≈2.6, arm r≈2.0.
-  const gHr = 6.0;
-  const hipx = f1x + 7, hipy = f1y - 8;    // hips, seated on the ground (right side)
-  const shx = f1x - 1, shy = f1y - 30;     // shoulders forward+up, torso curled
-  const headcx = f1x - 6, headcy = f1y - 40; // head BALL, bowed forward over knees
-  const kneex = f1x - 9, kneey = f1y - 27;  // knees drawn UP to the chest, to the left
-  const footx = f1x - 4, footy = f1y - 6;   // feet folded back under
-  const caps1 = [
-    // head — a clear round ball on top, bowed forward
-    { ax: headcx, ay: headcy - gHr * 0.35, bx: headcx + 1, by: headcy + gHr * 0.35, r: gHr },
-    { ax: headcx + 2, ay: headcy + gHr, bx: shx, by: shy, r: 2.4 },        // short neck
-    { ax: shx, ay: shy, bx: hipx, by: hipy, r: 3.4 },                      // chunky torso, curled forward
-    // near leg: thigh up to raised knee, shin folded back to the ground
-    { ax: hipx, ay: hipy, bx: kneex, by: kneey, r: 2.6 },                  // thigh up to knee
-    { ax: kneex, ay: kneey, bx: footx, by: footy, r: 2.2 },               // shin folded down to ground
-    // far leg, slightly offset for volume
-    { ax: hipx + 2, ay: hipy + 1, bx: kneex + 3, by: kneey + 2, r: 2.6 }, // far thigh
-    { ax: kneex + 3, ay: kneey + 2, bx: footx + 4, by: footy, r: 2.2 },   // far shin
-    // arms wrapped around the knees — upper arm from shoulder, forearm hugging the knees
-    { ax: shx, ay: shy + 4, bx: kneex - 1, by: kneey - 2, r: 2.0 },        // upper arm reaching over
-    { ax: kneex - 1, ay: kneey - 2, bx: kneex + 1, by: kneey + 4, r: 1.8 },// forearm hugging knees
-  ];
-  // THE MAIN CHARACTER — "you": consistent deep-red clothes + dark outline so the
-  // reader can follow the same child across the whole book (was a custom red form here).
-  paintChild(out, counter, rng, caps1);
+  // THE MAIN CHARACTER — the little pilgrim, huddled small behind the boulder,
+  // hem pooled on the ground, wide eyes peeking toward the seeking Light (left)
+  E.paintMask(out, counter, rng, {
+    x: f1x, y: f1y, h: 44, facing: -1, kneel: true, lean: -3,
+    eye: [-1, -0.2], mood: 'wary', shadow: 0.25,
+  });
   // a breath of the seeking Light's gold on the child's near side — it reaches even here
   paintPath(out, counter, rng, [[f1x - 5, f1y - 40], [f1x - 6, f1y - 27], [f1x - 9, f1y - 13]],
     (x, y, r) => jig(mix(GOLD_DEEP, '#8a6c34', r() * 0.6), r, 9), { lw: 1.2, len: 3, density: 0.55, jitter: 1.1 });
@@ -502,6 +499,7 @@ export function paint(E, opts = {}) {
   // mass to his LEFT, the Light side), and he peeks over the top toward it — NOT a
   // rock in front of him. Dark night stone, faintly gold on its Light-facing edge.
   {
+    const out = [], counter = { n: 0 };   // ⚠ Sep 23: the boulder is RETIRED (drawn into a throwaway so the shared rng stream is unchanged) — see the fig below
     const rx = f1x - 28, ryT = f1y - 28, rw = 32, rh = 48;   // boulder to the child's LEFT (the Light side)
     // the boulder's cast shadow on the floor — the Light is to the LEFT, so the
     // shadow falls to the RIGHT, grounding the rock
@@ -512,10 +510,12 @@ export function paint(E, opts = {}) {
       rng, n: 150,
       sample: rej(rx - rw, ryT - 4, rx + rw, ryT + rh, (x, y) => (x - rx) ** 2 / (rw * rw) + Math.max(0, ryT + 6 - y) ** 2 / 220 < 1.04),
       dir: (x, y) => 0.16 + (fbm(x / 30, y / 26, 71) - 0.5) * 0.5,
-      col: (x, y, r) => { const g = light(x, y); let c = ramp(['#0f1528', '#1f2740', '#39446a'], fbm(x / 26, y / 22, 73) * 0.72); c = mix(c, '#8a7044', g * 0.5); return jig(c, r, 9); },
+      col: (x, y, r) => { const g = light(x, y); let c = ramp(['#0f1528', '#1f2740', '#39446a'], fbm(x / 26, y / 22, 73) * 0.72); c = mix(c, '#a05a2e', g * 0.56); return jig(c, r, 9); },
       len: 9, lw: 2.8, steps: 2, wild: 0.1, lenJ: 0.5, impasto: 0.5,
     });
   }
+  /* (Sep 23's fig-leaf shrub over the child was REMOVED Oct 6 — Fred: "the person is sitting behind emoji leafs
+     (ugly)". He hides between two real trees now: the fig and the cypress — see the jewel trees below.) */
   fgRanges.push([_fgFig, out.length]);   // ← the hiding child + the boulder are foreground
 
   /* ====================== 9.7 LIFE IN THE NIGHT (Ps 104:24; Gen 1:20-25) ======================
@@ -580,7 +580,7 @@ export function paint(E, opts = {}) {
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.
-  const ALT = 'A garden at night in saturated cobalt and gold, fruitful even in the dark: a floor recedes in perspective; a luminous gold column of walking Light sweeps a bright road toward a cypress where a single small child hides, bowed in the shadow; jewel-coloured fruit trees stand in the dark, and a sky of long arcing strokes curves around two great burning stars. The Light comes seeking the one who hid.';
+  const ALT = 'A garden at night in saturated cobalt and gold, fruitful even in the dark: a floor recedes in perspective; a luminous gold column of walking Light sweeps a bright road toward a cypress where a single small child hides behind a fig bush, peeking out over its broad leaves; jewel-coloured fruit trees stand in the dark, and a sky of long arcing strokes curves around two great burning stars. The Light comes seeking the one who hid.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };   // no baked surface — the live filter unifies the planes
   const setOf = ranges => { const s = new Set(); for (const [a, b] of ranges) for (let i = a; i < b; i++) s.add(i); return s; };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
@@ -589,7 +589,7 @@ export function paint(E, opts = {}) {
   const sm = LAYER.match(/^sky(\d+)$/);
   if (sm) return svgWrap(ALT, '<g>' + skySheets[+sm[1] - 1] + '</g>', RAW);         // one sky-swirl sheet
   if (LAYER === 'far') return svgWrap(ALT, pick(farRanges), RAW);                   // distant hills + fringe
-  if (LAYER === 'fg') return svgWrap(ALT, pick(fgRanges), RAW);                     // the hiding child
+  if (LAYER === 'front') return svgWrap(ALT, pick(fgRanges), RAW);                     // the hiding child
   if (LAYER === 'mid') {                                                            // floor, road, walking Light, cypresses, planted trees
     const body = out.filter((_, i) => i >= skyEnd && !farSet.has(i) && !fgSet.has(i)).join('\n');
     return svgWrap(ALT, body, RAW);

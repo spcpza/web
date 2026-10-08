@@ -20,7 +20,10 @@
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var book = document.getElementById('book');
   if (!book) return;
-  var pages = Array.prototype.slice.call(book.querySelectorAll('.page'));
+  // PILOT: the LIVING PAINT shader engine, scoped to the front cover only, so the
+  // last page (flat) stays as an A/B reference. Opt in per page via [data-paintlive].
+  var pages = Array.prototype.slice.call(book.querySelectorAll('.page[data-paintlive]'));
+  if (!pages.length) return;
 
   // the Word that shapes the variation — no two strokes alike, because no two
   // letters are (a plate may override via data-word)
@@ -240,39 +243,76 @@
   }
 
   function buildView(view, opts) {
+    // TIME-SLICED: never blocks a frame for more than ~5ms. Returns true only
+    // when the geometry is complete; callers render the static <picture> until
+    // then. (The old synchronous build froze the main thread 150-900ms at every
+    // page landing — the whole book felt laggy while the paint itself was cheap.)
     opts = opts || {};
     var img = opts.img || ((view.panoActive && view.landImg) ? view.landImg : view.img);
     var store = opts.store || view;
+    if (store.built) return true;
     var W = view.w, H = view.h;
+    var deadline = opts.deadline || (performance.now() + 5);
+    if (!store.bld) {
+      var sw0 = 256, shh0 = Math.max(1, Math.round(256 * H / W));
+      var bld0 = { phase: 0, sbmp: null, fbmp: null, fail: false };
+      store.bld = bld0;
+      if (window.createImageBitmap) {
+        // decode + resize OFF the main thread — the whole reason the old build froze
+        createImageBitmap(img, { resizeWidth: sw0, resizeHeight: shh0, resizeQuality: 'medium' })
+          .then(function (b) { bld0.sbmp = b; }, function (e) { bld0.fail = true; console.warn('CIB-S-FAIL', e && e.message); });
+        createImageBitmap(img)
+          .then(function (b) { bld0.fbmp = b; }, function (e) { bld0.fail = true; console.warn('CIB-F-FAIL', e && e.message); });
+      } else { bld0.fail = true; }   // old Safari: fall back to the sync path below
+      return false;
+    }
+    var bld = store.bld;
+    if (bld.phase === 0) {
+      if (!bld.fail && (!bld.sbmp || !bld.fbmp)) return false;   // decodes still in flight
+      bld.phase = 1;
+    }
+    if (bld.phase >= 6) return buildSlice(view, opts, store, deadline);
+    if (bld.phase >= 2 && bld.phase < 5) {          // one light-centroid pass per frame
+      if (!bld.lightPass()) bld.phase = 5; else bld.phase++;
+      if (bld.phase >= 5) { bld.lightsDone(); bld.phase = 6; }
+      return false;
+    }
+    if (bld.phase === 5) { bld.lightsDone(); bld.phase = 6; return false; }
+    bld.phase = 2;
     // sample the displayed painting into a small offscreen for colour + light
     var sw = 256, shh = Math.max(1, Math.round(256 * H / W));
     var oc = document.createElement('canvas'); oc.width = sw; oc.height = shh;
-    var octx = oc.getContext('2d'); octx.clearRect(0, 0, sw, shh); octx.drawImage(img, 0, 0, sw, shh);
-    var id; try { id = octx.getImageData(0, 0, sw, shh).data; } catch (e) { return false; }
+    var octx = oc.getContext('2d', { willReadFrequently: true });   // CPU canvas: getImageData must never sync the GPU queue
+    octx.clearRect(0, 0, sw, shh); octx.drawImage(bld.sbmp || img, 0, 0, sw, shh);
+    var id; try { id = octx.getImageData(0, 0, sw, shh).data; } catch (e) { store.bld = null; return false; }
     function sample(x, y) { var sx = Math.max(0, Math.min(sw - 1, x / W * sw | 0)), sy = Math.max(0, Math.min(shh - 1, y / H * shh | 0)); var i = (sy * sw + sx) * 4; return [id[i], id[i + 1], id[i + 2]]; }
     function alphaAt(x, y) { var sx = Math.max(0, Math.min(sw - 1, x / W * sw | 0)), sy = Math.max(0, Math.min(shh - 1, y / H * shh | 0)); return id[(sy * sw + sx) * 4 + 3]; }
     function lum(x, y) { var c = sample(x, y); return (c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114) / 255; }
 
-    // FIND THE LIGHT in the scene: brightest-weighted centroids (up to 3 sources)
-    var lights = [];
-    var used = new Float32Array(sw * shh);
-    for (var pass = 0; pass < 3; pass++) {
+    // FIND THE LIGHT in the scene: brightest-weighted centroids — ONE pass per
+    // frame (each pass sweeps the whole sample twice; three at once broke budget)
+    bld.lightPass = function () {
+      var lights = bld._lights || (bld._lights = []);
+      var used = bld._used || (bld._used = new Float32Array(sw * shh));
       var sx = 0, sy = 0, swgt = 0, peak = 0;
       for (var yy = 0; yy < shh; yy++) for (var xx = 0; xx < sw; xx++) {
         var i = (yy * sw + xx); var c = (id[i * 4] * 0.299 + id[i * 4 + 1] * 0.587 + id[i * 4 + 2] * 0.114) / 255;
         var wv = Math.max(0, c - 0.55); wv = wv * wv * (1 - used[i]);
         if (wv > 0) { sx += xx * wv; sy += yy * wv; swgt += wv; if (c > peak) peak = c; }
       }
-      if (swgt < 0.5) break;
+      if (swgt < 0.5) return false;   // no further source
       var lx = sx / swgt, ly = sy / swgt;
-      lights.push({ x: lx / sw * W, y: ly / shh * H, w: pass === 0 ? 1.0 : 0.6, peak: peak });
-      // suppress a neighbourhood so the next pass finds a different source
+      lights.push({ x: lx / sw * W, y: ly / shh * H, w: lights.length === 0 ? 1.0 : 0.6, peak: peak });
       var rr = sw * 0.22;
       for (var yy2 = 0; yy2 < shh; yy2++) for (var xx2 = 0; xx2 < sw; xx2++) { var d = Math.hypot(xx2 - lx, yy2 - ly); used[yy2 * sw + xx2] = Math.min(1, used[yy2 * sw + xx2] + Math.exp(-d * d / (rr * rr))); }
-    }
-    if (!lights.length) lights.push({ x: W * 0.5, y: H * 0.45, w: 1.0 });
-    store.lights = lights;
-    store.reach = Math.hypot(W, H) * 0.30;
+      return true;
+    };
+    bld.lightsDone = function () {
+      var lights = bld._lights || [];
+      if (!lights.length) lights.push({ x: W * 0.5, y: H * 0.45, w: 1.0 });
+      store.lights = lights;
+      store.reach = Math.hypot(W, H) * 0.30;
+    };
 
     // generate the brushwork: dense ground coat + mid + fine, all from the raster
     var V = [];
@@ -303,35 +343,71 @@
       function vert(p, across, along) { V.push(p[0], p[1], cx, cy, across, along, r0, g0, b0, imp); }
       for (var s2 = 0; s2 < n - 1; s2++) { var a0 = s2 / (n - 1), a1 = (s2 + 1) / (n - 1); vert(Lt[s2], 1, a0); vert(Rt[s2], -1, a0); vert(Rt[s2 + 1], -1, a1); vert(Lt[s2], 1, a0); vert(Rt[s2 + 1], -1, a1); vert(Lt[s2 + 1], 1, a1); }
     }
-    function fillGrid(step, lenMin, lenR, wMin, wR, jit) {
-      for (var gy = -step; gy < H + step; gy += step) for (var gx = -step; gx < W + step; gx += step) {
-        emit(gx + (rnd() - 0.5) * step * jit, gy + (rnd() - 0.5) * step * jit, lenMin + rnd() * rnd() * lenR * 1.6, wMin + rnd() * wR);
-      }
-    }
     var u = Math.min(W, H) / (isMobile ? 38 : 50);   // bigger, fewer strokes on phones
-    // FOUR scales of mark for a DYNAMIC, full painting — sweeping big gestures,
-    // medium body, fine detail, and tiny colour-accent dabs on top (Van Gogh's
-    // whole vocabulary in every field). The marks build the height field that the
-    // matte impasto rakes, so more scales = richer texture, not just more colour.
-    fillGrid(u * 0.92, u * 2.0, u * 1.15, u * 2.7, u * 1.2, 1.0);   // 1 · BIG sweeping strokes
-    fillGrid(u * 1.2, u * 1.1, u * 0.8, u * 1.3, u * 0.7, 1.4);     // 2 · medium body
-    fillGrid(u * 1.7, u * 0.7, u * 0.6, u * 0.7, u * 0.5, 1.7);     // 3 · fine detail
-    fillGrid(u * 1.5, u * 0.4, u * 0.4, u * 0.4, u * 0.34, 2.2);    // 4 · tiny accent dabs (colour flecks)
+    // FOUR scales of mark (Van Gogh's whole vocabulary); cel layers skip the
+    // accent dabs — the oil bake already carries their flecks.
+    bld.grids = [
+      [u * 0.92, u * 2.0, u * 1.15, u * 2.7, u * 1.2, 1.0],   // 1 · BIG sweeping strokes
+      [u * 1.2, u * 1.1, u * 0.8, u * 1.3, u * 0.7, 1.4],     // 2 · medium body
+      [u * 1.7, u * 0.7, u * 0.6, u * 0.7, u * 0.5, 1.7],     // 3 · fine detail
+    ];
+    if (!opts.rgba) bld.grids.push([u * 1.5, u * 0.4, u * 0.4, u * 0.4, u * 0.34, 2.2]);   // 4 · tiny accent dabs
+    bld.gi = 0; bld.gy = -bld.grids[0][0];
+    bld.V = V; bld.emit = emit; bld.rnd = rnd; bld.img = bld.fbmp || img;
+    return false;   // grids start on the next slice — this frame already paid for sampling
+  }
 
-    var arr = new Float32Array(V);
-    if (!store.buf) store.buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, store.buf); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+  // one budgeted slice of grid emission; the last slice does the GPU uploads
+  function buildSlice(view, opts, store, deadline) {
+    var bld = store.bld, W = view.w, H = view.h;
+    var V = bld.V, emit = bld.emit, rnd = bld.rnd;
+    while (bld.up === undefined && bld.gi < bld.grids.length) {
+      var g = bld.grids[bld.gi], step = g[0];
+      while (bld.gy < H + step) {
+        var gy = bld.gy;
+        for (var gx = -step; gx < W + step; gx += step) {
+          emit(gx + (rnd() - 0.5) * step * g[5], gy + (rnd() - 0.5) * step * g[5], g[1] + rnd() * rnd() * g[2] * 1.6, g[3] + rnd() * g[4]);
+        }
+        bld.gy += step;
+        if (performance.now() > deadline) return false;   // out of budget — resume next frame
+      }
+      bld.gi++;
+      if (bld.gi < bld.grids.length) bld.gy = -bld.grids[bld.gi][0];
+    }
+    // the two GPU uploads each get their own slice — no single frame carries both
+    if (bld.up === undefined) { bld.up = 0; return false; }
+    if (bld.up === 0) {
+      var arr = new Float32Array(V);
+      if (!store.buf) store.buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, store.buf); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+      bld.up = 1; return false;
+    }
     // the sharp painting, so the message reads through the brushwork (RGBA so a
     // foreground layer keeps its transparency for the alpha-aware filter)
     var fmt = opts.rgba ? gl.RGBA : gl.RGB;
     if (!store.rasterTex) store.rasterTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, store.rasterTex);
+    // UNPACK_FLIP_Y_WEBGL is spec-IGNORED for ImageBitmap sources — modern
+    // Chrome/Safari follow the spec, so uploading the bitmap directly renders
+    // the whole painting upside down (older builds honored the flag, which is
+    // why this ever worked). Route the bitmap through a 2D canvas: the flip
+    // flag applies to canvas sources on every browser, past and present.
+    var up = bld.img;
+    if (window.ImageBitmap && up instanceof ImageBitmap) {
+      var flipC = document.createElement('canvas');
+      flipC.width = up.width; flipC.height = up.height;
+      flipC.getContext('2d').drawImage(up, 0, 0);
+      up = flipC;
+    }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, fmt, fmt, gl.UNSIGNED_BYTE, img);
+    gl.texImage2D(gl.TEXTURE_2D, 0, fmt, fmt, gl.UNSIGNED_BYTE, up);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     store.nVerts = V.length / 10; store.built = true;
+    if (bld.sbmp && bld.sbmp.close) bld.sbmp.close();
+    if (bld.fbmp && bld.fbmp.close) bld.fbmp.close();
+    store.bld = null;
     return true;
   }
 
@@ -357,6 +433,14 @@
     var imgSrc = img.getAttribute('src');
     var layered = page.hasAttribute('data-layers');   // MULTIPLANE depth planes exist
     var base = imgSrc.replace(/\.jpg(\?.*)?$/, '');
+    /* ⚠ KEEP THE VERSION QUERY. `base` strips `.jpg?p=NN`, and every plane path was then
+       built WITHOUT it — so this filter fetched `/plates-vg/<name>-bg.jpg` bare while
+       scene.js fetched `...-bg.jpg?p=91`. The browser happily served its old cached copy
+       for the bare URL, and once the filter finished building (a few seconds in) it
+       painted THAT over the page. Which is exactly what Fred saw: the new picture on
+       load, the old one a minute later, on phone and desktop alike, surviving every
+       rebuild, every deploy and every cache-bust I could think of. */
+    var ver = (imgSrc.match(/\?[^"']*$/) || [''])[0];
     // depth planes, FAR → NEAR. depth drives parallax (0 = far, 1 = near); a plane
     // at depth 0.5 (REF) is the ANCHOR — it does not slide, so it never reveals an
     // edge. data-layers is a comma list of band NAMES; a name may carry an EXPLICIT
@@ -376,13 +460,13 @@
           var ed = at >= 0 ? parseFloat(tok.slice(at + 1)) : NaN;   // explicit depth, if given
           var opaque = (i === 0);
           var d = !isNaN(ed) ? ed : (LADDER[nm] !== undefined ? LADDER[nm] : (names.length > 1 ? i / (names.length - 1) : 0));
-          return { src: base + '-' + nm + (opaque ? '.jpg' : '.png'), nm: nm, depth: d, rgba: !opaque, img: null, store: {} };
+          return { src: base + '-' + nm + (opaque ? '.jpg' : '.png') + ver, nm: nm, depth: d, rgba: !opaque, img: null, store: {} };
         });
       } else {
         planes = [
-          { src: base + '-sky.jpg', depth: 0.0, rgba: false, img: null, store: {} },
-          { src: base + '-ground.png', depth: 0.45, rgba: true, img: null, store: {} },
-          { src: base + '-fg.png', depth: 1.0, rgba: true, img: null, store: {} },
+          { src: base + '-sky.jpg' + ver, depth: 0.0, rgba: false, img: null, store: {} },
+          { src: base + '-ground.png' + ver, depth: 0.45, rgba: true, img: null, store: {} },
+          { src: base + '-fg.png' + ver, depth: 1.0, rgba: true, img: null, store: {} },
         ];
       }
     }
@@ -415,21 +499,22 @@
     var posNow = book.scrollLeft / book.clientWidth;
     if (Math.abs(v.idx - posNow) > 1.6) {
       if (v.cv.width > 1) { v.cv.width = 1; v.cv.height = 1; }
-      v.w = 0; v.h = 0; v.built = false; v.painted = false; v.panInit = false; v.panStart = null;
+      v.w = 0; v.h = 0; v.built = false; v.painted = false; v.panInit = false; v.panStart = null; v.bld = null;
+      if (v.planes) for (var rbi = 0; rbi < v.planes.length; rbi++) v.planes[rbi].store.bld = null;
       v.page.classList.remove('pano-on');
       return;
     }
     var pano = v.pano && portraitNow();
     if (pano && !v.landImg) {                                  // full landscape (aspect + non-layered raster)
       v.landImg = new Image(); v.landImg.decoding = 'async';
-      v.landImg.onload = function () { v.built = false; start(); };
+      v.landImg.onload = function () { v.built = false; v.bld = null; start(); };
       v.landImg.src = v.landSrc;
     }
     if (pano && v.planes) {                                    // load each depth plane once; rebuild strokes at new size
       for (var pi = 0; pi < v.planes.length; pi++) {
         var pl = v.planes[pi];
-        if (!pl.img) { pl.img = new Image(); pl.img.decoding = 'async'; (function (s) { pl.img.onload = function () { s.built = false; start(); }; })(pl.store); pl.img.src = pl.src; }
-        pl.store.built = false;
+        if (!pl.img) { pl.img = new Image(); pl.img.decoding = 'async'; (function (s) { pl.img.onload = function () { s.built = false; s.bld = null; start(); }; })(pl.store); pl.img.src = pl.src; }
+        pl.store.built = false; pl.store.bld = null;
       }
     }
     var w, h;
@@ -456,7 +541,7 @@
     }
     v.panoActive = pano;
     v.w = w; v.h = h; v.cv.width = Math.round(w * dpr); v.cv.height = Math.round(h * dpr);
-    v.built = false; v.painted = false;
+    v.built = false; v.painted = false; v.bld = null;
   }
   views.forEach(layout);
 
@@ -530,11 +615,13 @@
         var dox = dtx0 / Math.max(0.05, 2.0 - dtz);
         dioP = { v0: dv0, k: dk, cx: dcx, tx: dtx, tz: dtz, ox: dox, ty: dty };
       }
-      // build every plane's stroke field + raster texture (one-time, cached)
+      // build every plane's stroke field + raster texture (time-sliced, cached)
+      var mpDeadline = performance.now() + 5, mpReady = true;
       for (var pj = 0; pj < v.planes.length; pj++) {
         var p = v.planes[pj];
-        if (!p.store.built) buildView(v, { img: p.img, store: p.store, rgba: p.rgba, skipTransparent: p.rgba });
+        if (!p.store.built && !buildView(v, { img: p.img, store: p.store, rgba: p.rgba, skipTransparent: p.rgba, deadline: mpDeadline })) mpReady = false;
       }
+      if (!mpReady) return false;   // the static picture holds until the strokes are ready
       // composite lights: merge every plane's auto-found sources, keep the brightest
       var allL = [];
       for (var li = 0; li < v.planes.length; li++) { var ls = v.planes[li].store.lights || []; for (var lj = 0; lj < ls.length; lj++) allL.push(ls[lj]); }
@@ -755,14 +842,15 @@
         if (st && (st.buf || st.rasterTex)) {
           if (st.buf) { gl.deleteBuffer(st.buf); st.buf = null; }
           if (st.rasterTex) { gl.deleteTexture(st.rasterTex); st.rasterTex = null; }
-          st.built = false; freed = true;
+          st.built = false; st.bld = null; freed = true;
         }
       }
     }
     // release the big 2D backing store too — the real memory hog (~20 MB/page)
     if (v.cv.width > 1) { v.cv.width = 1; v.cv.height = 1; v.w = 0; v.h = 0; v.panInit = false; v.panStart = null; v.page.classList.remove('pano-on'); freed = true; }
     if (!freed) return;
-    v.built = false; v.painted = false; v.nVerts = 0;
+    v.built = false; v.painted = false; v.nVerts = 0; v.bld = null;
+    if (v.planes) for (var dpi = 0; dpi < v.planes.length; dpi++) v.planes[dpi].store.bld = null;
   }
   var lastPos = null, MAXLIVE = 3;
   function frame(now) {
@@ -785,15 +873,20 @@
     }
     // only SIZE + paint when the scroll has calmed — during a fast fling the static
     // <picture> shows instead (no canvas allocations = no memory spike = no crash)
+    frameNo++;
+    var building = false;
+    for (i = 0; i < views.length; i++) { v = views[i]; if ((v.idx === lo || v.idx === hi) && !v.painted) { building = true; break; } }
+    var fast = moving || building || window.__panoTilt !== null || window.__pinchZ;   // full rate while driven OR while the live page is still building
     if (!moving) {
       for (i = 0; i < views.length; i++) {
         v = views[i]; var dist = Math.abs(v.idx - pos);
-        if (v.idx === lo || v.idx === hi) { if (!v.w) layout(v); renderView(v, t); }        // live page
+        if (v.idx === lo || v.idx === hi) { if (!v.w) layout(v); if (fast || (frameNo & 1)) renderView(v, t); }   // live page (30fps at rest)
         else if (dist <= 1.6) { if (!v.w) layout(v); if (!v.painted) renderView(v, t); }    // prime the neighbour
       }
     }
     raf = requestAnimationFrame(frame);
   }
+  var frameNo = 0;
   function start() { if (!raf && !ctxLost) raf = requestAnimationFrame(frame); }
   // if the GPU drops the context anyway (memory pressure on phones), stop and
   // let the finished paintings stand — never leave a blank or black page.
@@ -832,6 +925,6 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') start(); });
 
   var idle = window.requestIdleCallback || function (f) { setTimeout(f, 300); };
-  function init() { views.forEach(function (v) { if (v.img.complete) return; v.img.addEventListener('load', function () { v.built = false; v.painted = false; start(); }); }); start(); }
+  function init() { views.forEach(function (v) { if (v.img.complete) return; v.img.addEventListener('load', function () { v.built = false; v.painted = false; v.bld = null; start(); }); }); start(); }
   if (document.readyState === 'complete') idle(init); else window.addEventListener('load', function () { idle(init); });
 })();

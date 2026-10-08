@@ -1,0 +1,64 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>wipe pilot</title>
+<style>
+  html,body{margin:0;background:#150f32;color:#ffe9a8;font:13px/1.4 -apple-system,sans-serif;overflow:hidden}
+  #stage{position:relative;width:100vw;height:62vh;overflow:hidden}
+  #stage .tw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:31% 50%}
+  /* the arriving drawing: a disc of it opening from the star, outward */
+  /* the departing drawing: everything OUTSIDE that same disc */
+  .w{animation:wipe 4.8s linear infinite}
+  #a{animation-delay:0s}
+  #b{animation-delay:-2.4s}
+  @keyframes wipe{
+    0%   {-webkit-mask-image:radial-gradient(circle at 31% 30%, #000 0%, transparent 12%);}
+    12%  {-webkit-mask-image:radial-gradient(circle at 31% 30%, #000 38%, transparent 50%);}
+    25%  {-webkit-mask-image:radial-gradient(circle at 31% 30%, #000 88%, transparent 100%);}
+    26%  {-webkit-mask-image:radial-gradient(circle at 31% 30%, transparent 0%, #000 12%);}
+    38%  {-webkit-mask-image:radial-gradient(circle at 31% 30%, transparent 38%, #000 50%);}
+    50%  {-webkit-mask-image:radial-gradient(circle at 31% 30%, transparent 88%, #000 100%);}
+    51%,100%{-webkit-mask-image:radial-gradient(circle at 31% 30%, transparent 100%, #000 112%);}
+  }
+  /* ?tween=1 adds the in-between: each masked drawing rides a wrapper that turns about
+     the light, so the field keeps moving between the wipes. Measured against ?tween=0 to
+     see what the extra rotated+masked layer costs. */
+  .tw{position:absolute;inset:0}
+  body.tween .tw{animation:turn 4.8s linear infinite}
+  @keyframes turn{from{rotate:-.75deg}to{rotate:.75deg}}
+  #hud{padding:10px 14px;font-variant-numeric:tabular-nums}
+  b{color:#fff}
+</style>
+<div id="stage">
+  <div class="tw"><img id="a" class="w" src="/plates-vg/beginning-mid-b1.webp?p=48"></div>
+  <div class="tw" style="animation-delay:-2.4s"><img id="b" class="w" src="/plates-vg/beginning-mid-b5.webp?p=48"></div>
+</div>
+<div id="hud">
+  fps <b id="fps">–</b> · worst frame <b id="worst">–</b> ms<br>
+  mask-image animatable: <b id="anim">?</b> · tween: <b id="tw2">?</b><br>
+  mask-composite subtract: <b id="mc">?</b> · clip-path circle: <b id="cp">?</b>
+</div>
+<script>
+  if (/tween=1/.test(location.search)) document.body.classList.add('tween');
+  document.getElementById('mc').textContent  = CSS.supports('mask-composite', 'subtract') ? 'yes' : 'no';
+  document.getElementById('cp').textContent  = CSS.supports('clip-path', 'circle(30% at 31% 30%)') ? 'yes' : 'no';
+  // is the mask actually INTERPOLATING, or stepping between my keyframes? Sample the
+  // computed value twice a few ms apart: a value that is not one of the authored stops
+  // proves real interpolation.
+  var el = document.getElementById('a'), seen = {};
+  setInterval(function () { seen[getComputedStyle(el).webkitMaskImage] = 1; }, 37);
+  setTimeout(function () {
+    document.getElementById('anim').textContent = Object.keys(seen).length + ' distinct values in 3s';
+  }, 3000);
+  var _tw = document.getElementById('tw2'); if (_tw) _tw.textContent = /tween=1/.test(location.search) ? 'ON' : 'off';
+  var n = 0, worst = 0, t0 = performance.now(), last = t0;
+  requestAnimationFrame(function loop(t) {
+    var dt = t - last; last = t; n++;
+    if (dt > worst && n > 5) worst = dt;
+    if (t - t0 > 1000) {
+      document.getElementById('fps').textContent = (n * 1000 / (t - t0)).toFixed(1);
+      document.getElementById('worst').textContent = worst.toFixed(1);
+      n = 0; worst = 0; t0 = t;
+    }
+    requestAnimationFrame(loop);
+  });
+</script>

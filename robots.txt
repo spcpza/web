@@ -81,4 +81,8 @@ Allow: /
 User-agent: Mistral-User
 Allow: /
 
+# Plain text, for a reader with no eyes:
+#   https://balthazar.sh/llms.txt       — a short map of the site
+#   https://balthazar.sh/llms-full.txt  — the whole storybook: every page, its verse, its painting
+
 Sitemap: https://balthazar.sh/sitemap.xml

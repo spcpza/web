@@ -1,0 +1,237 @@
+/* self-hosted (Sep 25): CMU Serif / Sans / Typewriter (Computer Modern Unicode, SIL OFL) — was fonts.cdnfonts.com */
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Serif'), url('/fonts/cmu-serif-ec6f0d3603.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Serif'), url('/fonts/cmu-serif-1409a97034.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: normal;
+    font-weight: 700;
+    src: local('CMU Serif'), url('/fonts/cmu-serif-a17a8127b4.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Serif'), url('/fonts/cmu-serif-d6f3b7007b.woff') format('woff');
+}
+
+
+
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-sans-serif-3dabea8207.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-sans-serif-f2b681c38e.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: normal;
+    font-weight: 700;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-sans-serif-d14c44ee58.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-sans-serif-c054e9183c.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif Demi Condensed';
+    font-style: normal;
+    font-weight: 600;
+    src: local('CMU Sans Serif Demi Condensed'), url('/fonts/cmu-sans-serif-7065a0ca4f.woff') format('woff');
+}
+
+
+
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Typewriter Text'), url('/fonts/cmu-typewriter-text-e79e90297b.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text';
+    font-style: normal;
+    font-weight: 200;
+    src: local('CMU Typewriter Text'), url('/fonts/cmu-typewriter-text-11c353b309.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text';
+    font-style: italic;
+    font-weight: 200;
+    src: local('CMU Typewriter Text'), url('/fonts/cmu-typewriter-text-db5adabaeb.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Typewriter Text'), url('/fonts/cmu-typewriter-text-f3dd0a4009.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text';
+    font-style: normal;
+    font-weight: 700;
+    src: local('CMU Typewriter Text'), url('/fonts/cmu-typewriter-text-c0358fd664.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Typewriter Text'), url('/fonts/cmu-typewriter-text-ddcbcb47e1.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Concrete';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Concrete'), url('/fonts/cmu-typewriter-text-5104f0f934.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-typewriter-text-06b8d91482.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif Upright Italic';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Serif Upright Italic'), url('/fonts/cmu-typewriter-text-62a2cb2398.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text Variable Width';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Typewriter Text Variable Width'), url('/fonts/cmu-typewriter-text-16afa9e856.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Serif'), url('/fonts/cmu-typewriter-text-b129bcad0b.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Bright';
+    font-style: normal;
+    font-weight: 500;
+    src: local('CMU Bright'), url('/fonts/cmu-typewriter-text-49eefc74c2.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Classical Serif';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Classical Serif'), url('/fonts/cmu-typewriter-text-0c5d1d6142.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Concrete';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Concrete'), url('/fonts/cmu-typewriter-text-4eff8288a2.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-typewriter-text-fe7ff21232.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Typewriter Text Variable Width';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Typewriter Text Variable Width'), url('/fonts/cmu-typewriter-text-355bdde56e.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Serif'), url('/fonts/cmu-typewriter-text-9af6253f99.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif Extra';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Serif Extra'), url('/fonts/cmu-typewriter-text-ad793d3d5f.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Bright';
+    font-style: italic;
+    font-weight: 500;
+    src: local('CMU Bright'), url('/fonts/cmu-typewriter-text-f6d476a7c5.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif Demi Condensed';
+    font-style: normal;
+    font-weight: 600;
+    src: local('CMU Sans Serif Demi Condensed'), url('/fonts/cmu-typewriter-text-49296751c8.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Bright';
+    font-style: normal;
+    font-weight: 600;
+    src: local('CMU Bright'), url('/fonts/cmu-typewriter-text-4cd7edad14.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Bright';
+    font-style: italic;
+    font-weight: 600;
+    src: local('CMU Bright'), url('/fonts/cmu-typewriter-text-50ae36b13f.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Concrete';
+    font-style: normal;
+    font-weight: 700;
+    src: local('CMU Concrete'), url('/fonts/cmu-typewriter-text-b7a8494fbc.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: normal;
+    font-weight: 700;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-typewriter-text-d9a732853b.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: normal;
+    font-weight: 700;
+    src: local('CMU Serif'), url('/fonts/cmu-typewriter-text-f456da49a3.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Concrete';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Concrete'), url('/fonts/cmu-typewriter-text-5c5393662b.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Sans Serif';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Sans Serif'), url('/fonts/cmu-typewriter-text-4d9f3fbeee.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Serif'), url('/fonts/cmu-typewriter-text-f015f0a88f.woff') format('woff');
+}
+@font-face{font-display:swap;
+    font-family: 'CMU Serif Extra';
+    font-style: italic;
+    font-weight: 700;
+    src: local('CMU Serif Extra'), url('/fonts/cmu-typewriter-text-699f4f4d22.woff') format('woff');
+}
+
+
