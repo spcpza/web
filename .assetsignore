@@ -113,3 +113,25 @@ perf-probe.js
 # the old 1.2 MB social image (og.jpg replaced it) and its source
 og.png
 og.svg
+
+# ── The cast: ship only what the book draws (Oct 8, 2026) ───────────────
+# cast-library/ holds EVERY drawing of the kid, used or not, for future edits. Never deployed.
+cast-library
+cast-library/**
+# Sources and generator by-products that stay in cast/ because gen/ scripts read or write them
+# there, but that no page loads: the drawn sheets, the cleaner's .orig baselines, the painted
+# sheet and its parts, PNG twins of the webps, and props no page holds any more.
+cast/sheets
+cast/sheets/**
+cast/.orig
+cast/.orig/**
+cast/*.png
+cast/avatar-source.jpg
+cast/kid-geometry.json
+cast/kid-parts.json
+cast/part-*.webp
+cast/apple-held.webp
+cast/father-arm.webp
+# if gen/crayon-to-brush.py is ever re-run it writes these back into cast/; they are library cells
+cast/kid-cell-*.webp
+cast/kid-detail-*.webp

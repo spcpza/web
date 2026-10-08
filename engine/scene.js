@@ -2702,7 +2702,7 @@
   //
   //  Two separate paw-shapes, and then one arm-plus-hand, both still read as EXTRA
   //  limbs — because his own drawn "carried" pose already has both arms spread
-  //  wide (see cast/kid-carried.webp: nothing gripped, nothing held, just open
+  //  wide (see cast-library/kid-carried.webp: nothing gripped, nothing held, just open
   //  arms either side of his hood). Adding another limb next to an open arm never
   //  reads as "holding," it reads as a second arm. His art was never the problem.
   //

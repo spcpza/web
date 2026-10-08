@@ -26,6 +26,15 @@ earlier version listed what to KEEP instead — blue cloth, dark hair, grey skin
 and silently deleted every prop he drew, leaving holes in his lap where his hands
 were still closed around them.
 
+## What ships, and the library (Oct 8, 2026)
+
+Only the cells the book draws live here as `kid-*.webp` (the 28 in `KID_CORE`,
+`engine/character.js`). Every other drawing of him, plus a copy of the used ones, is in
+`../cast-library/`, which is never deployed. Its README lists every cell and the pages
+that use it. The sheets, `.orig/` baselines, PNG twins, `part-*`, `kid-*.json` and unused
+props stay in this folder for the gen/ scripts, but `.assetsignore` keeps them off the site.
+A newly cut pose must be added to `KID_CORE`, or `kidImage()` will not load it.
+
 ## Sheets
 
 | sheet | poses |
