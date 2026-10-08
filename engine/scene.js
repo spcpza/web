@@ -4475,6 +4475,21 @@
       onPageArt(page, function () { try { F.kidWarmAll(); } catch (e) { } });
     }
   }
+  // run `f` once this page's own planes (not its boil drawings) have landed — at once if it has none
+  // or they are already in (a cached plane is complete the moment it is built). Backstop: 4 s.
+  var _settleGen = 0;
+  function afterPlanes(page, f) {
+    var planes = page && page.__dio, q = (page && page.__boilQ) || [];
+    var waits = (planes || []).filter(function (p) { return q.indexOf(p.img) === -1 && !p.img.complete; });
+    var left = waits.length + 1, fired = false;
+    function one() { if (--left > 0 || fired) return; fired = true; f(); }
+    waits.forEach(function (p) {
+      p.img.addEventListener('load', one, { once: true });
+      p.img.addEventListener('error', one, { once: true });
+    });
+    one();
+    if (!fired) setTimeout(function () { if (!fired) { left = 1; one(); } }, 4000);   // a stalled plane must never strand the look-ahead
+  }
   function settle() {
     var idx = currentIdx();
     warmCast(idx);   // his drawings for the next pages, before they are needed (deferred on the cover — see warmCast)
@@ -4584,7 +4599,24 @@
     });
     ensure(idx);
     loadBoil(pages[idx]);   // the page being read gets its boil drawings once its planes are in
-    if (!COLD) for (var kk in keep) if (+kk !== idx) ensure(+kk);
+    // ⚠ THE PAGE BEING READ FIRST, THEN THE LOOK-AHEAD (Oct 9). These builds used to start in the
+    // same task as the page you swiped to, so on 4G its planes shared the line with the next pages'
+    // (`beginning`'s 0.6 MB behind `flame` and `made`'s 2.9 MB), and even when its planes were
+    // already cached, their load waited out the other two pages' sprite builds (one ~3 s task on
+    // an emulated iPhone). The look-ahead now waits for this page's own planes (never its boil) and
+    // one idle moment, so the page you are on paints first. The budget is untouched: `keep` and the
+    // free-first order above are exactly as before, and a later settle cancels this one's build
+    // (it has its own keep — never build a window another settle has already re-budgeted).
+    if (!COLD) {
+      var ahead = [], gen = ++_settleGen;
+      for (var kk in keep) if (+kk !== idx) ahead.push(+kk);
+      if (ahead.length) afterPlanes(pages[idx], function () {
+        _idle(function () {
+          if (gen !== _settleGen) return;
+          for (var a = 0; a < ahead.length; a++) ensure(ahead[a]);
+        }, 1500);
+      });
+    }
     // the next page the budget left out: its planes into the cache once this page's art is in (see prefetchPlanes)
     var nx = idx + dir;
     if (!COLD && nx >= 0 && nx < pages.length && !keep[nx] && DIO[nx] && !pages[nx].__pf) {
