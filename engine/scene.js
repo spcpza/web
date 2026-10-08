@@ -4439,7 +4439,9 @@
      if the budget is not already building it. The swipe then builds from cache. Exactly the URLs
      buildDiorama asks for (same skip list, same .jpg/.webp rule, same PV), so it can never ask
      for a file that is not there, and no boil drawing is touched — those still wait for the
-     reader (see loadBoil). Nothing is held: the Image is dropped once its bytes are in. */
+     reader (see loadBoil). Nothing is held: the Image is dropped once its bytes are in.
+     settle() also uses it for the neighbours it DOES keep, so their files are on the way while
+     their build waits for the current page's frame (see "THE PAGE BEING READ FIRST"). */
   function prefetchPlanes(i) {
     var p = pages[i], base = DIO[i];
     if (!p || !base || built[i] || p.__pf) return;
@@ -4604,17 +4606,27 @@
     // (`beginning`'s 0.6 MB behind `flame` and `made`'s 2.9 MB), and even when its planes were
     // already cached, their load waited out the other two pages' sprite builds (one ~3 s task on
     // an emulated iPhone). The look-ahead now waits for this page's own planes (never its boil) and
-    // one idle moment, so the page you are on paints first. The budget is untouched: `keep` and the
-    // free-first order above are exactly as before, and a later settle cancels this one's build
-    // (it has its own keep — never build a window another settle has already re-budgeted).
+    // the frame after them, so the page you are on paints first. Their plane FILES are fetched at
+    // that same moment (prefetchPlanes, low priority), so the look-ahead's bytes are not delayed —
+    // only its build is (measured: delaying the bytes too made a 3 s skim reach `flame` ~1 s before
+    // its planes). The budget is untouched: `keep` and the free-first order above are exactly as
+    // before, and a later settle cancels this one's build (it has its own keep — never build a
+    // window another settle has already re-budgeted).
     if (!COLD) {
       var ahead = [], gen = ++_settleGen;
       for (var kk in keep) if (+kk !== idx) ahead.push(+kk);
       if (ahead.length) afterPlanes(pages[idx], function () {
-        _idle(function () {
+        // their BYTES go now (low priority, nothing decoded); only the build — the sprites, the
+        // decoding, the main-thread work — waits for this page's frame
+        for (var a0 = 0; a0 < ahead.length; a0++) prefetchPlanes(ahead[a0]);
+        var went = false;
+        function go() {
+          if (went) return; went = true;
           if (gen !== _settleGen) return;
           for (var a = 0; a < ahead.length; a++) ensure(ahead[a]);
-        }, 1500);
+        }
+        requestAnimationFrame(function () { setTimeout(go, 0); });   // right after this page's next frame
+        setTimeout(go, 250);                                           // (rAF sleeps in a hidden tab)
       });
     }
     // the next page the budget left out: its planes into the cache once this page's art is in (see prefetchPlanes)
