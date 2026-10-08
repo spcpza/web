@@ -3100,19 +3100,26 @@
       var sheet = document.createElement('canvas');
       var SS = 2; sheet.width = stride * SHEET_K * SS; sheet.height = box.h * SS;
       var g = sheet.getContext('2d'); g.scale(SS, SS); g.imageSmoothingEnabled = true; try { g.imageSmoothingQuality = 'high'; } catch (e) { }   // crisp edges — see frameCanvas
+      // ⭐ EIGHT DISTINCT POSES, NOT EIGHTEEN DRAWS (Oct 8 — "lighten page 23"). The idle
+      // loop is rest · blink · wave, and eleven of the eighteen steps are the SAME resting
+      // pose. Drawing it eleven times held the main thread and allocated eleven canvases
+      // for identical pixels. Draw each unique pose once, then blit into every slot that
+      // needs it: the sheet, the CSS steps(18) timing, and every pixel stay identical.
+      var _uniq = {};                         // key → canvas of one pose
       var drawFrame = function (i) {
-        // each frame is rendered on its OWN canvas, then blitted into its cell — which
-        // guarantees a frame can never bleed into its neighbour.
-        var fc = frameCanvas(box.w, box.h, function (fg) {
-          drawActorFrame(fg, a, box, false, i === 5 ? 1 : 0, waveTip(a, box, i));
-          keyLight(fg, a, box, idx);          // the page's own light, on the figure standing in it
-        });
-        // ONE seed for every frame of the loop. A per-frame seed re-randomises the
-        // grain 18 times a cycle and the texture crawls — paint that boils. The figure
-        // moves; the paint it is made of should stay where it was laid.
-        // (no post-process: the figure is PAINTED in character.js now — see 'THE CLOTH, PAINTED')
+        var lid = i === 5 ? 1 : 0;
+        var tip = waveTip(a, box, i);
+        var key = tip ? ('w' + i) : ('r' + lid);   // rest-open, rest-blink, or one of the 6 wave tips
+        var fc = _uniq[key];
+        if (!fc) {
+          fc = frameCanvas(box.w, box.h, function (fg) {
+            drawActorFrame(fg, a, box, false, lid, tip);
+            keyLight(fg, a, box, idx);
+          });
+          _uniq[key] = fc;
+        }
         g.drawImage(fc, i * stride, 0, box.w, box.h);
-        fc.width = fc.height = 0;             // copied — give its memory back now, not at the next GC (iOS)
+        // free the unique canvases only after the last slot is filled (see slice end)
       };
       var sh = document.createElement('div'); sh.className = 'sc-sheet';
       // ⭐ IN SLICES (Oct 8, "lighten page 23"). Eighteen frames of a big figure drawn in one go held the main thread
@@ -3125,7 +3132,11 @@
         var t0 = performance.now();
         do { drawFrame(fi++); } while (fi < SHEET_K && performance.now() - t0 < 12);
         if (fi < SHEET_K) setTimeout(slice, 0);
-        else sheetBg(sheet, sh, function (u) { sh.style.backgroundImage = 'url(' + u + ')'; });
+        else {
+          for (var uk in _uniq) { if (_uniq[uk]) { _uniq[uk].width = _uniq[uk].height = 0; } }
+          _uniq = {};
+          sheetBg(sheet, sh, function (u) { sh.style.backgroundImage = 'url(' + u + ')'; });
+        }
       })();
       var strideCss = stride * fit.s;
       sh.style.setProperty('--fw', strideCss + 'px');

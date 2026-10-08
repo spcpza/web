@@ -1433,12 +1433,13 @@
       //  thread stands on its own; the moving line fought the filtered painting)
       ctx.globalCompositeOperation = 'source-over';
     }
-    // ⭐ OFF THE COVER AND THE END PAGE, STOP (Oct 8). Only those two pages carry a canvas.live; on
-    // the other 31 this loop did nothing but read scrollLeft/clientWidth every frame, which forces a
-    // layout while a page is being built (measured ~1 s of main thread per 15 s on hands at 4x CPU).
-    // Every canvas is already cleared above, so stopping changes no pixel. The twinkle runs on the
-    // document clock (t = now), so when the reader scrolls back it resumes on exactly the frame it
-    // would have shown: any scroll (swipe, arrow key, hash jump, keepPage) restarts it below.
+    // ⭐ OFF THE END PAGE, STOP (Oct 8). Only the back-cover page still carries a canvas.live
+    // (the front cover's twinkle overlay was removed earlier). On every other page this loop did
+    // nothing but read scrollLeft/clientWidth every frame, which forces a layout while a page is
+    // being built (measured ~1 s of main thread per 15 s on hands at 4× CPU). Every canvas is
+    // already cleared above, so stopping changes no pixel. The twinkle runs on the document clock
+    // (t = now), so when the reader scrolls back it resumes on exactly the frame it would have
+    // shown: any scroll (swipe, arrow key, hash jump, keepPage) restarts it below.
     if (live) raf = requestAnimationFrame(frame);
   }
 
@@ -1472,7 +1473,7 @@
 </script>
 
 <script src="/engine/character.min.js?v=295363a8ba"></script>
-<script src="/engine/scene.min.js?v=7a4bb7c41b"></script>
+<script src="/engine/scene.min.js?v=33ca4a85d9"></script>
 <!-- LIVING PAINT SHADER ENGINE — real GPU oil-stroke renderer, scoped to the front
      cover ([data-paintlive]) as an A/B pilot vs the flat last page. -->
 <!-- paint-live.js NOT loaded: it self-guards on `.page[data-paintlive]`, and no page

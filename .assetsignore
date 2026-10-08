@@ -135,3 +135,28 @@ cast/father-arm.webp
 # if gen/crayon-to-brush.py is ever re-run it writes these back into cast/; they are library cells
 cast/kid-cell-*.webp
 cast/kid-detail-*.webp
+
+# ── hands: files on disk that no page requests (Oct 8, 2026) ─────────────
+# BOIL_PLANES[23] is only cloud+grass. bg/far/mid boil twins, the unused fg plane,
+# and the portrait plate are never fetched on phone or desktop (verified by network
+# log). Keep them in the repo for future edits; leave them off the deploy.
+plates-vg/hands-fg.webp
+plates-vg/hands-bg-b1.jpg
+plates-vg/hands-bg-b2.jpg
+plates-vg/hands-bg-b3.jpg
+plates-vg/hands-bg-b4.jpg
+plates-vg/hands-bg-b5.jpg
+plates-vg/hands-bg-b6.jpg
+plates-vg/hands-far-b1.webp
+plates-vg/hands-far-b2.webp
+plates-vg/hands-far-b3.webp
+plates-vg/hands-far-b4.webp
+plates-vg/hands-far-b5.webp
+plates-vg/hands-far-b6.webp
+plates-vg/hands-mid-b1.webp
+plates-vg/hands-mid-b2.webp
+plates-vg/hands-mid-b3.webp
+plates-vg/hands-mid-b4.webp
+plates-vg/hands-mid-b5.webp
+plates-vg/hands-mid-b6.webp
+plates-vg/hands-p.jpg
