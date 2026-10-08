@@ -40,10 +40,19 @@
 /engine/*.min.js
   Cache-Control: public, max-age=31536000, immutable
 
-# ⚠ NOT the plates. Their <img> tags now carry ?p= from version.json (gen/stamp-index.py),
-# which is correct — but the depth planes, the boil frames and the portrait presses are all
-# addressed off the same version at runtime, and I would rather prove that stamping across
-# several deploys before anything about the artwork becomes hard to invalidate.
+# ⭐ THE PLATES, NOW THAT THEIR VERSION CANNOT BE FORGOTTEN (Oct 8, 2026).
+# Every painting, depth plane and boil drawing was served `max-age=0, must-revalidate`, so a
+# reader re-asked the server about ~350 images on every visit, and a phone that evicted them
+# paid for them again. The reason they were held back (above, "prove that stamping") is gone:
+# `python3 gen/stamp-index.py` now stamps ONE number from version.json into all three places
+# it lives (index.html's <img> tags, 404.html, and `var PV` in engine/scene.js, which every
+# runtime plane/boil URL is built from), re-minifies the engine, and BUMPS that number by
+# itself whenever the bytes under plates-vg/ have changed since the last stamp. A rebuilt
+# plate therefore always arrives under a new ?p=, which is what makes `immutable` honest.
+# Thirty days, like the cast: a _headers rule cannot see the query string, so an asset ever
+# fetched without ?p= (only the internal *-study / preview pages do that) heals in a month.
+/plates-vg/*
+  Cache-Control: public, max-age=2592000, immutable
 
 # self-hosted fonts (Sep 25): content never changes under a given name — the files are named by the
 # hash of their source URL — so they may be cached for a year.
