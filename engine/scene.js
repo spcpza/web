@@ -759,7 +759,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=466';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=467';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -2552,6 +2552,27 @@
     draw(g);
     return c;
   }
+  // ⭐ A SHEET IS A BLOB, NOT A DATA URL (Oct 8 — Fred: "lighten page 23"). `hands` builds one waving strip
+  // 10175×592 px; toDataURL encoded it as PNG ON THE MAIN THREAD the moment the page opened and parked a
+  // 5.6 MB base64 string in the element's style (it froze DevTools outright). toBlob encodes off the main
+  // thread and the style holds a short blob: URL — the pixels are identical. The strip canvas is zeroed as
+  // soon as it is encoded (iOS keeps a canvas's memory until GC), and the URL is revoked when the page's
+  // layer is freed (freeSheets). A sheet whose layer died before its blob arrived revokes itself.
+  function sheetBg(canvas, el, apply) {
+    var done = function (url) { apply(url); canvas.width = canvas.height = 0; };
+    if (!canvas.toBlob || !window.URL || !URL.createObjectURL) { done(canvas.toDataURL()); return; }
+    canvas.toBlob(function (b) {
+      if (!b) { done(canvas.toDataURL()); return; }
+      var u = URL.createObjectURL(b);
+      if (el.__dead) { URL.revokeObjectURL(u); canvas.width = canvas.height = 0; return; }
+      el.__blobUrl = u; done(u);
+    }, 'image/png');
+  }
+  function freeSheets(layer) {
+    if (!layer) return;
+    var ss = layer.querySelectorAll('.sc-sheet');
+    for (var i = 0; i < ss.length; i++) { ss[i].__dead = true; if (ss[i].__blobUrl) { URL.revokeObjectURL(ss[i].__blobUrl); ss[i].__blobUrl = null; } }
+  }
   function place(el, fit, px, py, pw, ph, anchorY) {
     el.style.left = (fit.x(px) - pw * fit.s / 2) + 'px';
     el.style.top = (fit.y(py) - ph * fit.s * (anchorY == null ? 1 : anchorY)) + 'px';
@@ -3079,7 +3100,7 @@
       var sheet = document.createElement('canvas');
       var SS = 2; sheet.width = stride * SHEET_K * SS; sheet.height = box.h * SS;
       var g = sheet.getContext('2d'); g.scale(SS, SS); g.imageSmoothingEnabled = true; try { g.imageSmoothingQuality = 'high'; } catch (e) { }   // crisp edges — see frameCanvas
-      for (var i = 0; i < SHEET_K; i++) {
+      var drawFrame = function (i) {
         // each frame is rendered on its OWN canvas, then blitted into its cell — which
         // guarantees a frame can never bleed into its neighbour.
         var fc = frameCanvas(box.w, box.h, function (fg) {
@@ -3091,9 +3112,21 @@
         // moves; the paint it is made of should stay where it was laid.
         // (no post-process: the figure is PAINTED in character.js now — see 'THE CLOTH, PAINTED')
         g.drawImage(fc, i * stride, 0, box.w, box.h);
-      }
+        fc.width = fc.height = 0;             // copied — give its memory back now, not at the next GC (iOS)
+      };
       var sh = document.createElement('div'); sh.className = 'sc-sheet';
-      sh.style.backgroundImage = 'url(' + sheet.toDataURL() + ')';
+      // ⭐ IN SLICES (Oct 8, "lighten page 23"). Eighteen frames of a big figure drawn in one go held the main thread
+      // ~1.7 s on a slow phone (4× CPU) the moment `hands` opened — the swipe itself froze. Now a few frames per
+      // ~12 ms slice, yielding between, so the painting arrives at once and the figure fills in a beat later.
+      // Same frames, same pixels. A layer freed mid-build (sh.__dead) stops and gives the canvas back.
+      var fi = 0;
+      (function slice() {
+        if (sh.__dead) { sheet.width = sheet.height = 0; return; }
+        var t0 = performance.now();
+        do { drawFrame(fi++); } while (fi < SHEET_K && performance.now() - t0 < 12);
+        if (fi < SHEET_K) setTimeout(slice, 0);
+        else sheetBg(sheet, sh, function (u) { sh.style.backgroundImage = 'url(' + u + ')'; });
+      })();
       var strideCss = stride * fit.s;
       sh.style.setProperty('--fw', strideCss + 'px');
       sh.style.backgroundSize = (strideCss * SHEET_K) + 'px 100%';
@@ -4504,7 +4537,7 @@
     // steady state, and costs nothing: the outgoing page is already off-screen.
     pages.forEach(function (p, i) {
       if (built[i] && !keep[i]) {   // FREE every page the budget did not keep
-        if (p.__scLayer) { p.__scLayer.remove(); p.__scLayer = null; }
+        if (p.__scLayer) { freeSheets(p.__scLayer); p.__scLayer.remove(); p.__scLayer = null; }
         p.__seated = false;
         if (p.__dio) {
           var dd = p.querySelectorAll('.sc-dio');
@@ -4565,7 +4598,7 @@
     clearTimeout(rT);
     rT = setTimeout(function () {
       pages.forEach(function (p, i) {
-        if (p.__scLayer) { p.__scLayer.remove(); p.__scLayer = null; }
+        if (p.__scLayer) { freeSheets(p.__scLayer); p.__scLayer.remove(); p.__scLayer = null; }
         p.__seated = false; p.__boilQ = null; p.__boilGo = false; p.__artDone = false;
         if (p.__dio) { var dd = p.querySelectorAll('.sc-dio'); for (var k = 0; k < dd.length; k++) dd[k].remove(); p.__dio = null;
           var pic = p.querySelector('picture'); if (pic) pic.style.opacity = DIO[i] ? '0' : ''; }

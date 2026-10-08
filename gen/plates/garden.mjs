@@ -380,7 +380,91 @@ export function paint(E, opts = {}) {
   // and palm 3.8 framing the edges (cut by the frame), pomegranate 2.4 far back. fruitTree multiplies h by 1.12.
   const KIDU = y => 100 * (y - 302) / 168, TREE = (units, y) => units * KIDU(y) / 1.12;
   fruitTree(-14, 508, TREE(3.2, 508), 130, ['#7a4ab0', '#9a5ac8', '#b87ae0'], 'apple');        // BRIGHT violet, frame left — an apple
-  fruitTree(384, 478, TREE(2.4, 478), 110, ['#c83a82', '#e05a9a', '#f07ab0'], 'fig', { trunkK: 1.75 });   // BRIGHT pink — THE fig he hides UNDER (Gen 3:7-8): crown lifted on its trunk so it arches over his head instead of a haystack behind him
+  { const _o = [], _c = { n: 0 };   // the Oct 6 fig, painted into a THROWAWAY so the shared rng stream (and every mark after it) is unchanged — the fig itself is figTree() below
+    E.paintTree(_o, _c, rng, 384, 478, TREE(2.4, 478) * 1.12, { species: 'fig', lightFn: light, crownCols: E.crownRamp(['#c83a82', '#e05a9a', '#f07ab0']), blossom: 3, fruitK: 1, shadowDir: -1, trunkK: 1.75 }); }
+  /* ⭐ THE FIG HE HIDES UNDER (Oct 8 — Fred: "repaint the fig"). The lobed-crown painter stacked it into three pink
+     tiers with a black arc under each and figs sprinkled like chips — a cake, not a tree, and on the phone it is the
+     biggest thing on the screen. A fig is the tree whose LEAVES the story names: "they sewed fig leaves together"
+     (Gen 3:7). So it is drawn as what a child knows a fig by — low and wide on several smooth pale stems, an open
+     umbrella of big HAND-SHAPED leaves (each leaf five brush marks fanned from its stalk, never an outline — the
+     "emoji leaf" was an outline), sky showing between them, lit from above and from the fire on its left, deep
+     underneath where he hides, and a few real figs hanging under the leaves. Its own rng: nothing else moves. */
+  const figTree = () => {
+    const fr = E.mulberry32(3907);
+    const C0 = { x: 400, y: 304, rx: 108, ry: 70 };                      // crown: top ≈234, belly ≈374 — arches over his head (he kneels at 428, crown of his hood ≈395)
+    const CROWN = ['#3a1230', '#5a1a48', '#86275e', '#b23676', '#d8508e', '#ee72a8', '#ffa8cc'];
+    const edge = a => 1 + 0.13 * Math.sin(a * 3 + 0.7) + 0.08 * Math.sin(a * 5 + 2.1) + 0.05 * Math.sin(a * 8 + 4.0);   // a bumpy silhouette, never an ellipse
+    const upAt = y => Math.max(0, Math.min(1, 0.5 - (y - C0.y) / (C0.ry * 2)));
+    const warm = (c, x, y) => E.mix(c, '#ffab4a', light(x, y) * 0.6);   // the fire's side, the jewelBush rule
+    // 1 · the STEMS — a short trunk that splits LOW into four smooth pale stems (fig bark is grey and smooth),
+    //     each curving out to hold the umbrella; bark is brush marks along the limb, never a flat band
+    const bark = (pts, w0, w1) => {                                   // one continuous limb: marks run ALONG it, dark body, lit toward the fire, tapered
+      const n = pts.length - 1, at = t => { const f = t * n, i = Math.min(n - 1, f | 0), u = f - i; const [ax, ay] = pts[i], [bx, by] = pts[i + 1]; return [ax + (bx - ax) * u, ay + (by - ay) * u, Math.atan2(by - ay, bx - ax)]; };
+      let len = 0; for (let i = 0; i < n; i++) len += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+      let cA = 0, cS = 0, cW = 0;
+      E.strokes(out, counter, {
+        rng: fr, n: Math.round(len * (w0 + w1) * 0.32),
+        sample: r => { const t = r() * 0.96; const [x, y, a] = at(t); cW = w0 + (w1 - w0) * t; cS = r() * 2 - 1; cA = a; return [x - Math.sin(a) * cS * cW * 0.5, y + Math.cos(a) * cS * cW * 0.5]; },
+        dir: () => cA, aJ: 0.05,
+        col: (x, y, r) => { const lit = Math.max(0, Math.cos(cA) > 0 ? -cS : cS);   // the side facing the fire (left)
+                            let c = E.mix(E.mix('#2a2234', '#463c52', r() * 0.6), E.mix('#7a7290', '#a8a0b6', r() * 0.5), Math.pow(lit, 1.4) * 0.9);
+                            return E.jig(E.mix(c, '#f0a868', lit * light(x, y) * 0.7), r, 5); },
+        len: 9, lw: () => Math.max(1.4, cW * 0.36), lenJ: 0.3, wJ: 0.2, steps: 2, follow: 1, impasto: 0.45, relief: 0.35, op: 0.95, flow: 0,
+      });
+    };
+    const bez = (p0, c1, p2, n = 10) => { const pts = []; for (let k = 0; k <= n; k++) { const t = k / n, u = 1 - t; pts.push([u * u * p0[0] + 2 * u * t * c1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * c1[1] + t * t * p2[1]]); } return pts; };
+    bark(bez([384, 482], [383, 462], [386, 444], 5), 20, 15);
+    for (const [sx, ex, ey, kx, ky] of [[379, 326, 350, 340, 432], [384, 368, 318, 362, 400], [390, 420, 322, 412, 396], [394, 466, 348, 450, 424]]) bark(bez([sx, 446], [kx, ky], [ex, ey]), 13, 5.5);
+    // 2 · the DEEP UNDERSIDE — the hollow he hides in: dark paint low in the crown only, so the top stays open to the sky
+    E.strokes(out, counter, {
+      rng: fr, n: 700,
+      sample: r => { const a = Math.PI * (0.05 + r() * 0.9), d = Math.pow(r(), 0.6) * 0.86; const x = C0.x + Math.cos(a) * C0.rx * d * edge(a), y = C0.y - C0.ry * 0.15 + Math.sin(a) * C0.ry * d * edge(a); return [x, y]; },
+      dir: (x, y) => Math.atan2(y - C0.y, x - C0.x) + Math.PI / 2 + (fr() - 0.5) * 1.2,
+      col: (x, y, r) => E.jig(warm(E.ramp(CROWN, 0.04 + upAt(y) * 0.3 + r() * 0.12), x, y), r, 6),
+      len: 7, lw: 3.2, steps: 2, lenJ: 0.5, impasto: 0.4, relief: 0.3, op: 0.9, flow: 0,
+    });
+    // 2b · the BODY — a mid-tone mass of leaf so the crown is a tree, not leaves on sticks; the rim stays open
+    E.strokes(out, counter, {
+      rng: fr, n: 1100,
+      sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.7) * 0.8; return [C0.x + Math.cos(a) * C0.rx * d * edge(a), C0.y + Math.sin(a) * C0.ry * d * edge(a)]; },
+      dir: (x, y) => Math.atan2(y - C0.y, x - C0.x) + (fr() - 0.5) * 1.4,
+      col: (x, y, r) => E.jig(warm(E.ramp(CROWN, 0.14 + upAt(y) * 0.42 + (r() - 0.5) * 0.16), x, y), r, 7),
+      len: 9, lw: 4.2, steps: 2, lenJ: 0.4, impasto: 0.5, relief: 0.4, op: 0.92, flow: 0,
+    });
+    // 3 · the LEAVES — dense at the rim (the silhouette is leaves against the sky), sparser inside; dark ones first
+    const leaves = [];
+    for (let i = 0; i < 130; i++) {
+      const a = fr() * Math.PI * 2, d = Math.pow(fr(), 0.5) * 0.96;
+      const x = C0.x + Math.cos(a) * C0.rx * d * edge(a), y = C0.y + Math.sin(a) * C0.ry * d * edge(a);
+      const up = upAt(y), out_ = Math.atan2(Math.sin(a) * C0.ry, Math.cos(a) * C0.rx);
+      const ang = out_ * 0.7 + (Math.sin(a) > 0 ? Math.PI / 2 : -Math.PI / 2) * 0.3 + (fr() - 0.5) * 0.6;   // outward, the low ones hanging
+      const L = (19 + fr() * 8) * (0.85 + d * 0.25);   // a fig leaf is BIG — about a fifth of the child
+      const t = 0.18 + up * 0.62 + (fr() - 0.5) * 0.2;
+      leaves.push({ x, y, ang, L, t });
+    }
+    leaves.sort((p, q) => p.t - q.t);
+    const LOBES = [[-1.25, 0.58], [-0.62, 0.86], [0, 1], [0.62, 0.86], [1.25, 0.58]];   // a fig leaf is a hand: five lobes, the middle longest
+    let cur = null;
+    E.strokes(out, counter, {
+      rng: fr, n: leaves.length * LOBES.length,
+      sample: r => { const i = (cur ? cur.i + 1 : 0); const lf = leaves[(i / 5) | 0], lb = LOBES[i % 5]; if (!lf) return null;
+                     cur = { i, a: lf.ang + lb[0], l: lf.L * lb[1], w: lf.L * 0.27 * (0.75 + lb[1] * 0.25), t: lf.t };
+                     return [lf.x + Math.cos(cur.a) * 1.2, lf.y + Math.sin(cur.a) * 1.2]; },
+      dir: () => cur.a, aJ: 0.06,
+      col: (x, y, r) => { let c = E.ramp(CROWN, cur.t + (r() - 0.5) * 0.08); c = E.mix(c, '#fff0d0', Math.pow(Math.max(0, cur.t - 0.6), 2) * 0.9); return E.jig(warm(c, x, y), r, 7); },
+      len: () => cur.l, lw: () => cur.w, lenJ: 0.08, wJ: 0.1, steps: 2, follow: 1, impasto: 0.55, relief: 0.5, op: 0.95, flow: 0,
+    });
+    // 4 · the FIGS — a few, hanging in the shade under the leaves, each a small pear with a light on its shoulder
+    const figs = [[338, 356], [346, 364], [331, 366], [452, 352], [462, 360], [444, 363], [398, 372], [408, 368]];
+    for (const [fx, fy] of figs) {
+      const hy = fy + 7;                                               // hanging just below the leaves, on a short stalk
+      out.push(E.ribbon([[fx, hy - 6], [fx, hy - 2.5], [fx + 0.3, hy + 2.2], [fx + 0.4, hy + 4.4]], 6.2, E.mix(E.mix('#3e1450', '#5a2470', fr()), '#ffab4a', light(fx, hy) * 0.25), [0.3, 0.7, 1, 0.75]));
+      out.push(E.ribbon([[fx - 1.4, hy - 0.6], [fx - 1.2, hy + 1.4]], 1.3, '#c890d0', [0.7, 0.4]));
+      out.push(E.ribbon([[fx, hy - 9], [fx, hy - 5.6]], 1, '#3a2a2a', [1, 1]));
+      counter.n += 3;
+    }
+  };
+  figTree();
   fruitTree(812, 512, TREE(3.4, 512), 130, ['#2c9a86', '#3ac0a0', '#5ad8b8'], 'palm');         // BRIGHT teal, frame right — a palm
   fruitTree(650, 400, TREE(2.4, 400), 60, ['#3a6ad0', '#4a7ae0', '#6a9af0'], 'pomegranate');   // BRIGHT blue, far back — a pomegranate
 
