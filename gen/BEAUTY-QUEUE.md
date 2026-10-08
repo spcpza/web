@@ -24,8 +24,11 @@ to make it beautiful." / "it is for the LORD after all."
    iterate before shipping. Traps met so far: halo darker than the sky = dark planet; mist bands
    = fog wall; strata edge-to-edge = wires; too-dark near ground = a pit; puddles must sit where
    the light actually is; a pale cuff is not paper.
-6. DEPLOY: PV +1 in engine/scene.js AND version.json, `node gen/minify.mjs`,
-   `python3 gen/stamp-index.py`, `npx wrangler deploy` (from the repo), md5-verify a few planes
+6. DEPLOY: `python3 gen/stamp-index.py` (bumps the plate version in version.json by itself when
+   plates-vg/ changed, stamps it into index.html, 404.html and scene.js's PV, and re-minifies),
+   `node gen/minify.mjs` (always — any engine edit), `python3 gen/stamp-index.py --check` and
+   `node gen/minify.mjs --check` (both must exit 0: /plates-vg/* is cached immutable for 30 days),
+   `npx wrangler deploy` (from the repo), md5-verify a few planes
    live. Only deploy when every plate on disk is consistent (no build mid-write).
 7. RECORD: tick the page below with one line (what changed, what the verse said), and append to
    ~/.claude/projects/-Users-f/memory/beauty_pass_sep12.md.

@@ -1054,21 +1054,25 @@
   //  (gen/crayon-to-brush.py), cut it into poses, and pick the right pose for
   //  whatever a page asks for. The art is his. The plumbing is mine.
   // ═══════════════════════════════════════════════════════════════════════════
-  // ⚠ TWO LISTS, ON PURPOSE. The book cannot draw him until his art has decoded, so
-  // whatever is REQUIRED gates every page's first paint — and at full resolution the
-  // whole set is 1.4 MB. CORE is what kidCell() can actually return, plus every cell a
-  // page names outright; EXTRA is the rest of Fred's sheets, fetched after, so a page
-  // that asks for one has it, and no page waits on one it will never draw.
-  // ⚠ SHEET 1 IS RETIRED. `front`, `surprised`, `three-quarter` and `side` were the
-  // last cells coming through gen/crayon-to-brush.py, and they were the whole reason
-  // some pages read soft while others read sharp. Fred redrew all four; the names are
-  // the same, the files are the drawn versions. What is left of sheet 1 — `side-far`,
-  // `back`, `hood-down`, `hands-up` — is unreachable from kidCell() now, so it must not
-  // sit in CORE holding up the first paint.
-  var KID_CORE = ['front', 'three-quarter', 'side', 'surprised', 'kneeling', 'carried',
-                  'teary', 'joy', 'reading', 'teddy', 'kneel-joy', 'kneel-cry',
-                  'afraid-crouch', 'afraid', 'walk', 'walk-joy', 'walk-away',
-                  'reach-up', 'dizzy', 'glad', 'welcome', 'offer', 'kneel-calm',
+  // ⭐ ONE LIST: EXACTLY THE CELLS THE BOOK DRAWS (Oct 8, 2026). There used to be two — CORE
+  // (what kidCell() could return plus every cell a page names) and EXTRA (the rest of Fred's
+  // sheets) — and the page-5 warm-up fetched all of CORE. Measured on p=466: a full read-through
+  // with every drawImage instrumented drew 28 cells, exactly the 28 kidCellsFor() names across
+  // the book, while CORE also carried 13 that no page reaches (front, three-quarter, side,
+  // surprised, kneeling, carried, reading, kneel-joy, afraid, welcome, offer, back, breaking:
+  // 2.25 MB downloaded and never drawn) and EXTRA's 9 were never fetched at all.
+  // Those cells were MOVED to cast-library/ (with the old cell-*/detail-* cuts). That folder
+  // keeps every drawing of him for future edits and is never deployed (.assetsignore); its
+  // README lists each cell and the pages that use it. This list is now what ships in cast/.
+  // ⚠ TO USE A LIBRARY CELL: copy it back to cast/, add it here, then point a page at it.
+  //   kidImage() will not fetch a name that is not on this list (see below), so a page that
+  //   asks for one before that keeps its fallback figure instead of hitting a 404.
+  // ⚠ Any cell used by a page belongs here: an unlisted cell is never preloaded, and the draw
+  //   path then bails into the fallback figure (family (24) once got a red-cloaked stranger
+  //   that way).
+  var KID_CORE = ['teary', 'joy', 'teddy', 'kneel-cry',
+                  'afraid-crouch', 'walk', 'walk-joy', 'walk-away',
+                  'reach-up', 'dizzy', 'glad', 'kneel-calm',
                   // ── sheet 11 (Sep 2): the last four pages. Two rows of four — the cutter
                   // learned reading order for this sheet (see gen/cut-cells.py _reading_order).
                   'look-up-wide', 'look-up',      // comes (30): faces lifted to the rent heaven
@@ -1081,23 +1085,26 @@
                   // ← family (24): the fireside ring. Four DIFFERENT children on one sheet
                   //   (10-fireside), each with their own hood, hair, eyes and skin painted
                   //   in — so they are never tinted, and this page uses no palette at all.
+                  //   (`back` and `breaking` were its nearest child and its torn loaf before the
+                  //   fireside sheet replaced them; both are in cast-library/ now.)
                   'sit-back', 'sit-offer', 'sit-take', 'sit-laugh',
-                  // ⚠ MOVED OUT OF KID_EXTRA. Only KID_CORE is preloaded; an EXTRA cell named
-                  // in CAST1 may not have decoded when the frame is drawn, and the draw path
-                  // then bails ("the old pilgrim covers for him") straight into the RETIRED
-                  // ep1 red figure. family (24) asked for `back` and got a red-cloaked
-                  // stranger with a pale head sitting in the middle of the ring.
-                  // ⚠ Any cell used by a page belongs in CORE.
-                  'back',      // ← family (24): the nearest child, turned away, looking in
-                  'trio',      // ← hands (23): all THREE children in one drawing, mid-catch
-                  'breaking']; // ← family (24): sitting, a loaf torn in two, half held out
-  var KID_EXTRA = ['side-far', 'hood-down', 'hands-up', 'running', 'sleeping',
-                   'pizza', 'cheering', 'sulking', 'treat'];
-  var KID_CELLS = KID_CORE.concat(KID_EXTRA);
+                  'trio'];     // ← hands (23): all THREE children in one drawing, mid-catch
+  var KID_CELLS = KID_CORE;
+  var KID_SHIPPED = {};
+  for (var _kc = 0; _kc < KID_CELLS.length; _kc++) KID_SHIPPED[KID_CELLS[_kc]] = 1;
   var KID_IMG = {};
   function kidImage(name, low) {
     if (KID_IMG[name]) return KID_IMG[name];
     var im = new Image();
+    // ⚠ ONLY CELLS THAT SHIP. A name kidCell() can still produce but that lives in cast-library/
+    // (front, side, surprised… — no page reaches them today) gets an empty image: never ready,
+    // so the page keeps its fallback figure exactly as a missing file would, but with no request
+    // and no 404. Ship the cell (see KID_CORE) to use it.
+    if (!KID_SHIPPED[name]) {
+      if (typeof console !== 'undefined') console.warn('[cast] "' + name + '" is a cast-library cell, not shipped; add it to KID_CORE');
+      KID_IMG[name] = im;
+      return im;
+    }
     // ⚠ fetchPriority must be set BEFORE src — after it, the request is already queued.
     if (low) { try { im.fetchPriority = 'low'; } catch (e) { } }
     // ⚠ VERSION THE CELLS. They are re-cut whenever the cutter improves (the edge
@@ -1202,11 +1209,14 @@
   }
   // the next few pages' drawings, low priority — called by the scene engine as each page settles.
   // A reader who has come this far is reading: from page 4 on, the rest of the cast follows in idle time.
-  function kidWarmAhead(idx) {
+  // ⚠ `noAll` (Oct 8): the scene engine now schedules kidWarmAll ITSELF, after the current page's
+  // art has landed and the browser is idle (see warmCast in engine/scene.js), so it passes true
+  // here. Called the old way, with one argument, this behaves exactly as before.
+  function kidWarmAhead(idx, noAll) {
     var cs = [];
     for (var p = idx; p <= idx + 4; p++) cs = cs.concat(kidCellsFor(p));
     kidPreload(cs, true);
-    if (idx >= 4) kidWarmAll();
+    if (idx >= 4 && !noAll) kidWarmAll();
   }
   // which of his drawings answers what the page asked for
   // ⚠ EVERY PERSON IN THE BOOK IS THIS CHARACTER NOW — the protagonist plain, the friends
@@ -1220,7 +1230,7 @@
   // children read as a row of ghosts. Fred asked for "different eye colors and skin
   // colors"; these are real tones in the same warm-grey family as his own, picked on
   // their own seed so skin and eyes vary independently of the hoodie.
-  // ⚠ THESE WERE ALL HIS OWN COLOUR. Measured off cast/kid-breaking.webp his skin is
+  // ⚠ THESE WERE ALL HIS OWN COLOUR. Measured off cast-library/kid-breaking.webp his skin is
   // #6e6462 — and every value in the old list (#8a7a6e, #6f6667, #5a4f4a …) sits within a
   // few steps of it, so "friends" came out as the same child in a different coat. Fred's
   // own trio drawing shows the range the book actually wants: warm cream and light tan
@@ -1273,6 +1283,9 @@
     // is not walking; the stride is there to swing his legs, not to move him along.
     // (I told Fred this page was done and it never was — the check was unreachable.)
     if (mood === 'dizzy') return 'dizzy';
+    // ⚠ Oct 8: kneeling, kneel-joy, afraid, surprised, side, three-quarter and front below are
+    // cast-library cells, not shipped (no page in the book resolves to them — see KID_CORE).
+    // The rules stay so the moods keep their meaning; kidImage() will not fetch those names.
     if (p.kneel) {
       if (mood === 'joy') return 'kneel-joy';
       if (mood === 'teary') return 'kneel-cry';
@@ -2248,6 +2261,9 @@
        by the CUPPED HANDS, and they reach to the drawing's LEFT. Third cell on this sheet
        where the gesture and the eyes disagree — believe the gesture. */
     'light-take': -1,
+    // (side, side-far, three-quarter, hands-up, sulking, offer, breaking, running, treat,
+    // cheering and reading are cast-library cells now; their facings stay recorded here so one
+    // can be shipped again without re-measuring it.)
     'side': -1, 'side-far': -1, 'three-quarter': -1, 'walk': -1, 'walk-joy': -1,
     'afraid-crouch': -1, 'hands-up': -1, 'sulking': -1,
     // ⚠ `sowing` is aimed by the PLANTING HAND, which reaches left in the drawing —
@@ -6304,7 +6320,13 @@
   /* ⚠ ONLY WHAT THE OPENING NEEDS, UP FRONT. Everything else follows once the book is
      built — see kidWarmAll. This one line was 1.98 MB of the first load. */
   try {
-    kidPreload(kidCellsFor(0).concat(kidCellsFor(1), kidCellsFor(2)));
+    // ⚠ Oct 8: after the page's own load, in idle time — not while the cover's planes are still in
+    // flight. Pages 1–2 ask for their own cells the moment they build (buildActor), so nothing waits.
+    (function () {
+      function go() { kidPreload(kidCellsFor(0).concat(kidCellsFor(1), kidCellsFor(2)), true); }
+      function idle() { if (window.requestIdleCallback) window.requestIdleCallback(go, { timeout: 2000 }); else setTimeout(go, 300); }
+      if (document.readyState === 'complete') idle(); else window.addEventListener('load', idle, { once: true });
+    })();
     /* ⚠ Sep 25 — NO LONGER THE WHOLE CAST AT LOAD. kidWarmAll ran 250 ms after load and fetched all
        41 drawings (3.0 MB) while a first-time reader was still looking at the cover — a third of the
        cold download, and wasted entirely on anyone who reads two pages and leaves. The scene engine
@@ -6316,7 +6338,7 @@
     drawPilgrim: drawPilgrim, drawRadiant: drawRadiant, drawHooded: drawHooded,
     drawKid: drawKid, kidPreload: kidPreload, kidCell: kidCell, kidPalFor: kidPalFor,
     drawKidBuilt: drawKidBuilt, drawKidRig: drawKidRig, drawKidMesh: drawKidMesh, onMeshReady: onMeshReady, meshReady: meshReady, onRigReady: onRigReady, rigReady: rigReady,
-    kidReady: kidReady, onKidReady: onKidReady, kidCellsFor: kidCellsFor, kidWarm: kidPreload, kidWarmAhead: kidWarmAhead,
+    kidReady: kidReady, onKidReady: onKidReady, kidCellsFor: kidCellsFor, kidWarm: kidPreload, kidWarmAhead: kidWarmAhead, kidWarmAll: kidWarmAll,
     drawTree: drawTree, drawBush: drawBush, drawCrown: drawCrown,
     drawFlower: drawFlower, drawSpout: drawSpout, drawBird: drawBird,
     drawSheep: drawSheep, drawLamp: drawLamp,

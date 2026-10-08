@@ -236,7 +236,7 @@ This sheet draws them the way the book does, so it shows what the pages really h
     ['front', 'three-quarter', 'side', 'back', 'hands-up', 'surprised', 'hood-down'].forEach(function (n) {
       var f = document.createElement('figure');
       var im = document.createElement('img');
-      im.src = '/cast/kid-' + n + '.webp?v=' + v;
+      im.src = '/cast-library/kid-' + n + '.webp?v=' + v;
       im.style.height = '250px'; im.style.width = 'auto';
       f.appendChild(im);
       var cap = document.createElement('figcaption'); cap.textContent = n; f.appendChild(cap);
