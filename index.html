@@ -1030,12 +1030,12 @@
   // into a band the eye can read on dark chrome. The arc is not invented, it is what the
   // paintings already are — `paid` sits at value 24, `grave` at 43, and `risen` at 131. The
   // reader can see the resurrection in the interface before they reach it.
-  var PAGE_LIGHT = ['#f4c2ab','#7b5661','#b9c58a','#886089','#ac9b5e','#896058','#826e9e','#60537b','#687995','#906481','#7d6757','#a18463','#534566','#5e567b','#e5a0a5','#9dac78','#a2ae69','#bbb97a','#e8cda2','#93b880','#b0ba81','#729d6e','#af9f7a','#91a674','#627350','#885f66','#bd9883','#b3967d','#907c64','#dfa49c','#b19b7a','#ded482','#f4c2ab'];
+  var PAGE_LIGHT = ['#f4c2ab','#7b5661','#b9c58a','#886089','#ac9b5e','#896058','#a07096','#60537b','#687995','#906481','#7d6757','#a18463','#534566','#5e567b','#e5a0a5','#9dac78','#a2ae69','#bbb97a','#e8cda2','#93b880','#b0ba81','#729d6e','#af9f7a','#91a674','#627350','#885f66','#bd9883','#b3967d','#907c64','#dfa49c','#b19b7a','#ded482','#f4c2ab'];
   // ⚠ THE SCRIM IS THE PAINTING'S OWN SHADOW, NOT A UI PANEL. One fixed navy bar sat under
   // the poem on every page — which is invisible on a night plate and a BRUISE across the
   // bottom of a golden one (`risen`, `nonight`, `candle`). Each page now darkens with its
   // own deepest bottom-band colour, so the poem sits in shadow the picture already had.
-  var PAGE_DARK = ['58,45,46','11,10,17','34,36,29','13,13,20','22,22,23','30,22,23','35,32,44','16,14,21','17,18,22','22,20,30','15,15,14','15,15,21','11,10,16','13,11,17','58,38,51','39,43,33','24,32,21','19,21,19','19,18,28','26,30,26','36,41,30','30,35,35','33,37,46','33,41,28','12,12,13','13,13,20','37,26,45','47,37,42','13,13,20','38,35,47','21,21,21','32,33,24','58,45,46'];
+  var PAGE_DARK = ['58,45,46','11,10,17','34,36,29','13,13,20','22,22,23','30,22,23','35,31,43','16,14,21','17,18,22','22,20,30','15,15,14','15,15,21','11,10,16','13,11,17','58,38,51','39,43,33','24,32,21','19,21,19','19,18,28','26,30,26','36,41,30','30,35,35','33,37,46','33,41,28','12,12,13','13,13,20','37,26,45','47,37,42','13,13,20','38,35,47','21,21,21','32,33,24','58,45,46'];
   for (var i = 0; i < pages.length; i++) pages[i].style.setProperty('--scrimrgb', PAGE_DARK[i] || '19,27,56');
   // the brightest plates in the book get a deeper, taller scrim so their poems read.
   // ⚠⚠ KEYED BY PLATE NAME, NOT BY POSITION (Sep 21). This was `{28:…, 30:…}` with a comment
