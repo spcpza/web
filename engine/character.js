@@ -3741,7 +3741,7 @@
       // light at the bottom left — which is also what the line above him says.
       { t:'p', x:392, y:318, h:74, facing:1, eye:[1,0.5], mood:'open', stride:0.9, lift:0.6, wind:-0.7, walk:1 }
     ] },
-    6: { fx0: 144, actors: [
+    6: { fx0: 190, actors: [   // Oct 8: 144 → 190. The Oct 6 recomposition put the fig crown at 384, and the phone (rest = fx0+156) cut the hiding child at x 428 in half at the right edge; now he is whole in the frame, fig beside him.
       // Sep 12, Fred (the perspective pass): "why not make the person bigger or the flame smaller?" — the bonfire stood 3× his height. Both moved: he is 100, the fire is smaller (scene.js CRITTERS 6).
       { t:'p', x:428, y:470, h:100, facing:-1, eye:[-1,-0.2], mood:'wary', kneel:1 }   // h 44 -> 66 -> 100: he was too small to read as the protagonist (Fred). Every other page runs him 120-168; crouching behind the cypress he can be smaller, but not invisible.
     ] },
