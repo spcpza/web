@@ -3907,15 +3907,25 @@
     layer.appendChild(el);   // the visual is pointer-events:none — it never blocks taps or swipes
   }
 
-  /* ---- build one page's whole scene, once ---- */
-  function buildPage(idx) {
+  /* ---- build one page's whole scene, once ----
+     ⭐ A PAGE IS BUILT IN STEPS, NOT IN ONE GO (Oct 9 — the page-turn freeze). This used to be one
+     function that drew every sprite of a page in a single task, and settle() ran it for the page
+     you arrived at AND its neighbours back to back: on a cheap phone (4–6× slower than a laptop)
+     the first swipe froze the book for 7–13 s. The work is the same, in the same order, with the
+     same inputs — it is only cut at its natural seams (one tree, one critter, one figure) into a
+     list of steps, so the scheduler below can let the phone paint and take a swipe in between.
+     Every step appends into the same layer in the same order, so the page ends up identical. */
+  function pageSteps(idx) {
     var page = pages[idx], fit = fitOf(page);
-    if (!fit) return false;
-    var layer = document.createElement('div');
+    if (!fit) return null;
+    var steps = [], layer, dio;
+    function st(f) { steps.push(f); }
+    st(function () {
+    layer = document.createElement('div');
     layer.className = 'sc-layer';
     var scrim = page.querySelector('.scrim');
     page.insertBefore(layer, scrim || null);
-    var dio = buildDiorama(page, idx, layer);   // real depth planes (opt-in pages only)
+    dio = buildDiorama(page, idx, layer);   // real depth planes (opt-in pages only)
     // the STAGE LIGHT — first child, behind every sprite, centred on the page's
     // focal subject so the busy paint recedes around the characters.
     // NOT on ep1: this vignette muted the vibrant plates AND was the "grey overlay"
@@ -3953,22 +3963,25 @@
       d.style.animationDelay = (-i * 3.4) + 's';
       layer.appendChild(d);
     });
+    });
     var sc = F.SCENE[idx];
     if (sc) {
-      (sc.trees || []).forEach(function (t) { layer.appendChild(buildSway(t, 'tree', fit, idx)); });
-      (sc.bushes || []).forEach(function (b) { layer.appendChild(buildSway(b, 'bush', fit, idx)); });
-      (sc.crowns || []).forEach(function (c2) { layer.appendChild(buildSway(c2, 'crown', fit, idx)); });
-      (sc.flowers || []).forEach(function (f2) { layer.appendChild(buildSway(f2, 'flower', fit, idx)); });
-      (sc.birds || []).forEach(function (b2) { layer.appendChild(buildBird(b2, fit, idx)); });
-      (sc.water || []).forEach(function (w3) { layer.appendChild(buildWater(w3, fit, idx)); });   // shimmer under everything
-      (sc.sheep || []).forEach(function (sp) { layer.appendChild(buildSheep(sp, fit, idx)); });
-      (sc.lamps || []).forEach(function (lp) { layer.appendChild(buildLamp(lp, fit, idx)); });
+      (sc.trees || []).forEach(function (t) { st(function () { layer.appendChild(buildSway(t, 'tree', fit, idx)); }); });
+      (sc.bushes || []).forEach(function (b) { st(function () { layer.appendChild(buildSway(b, 'bush', fit, idx)); }); });
+      (sc.crowns || []).forEach(function (c2) { st(function () { layer.appendChild(buildSway(c2, 'crown', fit, idx)); }); });
+      (sc.flowers || []).forEach(function (f2) { st(function () { layer.appendChild(buildSway(f2, 'flower', fit, idx)); }); });
+      (sc.birds || []).forEach(function (b2) { st(function () { layer.appendChild(buildBird(b2, fit, idx)); }); });
+      (sc.water || []).forEach(function (w3) { st(function () { layer.appendChild(buildWater(w3, fit, idx)); }); });   // shimmer under everything
+      (sc.sheep || []).forEach(function (sp) { st(function () { layer.appendChild(buildSheep(sp, fit, idx)); }); });
+      (sc.lamps || []).forEach(function (lp) { st(function () { layer.appendChild(buildLamp(lp, fit, idx)); }); });
     }
     // ---- NO TAP LAYER (Fred, Aug 2026: "let's delete clickable actions. it is more
     // beautiful this way"). Now that the scene genuinely MOVES — fire, wind, wings,
     // ears, wandering bees — it no longer needs to invite poking. A page that asks to
     // be tapped is a toy; a page that is simply alive is a painting. (Sep 25: the whole tap-reaction
     // system — INTERACT hotspots, runFx, the pilgrim move menu — was removed; a tap now opens the story card.)
+    var _crs;
+    st(function () {
     _pageBudget = 0;                                      // a fresh budget for this page
     // ⚠ THE PLANES ARE NO LONGER CHARGED HERE, and that is deliberate. Charging them was
     // right in principle and wrong in practice: the planes are ~38 MB, so the budget was
@@ -3988,14 +4001,24 @@
     // only so the removal is legible; nothing calls it.
     var _gust = gustSpec(idx);                            // what is in this page's air
     if (_gust) layer.appendChild(buildCritter(_gust, fit, idx));
-    var _crs = expandCritters(CRITTERS[idx], idx);
-    _crs.forEach(function (cr) { if (!cr.front) layer.appendChild(buildCritter(cr, fit, idx)); });   // tappable life + tiny swarms
+    _crs = expandCritters(CRITTERS[idx], idx);
+    });
+    // (expandCritters runs inside the step above, so the critter list is only known then —
+    // one step per critter is queued from there, in the same order, ahead of everything below.)
+    st(function () {
+      var more = [];
+      _crs.forEach(function (cr) { if (!cr.front) more.push(function () { layer.appendChild(buildCritter(cr, fit, idx)); }); });   // tappable life + tiny swarms
+      return more;
+    });
+    st(function () {
     if (!dio) (CUTOUTS[idx] || []).forEach(function (co) { buildCutout(co, fit, idx, layer); });   // Light-as-object — but a diorama page draws its figures AS PLANES (no cutout, no double)
+    });
     var cast = F.CAST[idx];
     if (cast) {
       var paired = cast.actors.some(function (a) { return a.t === 'r'; });   // the Light is present
-      cast.actors.forEach(function (a) { layer.appendChild(buildActor(a, fit, paired, FREEZE[idx], idx)); });
+      cast.actors.forEach(function (a) { st(function () { layer.appendChild(buildActor(a, fit, paired, FREEZE[idx], idx)); }); });
     }
+    st(function () {
     // THE GIVEN APPLE, THE FATHER'S HAND (and anything else `HELD`, later) —
     // appended AFTER the cast on purpose, so each sits IN FRONT of him rather
     // than under his own opaque sprite. See the note by `HELD`'s declaration.
@@ -4031,18 +4054,25 @@
       if (h.op != null) hImg.style.opacity = h.op;
       layer.appendChild(hImg);
     });
+    });
     var _wk = WALK[idx];
-    if (_wk && !REDUCED) {
+    if (_wk && !REDUCED) st(function () {
       try { layer.appendChild(buildWalk(_wk, fit, idx)); startPrints(page, _wk, fit, layer); }
       catch (e) { diag('walk ' + idx + ' failed: ' + e.message); }   // a rig that fails loses its own motion, never the page
-    }
+    });
     // critters marked FRONT go on AFTER the cast — the garden's cypress is the thing
     // the child hides behind (Gen 3:8), so it has to occlude him.
-    _crs.forEach(function (cr) { if (cr.front) layer.appendChild(buildCritter(cr, fit, idx)); });
+    st(function () {
+      var more = [];
+      _crs.forEach(function (cr) { if (cr.front) more.push(function () { layer.appendChild(buildCritter(cr, fit, idx)); }); });
+      return more;
+    });
+    st(function () {
     page.__scLayer = layer;
     page.__scFit = fit;
     seatActors(page, idx);   // ground the figures (if the diorama beat us here)
-    return true;
+    });
+    return { idx: idx, page: page, steps: steps, k: 0, budget: 0, plate: null, dead: false, layer: function () { return layer; } };
   }
 
   /* ---- lifecycle: build current+neighbours; only the current page animates ---- */
@@ -4061,8 +4091,87 @@
     var i = Math.round(book.scrollLeft / w);
     return Math.max(0, Math.min(pages.length - 1, i));
   }
-  function ensure(idx) {
-    if (!(idx >= 0 && idx < pages.length) || built[idx]) return;   // ⚠ written so NaN cannot pass
+  /* ---- ⭐ THE BUILD QUEUE: pages are built a step at a time, between frames (Oct 9) ----
+     ensure() no longer builds a page on the spot; it queues the page's steps (pageSteps above) and
+     this runs them in slices of ~10 ms, handing the main thread back in between so the phone can
+     paint and follow a finger. Rules that keep the result identical to the one-shot build:
+       · ONE PAGE AT A TIME, in the order they were asked for. Two module globals (_pageBudget, the
+         sheet budget, and _plateImg, the plate the critters sample) belong to the page being built,
+         so a page's steps never interleave with another's; they are saved with the job between
+         slices and put back before its next step.
+       · THE PAGE BEING READ GOES FIRST: settle() moves it to the front, and runs its first step
+         (layer + planes) at once so its planes start loading exactly when they used to.
+       · STALE WORK IS DROPPED: a page that settle() frees, or a resize that rebuilds the book,
+         kills its job — the half-built layer is taken down with its sheets released.
+     The layer becomes page.__scLayer only when its last step is done, as before, so nothing that
+     reads __scLayer ever sees a half-built page. */
+  var _bq = [], _bqOn = false, BQ_SLICE = 10;
+  var _bqPost = (function () {
+    if (window.scheduler && typeof scheduler.postTask === 'function')
+      return function (f) { scheduler.postTask(f, { priority: 'user-visible' }); };
+    if (window.MessageChannel) {
+      var ch = new MessageChannel(), fq = [];
+      ch.port1.onmessage = function () { var f = fq.shift(); if (f) f(); };
+      return function (f) { fq.push(f); ch.port2.postMessage(0); };
+    }
+    return function (f) { setTimeout(f, 0); };
+  })();
+  function bqKick() { if (!_bqOn && _bq.length) { _bqOn = true; _bqPost(bqRun); } }
+  function bqStep(job) {           // run ONE step of `job`, with that page's own build globals
+    _pageBudget = job.budget; _plateImg = job.plate;
+    var f = job.steps[job.k++], more;
+    try { more = f(); }
+    finally { job.budget = _pageBudget; job.plate = _plateImg; }
+    if (more && more.length) Array.prototype.splice.apply(job.steps, [job.k, 0].concat(more));
+    if (job.k >= job.steps.length) bqDone(job);
+  }
+  function bqDone(job) {
+    var i = _bq.indexOf(job); if (i !== -1) _bq.splice(i, 1);
+    if (job.page.__buildJob === job) job.page.__buildJob = null;
+    job.dead = true;
+    if (job.idx === lastSettled) {   // finished the page being read: what settle() did for it, now
+      var L = job.page.__scLayer;
+      if (L) L.classList.toggle('on', !REDUCED && !FREEZE[job.idx]);
+      restCenter();                  // the camera measures the layer, which only now exists
+      blinkLoop();
+    }
+    if (INSPECT) { var f2 = fitOf(job.page); if (f2) inspectPage(job.page, job.idx, f2); }
+  }
+  function bqRun() {
+    _bqOn = false;
+    var t0 = performance.now();
+    while (_bq.length) {
+      var job = _bq[0];
+      if (job.dead) { _bq.shift(); continue; }
+      try { bqStep(job); }
+      catch (e) {                    // a step that throws ends ITS page's build (as the one-shot build did) — never the queue
+        _bq.shift(); job.dead = true; if (job.page.__buildJob === job) job.page.__buildJob = null;
+        setTimeout(function () { throw e; }, 0);
+      }
+      if (performance.now() - t0 > BQ_SLICE) break;
+    }
+    bqKick();
+  }
+  function bqKill(page) {          // drop a page's unfinished build and take down what it had built
+    var job = page.__buildJob;
+    if (!job) return;
+    job.dead = true; page.__buildJob = null;
+    var i = _bq.indexOf(job); if (i !== -1) _bq.splice(i, 1);
+    var L = job.layer();
+    if (L) { freeSheets(L); L.remove(); }
+  }
+  var lastSettled = -1;
+  function ensure(idx, now) {
+    if (!(idx >= 0 && idx < pages.length)) return;
+    if (built[idx]) {                // already built, or queued: the page being read jumps the queue
+      var j0 = pages[idx].__buildJob;
+      if (now && j0 && !j0.dead) {
+        var i0 = _bq.indexOf(j0); if (i0 > 0) { _bq.splice(i0, 1); _bq.unshift(j0); }
+        if (j0.k === 0) bqStep(j0);
+        bqKick();
+      }
+      return;
+    }
     if (DIAG) diag('ensure ' + idx + ' (built: ' + Object.keys(built).join(',') + ')');
     /* ⚠⚠ THE COVER BUILT TWICE ON EVERY LOAD (Sep 16, found chasing "swipe to last page, it
        crashed"). buildDiorama fires `settled()` SYNCHRONOUSLY when a plane is already cached
@@ -4071,7 +4180,13 @@
        buildPage. Two full sets of planes on the heaviest page in the book. So the flag is
        raised BEFORE the build (and lowered again only if the build declined). */
     built[idx] = true;
-    if (buildPage(idx)) return;
+    var job = pageSteps(idx);
+    if (job) {
+      pages[idx].__buildJob = job;
+      if (now) { _bq.unshift(job); bqStep(job); } else _bq.push(job);
+      bqKick();
+      return;
+    }
     built[idx] = false;
     { var im = pages[idx] && pages[idx].querySelector('img'); if (im && !im.complete) im.addEventListener('load', function () { ensure(idx); }, { once: true }); }
   }
@@ -4537,6 +4652,7 @@
     // steady state, and costs nothing: the outgoing page is already off-screen.
     pages.forEach(function (p, i) {
       if (built[i] && !keep[i]) {   // FREE every page the budget did not keep
+        bqKill(p);                  // …including one still being built
         if (p.__scLayer) { freeSheets(p.__scLayer); p.__scLayer.remove(); p.__scLayer = null; }
         p.__seated = false;
         if (p.__dio) {
@@ -4554,7 +4670,8 @@
         built[i] = false;
       }
     });
-    ensure(idx);
+    lastSettled = idx;
+    ensure(idx, true);
     loadBoil(pages[idx]);   // the page being read gets its boil drawings once its planes are in
     if (!COLD) for (var kk in keep) if (+kk !== idx) ensure(+kk);
     pages.forEach(function (p, i) {
@@ -4598,6 +4715,7 @@
     clearTimeout(rT);
     rT = setTimeout(function () {
       pages.forEach(function (p, i) {
+        bqKill(p);
         if (p.__scLayer) { freeSheets(p.__scLayer); p.__scLayer.remove(); p.__scLayer = null; }
         p.__seated = false; p.__boilQ = null; p.__boilGo = false; p.__artDone = false;
         if (p.__dio) { var dd = p.querySelectorAll('.sc-dio'); for (var k = 0; k < dd.length; k++) dd[k].remove(); p.__dio = null;
