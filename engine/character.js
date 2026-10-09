@@ -1216,6 +1216,7 @@
     var cs = [];
     for (var p = idx; p <= idx + 4; p++) cs = cs.concat(kidCellsFor(p));
     kidPreload(cs, true);
+    kidPrepareAhead(idx);
     if (idx >= 4 && !noAll) kidWarmAll();
   }
   // which of his drawings answers what the page asked for
@@ -1656,15 +1657,9 @@
   // of the weave, 34/5 lands on breaking's own smoothness. Above this it starts eating the
   // folds, which are the drawing.
   var SIG = 34, RAD = 5;
-  function kidDehatched(name) {
-    if (KID_FLAT[name]) return KID_FLAT[name];
-    var im = kidImage(name);
-    if (!im.complete || !im.naturalWidth) return null;
-    try {
-    var w = im.naturalWidth, h = im.naturalHeight;
-    var c = document.createElement('canvas'); c.width = w; c.height = h;
-    var g = c.getContext('2d'); g.drawImage(im, 0, 0);
-    var d = g.getImageData(0, 0, w, h), D = d.data;
+  // The filter itself, as a PURE function of the pixels (no outer names), so the very same code can run
+  // on the main thread or, unchanged, inside the worker below. D is getImageData's RGBA, edited in place.
+  function dehatchPixels(D, w, h, SIG, RAD) {
     var src = new Uint8ClampedArray(D);                      // read from the original always
     var L = new Float32Array(w * h);
     var cloth = new Uint8Array(w * h);
@@ -1694,10 +1689,75 @@
         if (n > 1) { i = k * 4; D[i] = sr / n; D[i + 1] = sg / n; D[i + 2] = sb / n; }
       }
     }
+    return D;
+  }
+  function kidDehatched(name) {
+    if (KID_FLAT[name]) return KID_FLAT[name];
+    var im = kidImage(name);
+    if (!im.complete || !im.naturalWidth) return null;
+    try {
+    var w = im.naturalWidth, h = im.naturalHeight;
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var g = c.getContext('2d'); g.drawImage(im, 0, 0);
+    var d = g.getImageData(0, 0, w, h);
+    dehatchPixels(d.data, w, h, SIG, RAD);
     g.putImageData(d, 0, 0);
     } catch (err) { return null; }                           // a tainted canvas must not kill the figure
     KID_FLAT[name] = c;
     return c;
+  }
+  // ⭐ OFF THE MAIN THREAD, AHEAD OF TIME (Oct 8 — "lighten page 23"). The filter above is an 11×11
+  // window over every cloth pixel; on `hands` the trio drawing alone held the main thread ~0.7 s at
+  // 4× CPU the moment the page built, inside the swipe. So the next pages' cells are filtered EARLY,
+  // in a worker, while the reader is still on the page before: the main thread only reads the pixels
+  // out and writes them back (same getImageData → same dehatchPixels → same putImageData, so the
+  // canvas is bit-for-bit the one kidDehatched would have made). Nothing waits on it — if a page
+  // builds before its cell is back, kidDehatched simply does it there and then, exactly as before,
+  // and the late worker result is dropped. No worker (old browser, blocked blob:) = old behaviour.
+  var DH_WORKER = null, DH_FAILED = false, DH_PENDING = {}, DH_JOB = 0, DH_JOBS = {};
+  function dehatchWorker() {
+    if (DH_WORKER || DH_FAILED) return DH_WORKER;
+    try {
+      var code = 'var f=' + dehatchPixels.toString() + ';onmessage=function(e){var m=e.data;f(m.d,m.w,m.h,m.s,m.r);postMessage(m,[m.d.buffer]);};';
+      var url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+      DH_WORKER = new Worker(url);
+      URL.revokeObjectURL(url);
+      DH_WORKER.onmessage = function (e) {
+        var m = e.data, job = DH_JOBS[m.id]; delete DH_JOBS[m.id]; delete DH_PENDING[m.name];
+        if (!job || KID_FLAT[m.name]) return;                  // already made on the main thread — drop this one
+        try { job.g.putImageData(new ImageData(m.d, m.w, m.h), 0, 0); KID_FLAT[m.name] = job.c; } catch (err) { }
+      };
+      DH_WORKER.onerror = function () { DH_FAILED = true; DH_WORKER = null; DH_PENDING = {}; DH_JOBS = {}; };
+    } catch (err) { DH_FAILED = true; DH_WORKER = null; }
+    return DH_WORKER;
+  }
+  function kidDehatchAhead(name) {
+    if (KID_FLAT[name] || DH_PENDING[name] || !KID_SHIPPED[name]) return;
+    var im = KID_IMG[name];
+    if (!im || !im.complete || !im.naturalWidth) return;
+    var wk = dehatchWorker(); if (!wk) return;
+    try {
+      var w = im.naturalWidth, h = im.naturalHeight;
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      var g = c.getContext('2d'); g.drawImage(im, 0, 0);
+      var d = g.getImageData(0, 0, w, h);
+      var id = ++DH_JOB; DH_JOBS[id] = { c: c, g: g }; DH_PENDING[name] = 1;
+      wk.postMessage({ id: id, name: name, d: d.data, w: w, h: h, s: SIG, r: RAD }, [d.data.buffer]);
+    } catch (err) { delete DH_PENDING[name]; }
+  }
+  // the cells of the next two pages, each once its drawing has arrived, in idle time
+  function kidPrepareAhead(idx) {
+    if (typeof Worker === 'undefined' || DH_FAILED) return;
+    var idle = (typeof window !== 'undefined' && window.requestIdleCallback)
+      ? function (fn) { window.requestIdleCallback(fn, { timeout: 1500 }); }
+      : function (fn) { setTimeout(fn, 200); };
+    var cs = kidCellsFor(idx + 1).concat(kidCellsFor(idx + 2));
+    cs.forEach(function (name) {
+      if (KID_FLAT[name] || DH_PENDING[name] || !KID_SHIPPED[name]) return;
+      var im = kidImage(name, true);
+      var go = function () { idle(function () { kidDehatchAhead(name); }); };
+      if (im.complete && im.naturalWidth) go(); else im.addEventListener('load', go, { once: true });
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
