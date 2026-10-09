@@ -3666,8 +3666,22 @@
         return el;
       }
       _pageBudget += _bytes(NF);
-      c = frameCanvas(W * NF, H, function (g) {
-        for (var fi = 0; fi < NF; fi++) {
+      // ⭐ ONE FRAME PER SLICE when the build queue is running (Oct 9). The drawing calls below are
+      // cheap to RECORD but not to paint: the browser rasterises a canvas's recorded strokes at the
+      // end of the task, and the glowing kinds (shadowBlur on every star and ray) cost ~9 s there on
+      // a 4×-throttled phone when all six frames went in one task — that was the page-turn freeze.
+      // Each frame is its own translate/save/restore with its own `beat`, so drawing frame 3 in a
+      // later task than frame 2 lays down exactly the same pixels; the grade and the paint-in still
+      // run once, last, over the whole sheet, as before. Outside the queue it all runs at once.
+      // ⚠ ONLY THE KINDS IN SPLIT_SHEET, and that list is MEASURED, not guessed: every sheet of all
+      // 33 pages was hashed (getImageData, SHA-256) built at once and built a frame per task. These
+      // kinds came out byte-identical AND cost >100 ms a frame to paint at 4× (starburst ~1.8 s,
+      // tree2 ~0.5 s, fire/tree ~0.2 s, tether ~0.1 s). The butterfly did NOT come out identical
+      // split (Chrome paints its little cel ellipses a few pixels differently once the record is
+      // flushed between frames), and at ~50 ms a sheet it never needed splitting — so it, and every
+      // kind not listed, is still drawn whole in its one step. Cutting a frame into row bands
+      // (clip) was tried too: much cheaper, but the glow's edges change, so it is not done.
+      var _sheetFrame = function (g, fi) {
           g.save(); g.translate(W * fi, 0);
           // ⚠ THE TREE WAS NEVER HANDED ITS OWN SIZE. This branch read `if (spec.type
           // === 'fire')`, with a dead inner test for sky/stars/grass — so a TREE fell
@@ -3726,7 +3740,8 @@
                       beat: fi / NF, view: vw, head: hd });
           }
           g.restore();
-        }
+      };
+      var _sheetFinish = function (g) {
         // ⚠ WHY A SPRITE DOES NOT BLEND. Fred: "can you make the moving trees kind blend in
         // more with the background?" CRITTER_STYLE gives `tree` and `tree2` grade:false —
         // they sit in the same style block as `fire`, which must not be graded because the
@@ -3746,6 +3761,15 @@
         // it costs real time, and a bee is too small for the tooth to read anyway.
         if (_gr && (spec.type === 'tree' || spec.type === 'tree2')) {
           paintIn(g, W * NF, H, ((spec.x | 0) * 7 + (spec.h | 0) * 13 + idx * 101) | 0, 1, AMBIENT[idx]);
+        }
+      };
+      c = frameCanvas(W * NF, H, function (g) {
+        if (_bqDefer && SPLIT_SHEET[spec.type]) {
+          for (var fi = 0; fi < NF; fi++) _bqDefer.push(bqPaint((function (fi) { return function () { _sheetFrame(g, fi); }; })(fi)));
+          _bqDefer.push(bqPaint(function () { _sheetFinish(g); }));
+        } else {
+          for (var fi = 0; fi < NF; fi++) _sheetFrame(g, fi);
+          _sheetFinish(g);
         }
       }, SS_F);
       c.style.width = (W * NF * fit.s) + 'px';
@@ -4095,10 +4119,11 @@
      ensure() no longer builds a page on the spot; it queues the page's steps (pageSteps above) and
      this runs them in slices of ~10 ms, handing the main thread back in between so the phone can
      paint and follow a finger. Rules that keep the result identical to the one-shot build:
-       · ONE PAGE AT A TIME, in the order they were asked for. Two module globals (_pageBudget, the
-         sheet budget, and _plateImg, the plate the critters sample) belong to the page being built,
-         so a page's steps never interleave with another's; they are saved with the job between
-         slices and put back before its next step.
+       · EACH PAGE'S STEPS RUN IN ORDER, and pages are worked one at a time in the order they were
+         asked for. Two module globals (_pageBudget, the sheet budget, and _plateImg, the plate the
+         critters sample) belong to the page being built, so they travel WITH its job: saved after
+         each of its steps and put back before the next. That is what lets a half-built neighbour be
+         paused for the page being read and resumed later with exactly the state it had.
        · THE PAGE BEING READ GOES FIRST: settle() moves it to the front, and runs its first step
          (layer + planes) at once so its planes start loading exactly when they used to.
        · STALE WORK IS DROPPED: a page that settle() frees, or a resize that rebuilds the book,
@@ -4106,6 +4131,12 @@
      The layer becomes page.__scLayer only when its last step is done, as before, so nothing that
      reads __scLayer ever sees a half-built page. */
   var _bq = [], _bqOn = false, BQ_SLICE = 10;
+  // _bqDefer: while a queued step runs, a list it may hand follow-up PAINT steps to (one sheet frame
+  // each — see buildCritter); they run next, before the page's following steps, each in a task of
+  // its own (bqPaint marks them), so the browser rasterises one frame per task, not a whole sheet.
+  var _bqDefer = null;
+  function bqPaint(f) { f.__paint = true; return f; }
+  var SPLIT_SHEET = { starburst: 1, tree2: 1, tree: 1, fire: 1, tether: 1 };   // see buildCritter: measured identical when split
   var _bqPost = (function () {
     if (window.scheduler && typeof scheduler.postTask === 'function')
       return function (f) { scheduler.postTask(f, { priority: 'user-visible' }); };
@@ -4119,11 +4150,14 @@
   function bqKick() { if (!_bqOn && _bq.length) { _bqOn = true; _bqPost(bqRun); } }
   function bqStep(job) {           // run ONE step of `job`, with that page's own build globals
     _pageBudget = job.budget; _plateImg = job.plate;
-    var f = job.steps[job.k++], more;
+    var f = job.steps[job.k++], more, outer = _bqDefer, deferred = [];
+    _bqDefer = deferred;
     try { more = f(); }
-    finally { job.budget = _pageBudget; job.plate = _plateImg; }
-    if (more && more.length) Array.prototype.splice.apply(job.steps, [job.k, 0].concat(more));
+    finally { job.budget = _pageBudget; job.plate = _plateImg; _bqDefer = outer; }
+    var add = deferred.concat(more || []);
+    if (add.length) Array.prototype.splice.apply(job.steps, [job.k, 0].concat(add));
     if (job.k >= job.steps.length) bqDone(job);
+    return f.__paint;
   }
   function bqDone(job) {
     var i = _bq.indexOf(job); if (i !== -1) _bq.splice(i, 1);
@@ -4143,12 +4177,14 @@
     while (_bq.length) {
       var job = _bq[0];
       if (job.dead) { _bq.shift(); continue; }
-      try { bqStep(job); }
+      var painted = false;
+      try { painted = bqStep(job); }
       catch (e) {                    // a step that throws ends ITS page's build (as the one-shot build did) — never the queue
-        _bq.shift(); job.dead = true; if (job.page.__buildJob === job) job.page.__buildJob = null;
+        var ix = _bq.indexOf(job); if (ix !== -1) _bq.splice(ix, 1);
+        job.dead = true; if (job.page.__buildJob === job) job.page.__buildJob = null;
         setTimeout(function () { throw e; }, 0);
       }
-      if (performance.now() - t0 > BQ_SLICE) break;
+      if (painted || performance.now() - t0 > BQ_SLICE) break;   // a sheet frame paints at the end of ITS task — alone
     }
     bqKick();
   }
