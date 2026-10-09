@@ -1195,7 +1195,8 @@
       var p = pages[pageIndex()]; if (p && story.indexOf(p) >= 0) advance(p);
     }, { passive: true });
     addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (e.key !== 'Enter') return;   // Enter is the keyboard's tap; Space turns the page (the document keydown below) — handling it here too did both
+      if (e.target.closest && e.target.closest('a,button,input,textarea,select,nav,[contenteditable]')) return;   // a focused link or button keeps its own Enter
       var p = pages[pageIndex()]; if (!p || story.indexOf(p) < 0) return;
       e.preventDefault(); advance(p);
     });
@@ -1274,6 +1275,9 @@
   document.getElementById('prev').addEventListener('click', function () { go(pageIndex() - 1); });
   document.getElementById('next').addEventListener('click', function () { go(pageIndex() + 1); });
   document.addEventListener('keydown', function (e) {
+    var t = e.target.closest ? e.target : null;
+    if (t && t.closest('input,textarea,select,[contenteditable]')) return;   // typing, not turning
+    if (e.key === ' ' && t && t.closest('a,button,nav')) return;            // Space presses the focused ‹ › / link itself (it went forward from ‹)
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(pageIndex() + 1); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); go(pageIndex() - 1); }
   });
