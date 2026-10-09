@@ -4437,6 +4437,36 @@
     planesUp();
     setTimeout(function () { if (!fired) { left = 1; planesUp(); } }, 10000);   // backstop: one stalled plane must not keep the page still for ever
   }
+  /* ---- ⚠ THE NEXT PAGE'S PLANES ARE PREFETCHED WHEN THE BUDGET WON'T BUILD IT (Oct 9) ----
+     Page 2's layers arrived ~1 s later on 4G after the Oct 8 loading pass (4.8 s from the swipe,
+     measured on an emulated iPhone). The cause is the memory budget, not the boil: the cover alone
+     is worth more than HOLD_MB, so settle() never builds `beginning` behind it — the reader
+     swipes, and only THEN do its planes start, sharing the line with the two pages after it.
+     A build costs decoded memory (6.1 MB a plane); a PREFETCH costs none. A detached Image that
+     is never drawn is never decoded — it only puts the file's bytes (~0.6 MB for `beginning`)
+     into the browser's cache, where /plates-vg/'s immutable header keeps them. So: once the page
+     being read has all its art (planes AND boil — the same gate as the cast warm-up), and the
+     browser is idle, fetch the planes of the next page in the reading direction at low priority,
+     if the budget is not already building it. The swipe then builds from cache. Exactly the URLs
+     buildDiorama asks for (same skip list, same .jpg/.webp rule, same PV), so it can never ask
+     for a file that is not there, and no boil drawing is touched — those still wait for the
+     reader (see loadBoil). Nothing is held: the Image is dropped once its bytes are in.
+     settle() also uses it for the neighbours it DOES keep, so their files are on the way while
+     their build waits for the current page's frame (see "THE PAGE BEING READ FIRST"). */
+  function prefetchPlanes(i) {
+    var p = pages[i], base = DIO[i];
+    if (!p || !base || built[i] || p.__pf) return;
+    var defs = dioPlanes(p);
+    if (!defs || !defs.length) return;
+    p.__pf = true;
+    var skip = DIO_SKIP[i] || [];
+    defs.filter(function (d) { return skip.indexOf(d.name) === -1; }).forEach(function (d, di) {
+      var im = new Image();
+      try { im.fetchPriority = 'low'; } catch (e) { }   // ⚠ before src, or it is already queued
+      im.onload = im.onerror = function () { im.onload = im.onerror = null; };
+      im.src = '/plates-vg/' + base + '-' + d.name + (di === 0 ? '.jpg' : planeExt(base, d.name)) + PV;
+    });
+  }
   // ⚠ THE CAST WARM-UP WAITS ITS TURN (Oct 8). On the cover it waits for the first swipe or for
   // the cover's own art to finish and the browser to go idle, whichever comes first; from page 5
   // the bulk warm of every remaining cell (kidWarmAll) waits for the current page's art and idle
@@ -4457,6 +4487,21 @@
       page.__castAll = 1;
       onPageArt(page, function () { try { F.kidWarmAll(); } catch (e) { } });
     }
+  }
+  // run `f` once this page's own planes (not its boil drawings) have landed — at once if it has none
+  // or they are already in (a cached plane is complete the moment it is built). Backstop: 4 s.
+  var _settleGen = 0;
+  function afterPlanes(page, f) {
+    var planes = page && page.__dio, q = (page && page.__boilQ) || [];
+    var waits = (planes || []).filter(function (p) { return q.indexOf(p.img) === -1 && !p.img.complete; });
+    var left = waits.length + 1, fired = false;
+    function one() { if (--left > 0 || fired) return; fired = true; f(); }
+    waits.forEach(function (p) {
+      p.img.addEventListener('load', one, { once: true });
+      p.img.addEventListener('error', one, { once: true });
+    });
+    one();
+    if (!fired) setTimeout(function () { if (!fired) { left = 1; one(); } }, 4000);   // a stalled plane must never strand the look-ahead
   }
   function settle() {
     var idx = currentIdx();
@@ -4567,7 +4612,39 @@
     });
     ensure(idx);
     loadBoil(pages[idx]);   // the page being read gets its boil drawings once its planes are in
-    if (!COLD) for (var kk in keep) if (+kk !== idx) ensure(+kk);
+    // ⚠ THE PAGE BEING READ FIRST, THEN THE LOOK-AHEAD (Oct 9). These builds used to start in the
+    // same task as the page you swiped to, so on 4G its planes shared the line with the next pages'
+    // (`beginning`'s 0.6 MB behind `flame` and `made`'s 2.9 MB), and even when its planes were
+    // already cached, their load waited out the other two pages' sprite builds (one ~3 s task on
+    // an emulated iPhone). The look-ahead now waits for this page's own planes (never its boil) and
+    // the frame after them, so the page you are on paints first. Their plane FILES are fetched at
+    // that same moment (prefetchPlanes, low priority), so the look-ahead's bytes are not delayed —
+    // only its build is (measured: delaying the bytes too made a 3 s skim reach `flame` ~1 s before
+    // its planes). The budget is untouched: `keep` and the free-first order above are exactly as
+    // before, and a later settle cancels this one's build (it has its own keep — never build a
+    // window another settle has already re-budgeted).
+    if (!COLD) {
+      var ahead = [], gen = ++_settleGen;
+      for (var kk in keep) if (+kk !== idx) ahead.push(+kk);
+      if (ahead.length) afterPlanes(pages[idx], function () {
+        // their BYTES go now (low priority, nothing decoded); only the build — the sprites, the
+        // decoding, the main-thread work — waits for this page's frame
+        for (var a0 = 0; a0 < ahead.length; a0++) prefetchPlanes(ahead[a0]);
+        var went = false;
+        function go() {
+          if (went) return; went = true;
+          if (gen !== _settleGen) return;
+          for (var a = 0; a < ahead.length; a++) ensure(ahead[a]);
+        }
+        requestAnimationFrame(function () { setTimeout(go, 0); });   // right after this page's next frame
+        setTimeout(go, 250);                                           // (rAF sleeps in a hidden tab)
+      });
+    }
+    // the next page the budget left out: its planes into the cache once this page's art is in (see prefetchPlanes)
+    var nx = idx + dir;
+    if (!COLD && nx >= 0 && nx < pages.length && !keep[nx] && DIO[nx] && !pages[nx].__pf) {
+      onPageArt(pages[idx], function () { if (currentIdx() === idx) prefetchPlanes(nx); });
+    }
     pages.forEach(function (p, i) {
       if (p.__scLayer) p.__scLayer.classList.toggle('on', i === idx && !REDUCED && !FREEZE[i]);
     });
