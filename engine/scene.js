@@ -4445,16 +4445,23 @@
     L.fl = [];
     if (L.page.__boilQ === L.q) L.page.__boilGo = false;   // the next visit starts the rest again
   }
+  // run `f` in idle time once this page's PLANES (not its boil drawings) are in — see warmCast
+  function onPagePlanes(page, f) {
+    if (page.__planesIn) return _idle(f);
+    (page.__planesWait || (page.__planesWait = [])).push(f);
+  }
   function loadBoil(page) {
     if (!page || page.__boilGo) return;
     var planes = page.__dio, q = page.__boilQ;
-    if (!planes || !q) { if (built[pages.indexOf(page)] && !planes) artDone(page); return; }   // a page with no diorama has no boil to wait for
+    if (!planes || !q) { if (built[pages.indexOf(page)] && !planes) { page.__planesIn = true; (page.__planesWait || []).splice(0).forEach(function (f) { _idle(f); }); artDone(page); } return; }   // a page with no diorama has no boil to wait for
     page.__boilGo = true;
     var waits = planes.filter(function (p) { return q.indexOf(p.img) === -1; }).map(function (p) { return p.img; });
     var left = waits.length + 1, fired = false, stallT = 0;
     function planesUp() {
       if (--left > 0 || fired) { if (!fired) armStall(); return; }
       fired = true; clearTimeout(stallT);
+      page.__planesIn = true;
+      (page.__planesWait || []).splice(0).forEach(function (f) { _idle(f); });   // see onPagePlanes
       setTimeout(function () {
         if (page.__boilQ !== q) return;                                         // freed or rebuilt meanwhile
         if (pages[currentIdx()] !== page) { page.__boilGo = false; return; }    // reader moved on: wait until they come back
@@ -4499,7 +4506,12 @@
     if (idx !== _castFirst) _castSwiped = true;
     var page = pages[idx];
     if (!_castSwiped) {
-      if (page && !page.__castQ) { page.__castQ = 1; onPageArt(page, function () { _castSwiped = true; warmCast(currentIdx()); }); }
+      // ⚠ ON THE COVER: ONCE ITS PLANES ARE IN, not its whole art (Oct 9). The cover's boil drawings
+      // now come a few at a time after the planes (see loadBoil), so "art done" moved ~25 s later on
+      // 3G — and the first pages' cells, which used to land while the reader looked at the cover,
+      // slid into the first swipe and shared the line with page 1's own planes (measured: page 1
+      // +1.1-1.5 s on Fast 3G). Their turn is right after the picture, as it effectively was before.
+      if (page && !page.__castQ) { page.__castQ = 1; onPagePlanes(page, function () { _castSwiped = true; warmCast(currentIdx()); }); }
       return;
     }
     try { F.kidWarmAhead(idx, !!F.kidWarmAll); } catch (e) { }   // the next pages' cells now; with kidWarmAll exported, NOT the bulk
@@ -4608,7 +4620,7 @@
             dd[k].remove();
           }
           p.__dio = null;
-          p.__boilQ = null; p.__boilGo = false; p.__artDone = false;
+          p.__boilQ = null; p.__boilGo = false; p.__artDone = false; p.__planesIn = false;
           var pic = p.querySelector('picture');
           if (pic) pic.style.opacity = (DIO[i] && i !== 0) ? '0' : '';
         }
