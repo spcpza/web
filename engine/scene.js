@@ -4405,7 +4405,7 @@
           the scroll handler — settle()'s own free can be held up by the next page's build), so
           they stop sharing the line with the page being swiped to. They start again if the reader
           comes back. A cancelled drawing has no src, so it is neither a failure nor a "loaded". */
-  var BOIL_STALL_MS = 30000, BOIL_INFLIGHT = 3, _boilLive = null;
+  var BOIL_STALL_MS = 30000, BOIL_INFLIGHT = 3, _boilLive = null, _boilScrollT = -1e9;
   function neighbourPlanesArriving(page) {
     var i = pages.indexOf(page);
     for (var j = i - 1; j <= i + 1; j += 2) {
@@ -4424,7 +4424,8 @@
     if (pages[currentIdx()] !== L.page) return stopBoil(L);
     L.fl = L.fl.filter(function (el) { return el.getAttribute('src') && !el.complete; });
     if (!L.todo.length || L.fl.length >= BOIL_INFLIGHT) return;
-    if (neighbourPlanesArriving(L.page)) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 500); return; }
+    // nor while the book is moving: a swipe may be on its way to the next page, whose planes come first
+    if (performance.now() - _boilScrollT < 400 || neighbourPlanesArriving(L.page)) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 500); return; }
     var kick = function () { setTimeout(function () { pumpBoil(L); }, 0); };
     while (L.fl.length < BOIL_INFLIGHT && L.todo.length) {
       var el = L.todo.shift();
@@ -4649,6 +4650,7 @@
   }
   book.addEventListener('scroll', function () {
     coverReady(); clearTimeout(sT); sT = setTimeout(settle, 110);
+    _boilScrollT = performance.now();
     if (_boilLive && pages[currentIdx()] !== _boilLive.page) stopBoil(_boilLive);   // leaving: its drawings stop downloading now
     if (!_spRAF) _spRAF = requestAnimationFrame(scrollDepth);
   }, { passive: true });
