@@ -4124,8 +4124,9 @@
          critters sample) belong to the page being built, so they travel WITH its job: saved after
          each of its steps and put back before the next. That is what lets a half-built neighbour be
          paused for the page being read and resumed later with exactly the state it had.
-       · THE PAGE BEING READ GOES FIRST: settle() moves it to the front, and runs its first step
-         (layer + planes) at once so its planes start loading exactly when they used to.
+       · THE PAGE BEING READ GOES FIRST: settle() moves it to the front of the queue. Every page's
+         first step (layer + planes) still runs at once, so all planes start loading exactly when
+         they used to.
        · STALE WORK IS DROPPED: a page that settle() frees, or a resize that rebuilds the book,
          kills its job — the half-built layer is taken down with its sheets released.
      The layer becomes page.__scLayer only when its last step is done, as before, so nothing that
@@ -4219,7 +4220,13 @@
     var job = pageSteps(idx);
     if (job) {
       pages[idx].__buildJob = job;
-      if (now) { _bq.unshift(job); bqStep(job); } else _bq.push(job);
+      // the FIRST step (layer + planes) runs here for every page, as the one-shot build did, so the
+      // planes start downloading at the very moment they used to — only the sprites are queued.
+      // (Queuing the neighbours' planes too was tried: page 2's art then waited ~10 s behind page 1's
+      // sprites on a 4× phone. The network order is not this change's business; it stays as it was.)
+      if (now) _bq.unshift(job); else _bq.push(job);
+      try { bqStep(job); }
+      catch (e) { job.dead = true; pages[idx].__buildJob = null; var ie = _bq.indexOf(job); if (ie !== -1) _bq.splice(ie, 1); throw e; }   // as before: a throwing diorama ends this page's build
       bqKick();
       return;
     }
