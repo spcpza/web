@@ -9,11 +9,11 @@
   <meta property="og:description" content="A thirty-three-page storybook of the good news, painted: Love came down into the dark to find you, and carry you home.">
   <meta property="og:type" content="book">
   <meta property="og:url" content="https://balthazar.sh/">
-  <meta property="og:image" content="https://balthazar.sh/og.jpg">
+  <meta property="og:image" content="https://balthazar.sh/og-story.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="A radiant galaxy of light: the whole Bible as thousands of glowing motes wheeling in rainbow spiral arms around a white-gold core, threaded by a single scarlet curve of redemption.">
+  <meta property="og:image:alt" content="The cover of the storybook: Alpha and Omega, a story about the Light. The entire Bible as one body of light, 31,102 verses as glowing motes wheeling around a radiant centre, threaded by a single scarlet curve of redemption.">
   <meta property="og:site_name" content="balthazar.sh">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
@@ -22,7 +22,10 @@
   <meta name="theme-color" content="#141c44">
   <link rel="canonical" href="https://balthazar.sh/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://balthazar.sh/og.jpg">
+  <meta name="twitter:title" content="Alpha and Omega — a story about the Light">
+  <meta name="twitter:description" content="A thirty-three-page storybook of the good news, painted: Love came down into the dark to find you, and carry you home.">
+  <meta name="twitter:image" content="https://balthazar.sh/og-story.jpg">
+  <meta name="twitter:image:alt" content="The cover of the storybook: Alpha and Omega, a story about the Light. The entire Bible as one body of light, 31,102 verses as glowing motes wheeling around a radiant centre, threaded by a single scarlet curve of redemption.">
   <link rel="stylesheet" href="/fonts/garamond.css">
   <style>
     * { box-sizing: border-box; }
@@ -320,6 +323,22 @@
     body.reading #topnav:hover, body.reading .arrow:hover { opacity: 1; }
     body.reading #topnav:focus-within { opacity: 1; }
     #topnav .home-only { }
+    /* ---- SHARE THIS PAGE: a word in the nav like its neighbours, not a badge over the painting.
+       It is a <button> (it does something, it goes nowhere), dressed exactly as the links beside it;
+       the padding/negative margin widens the finger target without moving anything. */
+    #topnav .share { font: inherit; letter-spacing: inherit; color: rgba(244,239,226,0.55); background: none; border: 0;
+      padding: 8px 6px; margin: -8px -6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    #topnav .share:hover { color: #f0d489; }
+    #topnav a:focus-visible, #topnav .share:focus-visible { outline: 1px solid rgba(240,212,137,0.85); outline-offset: 3px; border-radius: 2px; }
+    /* four words must fit a 360px phone: the gap gives way before anything wraps */
+    @media (max-width: 440px) { #topnav { gap: clamp(10px, 4.2vw, 26px); padding-left: 8px; padding-right: 8px; } }
+    @media (max-width: 340px) { #topnav { letter-spacing: 0.04em; } }
+    #sharenote { position: fixed; left: 50%; top: calc(48px + env(safe-area-inset-top)); z-index: 10;
+      transform: translate(-50%, -6px); max-width: calc(100vw - 32px); padding: 7px 16px; border-radius: 18px;
+      background: rgba(19,27,56,0.82); color: #f0d489; font-size: 0.95rem; letter-spacing: 0.05em; text-align: center;
+      overflow-wrap: anywhere; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
+    #sharenote.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    @media (prefers-reduced-motion: reduce) { #sharenote { transition: none; } }
     /* ---- navigation ---- */
     .arrow { position: fixed; top: 50%; transform: translateY(-50%); z-index: 5;
       background: rgba(19,27,56,0.45); color: rgba(244,239,226,0.85); border: none;
@@ -705,7 +724,9 @@
   <a href="/" class="on">the story</a>
   <a href="/paper?kids=1">the explanation</a>
   <a href="/paper">the math</a>
+  <button type="button" class="share" id="share" aria-label="Share this page">share</button>
 </nav>
+<div id="sharenote" role="status" aria-live="polite"></div>
 
 <div id="book" aria-label="Alpha and Omega — a storybook. Swipe or use arrow keys to turn pages.">
 
@@ -1251,7 +1272,50 @@
     book.style.scrollBehavior = 'auto'; book.scrollLeft = n * book.clientWidth; book.style.scrollBehavior = '';
   }
   addEventListener('hashchange', jumpFromHash);
-  setTimeout(jumpFromHash, 120);
+  // THE ADDRESS FOLLOWS THE READER, in the same 0-based /#N the deep link above reads, so the
+  // address bar always holds a link back to the page on screen (the cover is plain /).
+  // replaceState, not pushState: turning thirty pages must not leave thirty entries behind the
+  // back button. It waits for the opening jump (a /#17 must not be overwritten by the cover
+  // before it has been read) and for the swipe to settle, so a fast flick writes once.
+  var hashReady = false, hashT = 0;
+  function pageLink(i) { return location.origin + location.pathname + (i ? '#' + i : ''); }
+  function syncHash() {
+    clearTimeout(hashT);
+    hashT = setTimeout(function () {
+      if (!hashReady) return;
+      var i = pageIndex();
+      if (location.hash === (i ? '#' + i : '') || (!i && location.hash === '#0')) return;
+      try { history.replaceState(history.state, '', location.pathname + location.search + (i ? '#' + i : '')); } catch (e) {}
+    }, 250);
+  }
+  book.addEventListener('scroll', syncHash, { passive: true });
+  setTimeout(function () { jumpFromHash(); hashReady = true; }, 120);
+  // SHARE THIS PAGE: the phone's own share sheet where there is one; otherwise the link is
+  // copied and the page says so. A cancelled share sheet is the reader's choice, not an error.
+  (function () {
+    var btn = document.getElementById('share'), note = document.getElementById('sharenote'), noteT = 0;
+    if (!btn || !note) return;
+    function say(msg, ms) { note.textContent = msg; note.classList.add('on'); clearTimeout(noteT); noteT = setTimeout(function () { note.classList.remove('on'); }, ms || 2200); }
+    function copy(url) {
+      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(url);
+      return new Promise(function (ok, no) {
+        var t = document.createElement('textarea'); t.value = url; t.setAttribute('readonly', '');
+        t.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(t); t.select();
+        var done = false; try { done = document.execCommand('copy'); } catch (e) {}
+        t.remove(); if (done) ok(); else no();
+      });
+    }
+    function fallback(url) { copy(url).then(function () { say('Link copied'); }, function () { say(url, 8000); }); }
+    btn.addEventListener('click', function () {
+      var url = pageLink(pageIndex()), data = { title: document.title, url: url };
+      if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+        navigator.share(data).catch(function (e) { if (!e || e.name !== 'AbortError') fallback(url); });
+      } else fallback(url);
+    });
+    // Enter / Space on the focused button press the button, and only the button: the book's own
+    // Enter (open the card) and Space (next page) listeners further up the tree never hear them.
+    btn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); });
+  })();
   function paint() {
     var i = pageIndex();
     for (var k = 0; k < ds.length; k++) ds[k].className = k === i ? 'on' : (k < i ? 'walked' : '');   // the way behind you is lit; the way ahead is still faint
