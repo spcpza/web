@@ -1208,7 +1208,7 @@
   }
   function kidWarmAll(busy) {
     if (KID_WARMED) return; KID_WARMED = 1;
-    if (kidSlowNet()) return;   // 2g / 3g / slow-2g or Save-Data: pages fetch their own cells, nothing in bulk
+    if (kidSlowNet()) return;   // 2g / slow-2g or Save-Data (NOT 3g — paced instead, see kidSlowNet): pages fetch their own cells, nothing in bulk
     var order = [], seen = {}, p, i;
     for (p = 0; p < 40; p++) {
       var cs = kidCellsFor(p);
