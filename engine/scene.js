@@ -4390,21 +4390,76 @@
     if (page.__artDone) return _idle(f);
     (page.__artWait || (page.__artWait = [])).push(f);
   }
+  /* ---- ⚠ THE BOIL DRAWINGS NO LONGER FIGHT THE PICTURE (Oct 9) ----
+     Measured on Fast 3G with a 4x CPU (an emulated cheap Android): the cover's 8 planes were
+     requested at 5.4 s, and its 18 boil drawings (4.8 MB) at 15.5 s — exactly the 10 s backstop
+     below, which assumed a plane that had not landed in 10 s had STALLED. On 3G every cover plane
+     is simply slow, so the drawings were released on top of them, and the cover's full picture
+     arrived at 52 s instead of ~24 s. Three changes, none to what is drawn:
+       1. The backstop measures PROGRESS, not time since the start: it fires only when no plane of
+          the page has finished (loaded or failed) for BOIL_STALL_MS. A failed plane already counts
+          as finished (its error event), so only a genuinely stuck one waits it out.
+       2. The drawings go a few at a time (BOIL_INFLIGHT), and none starts while a neighbouring
+          page's planes are still arriving — the next page the reader swipes to comes first.
+       3. When the reader leaves the page, its drawings still in flight are CANCELLED at once (from
+          the scroll handler — settle()'s own free can be held up by the next page's build), so
+          they stop sharing the line with the page being swiped to. They start again if the reader
+          comes back. A cancelled drawing has no src, so it is neither a failure nor a "loaded". */
+  var BOIL_STALL_MS = 30000, BOIL_INFLIGHT = 3, _boilLive = null;
+  function neighbourPlanesArriving(page) {
+    var i = pages.indexOf(page);
+    for (var j = i - 1; j <= i + 1; j += 2) {
+      var p = pages[j], pl = p && p.__dio;
+      if (!pl) continue;
+      var q = p.__boilQ || [];
+      for (var k = 0; k < pl.length; k++) {
+        var im = pl[k].img;
+        if (q.indexOf(im) === -1 && im.getAttribute('src') && !im.complete) return true;
+      }
+    }
+    return false;
+  }
+  function pumpBoil(L) {
+    if (_boilLive !== L || L.page.__boilQ !== L.q) return;
+    if (pages[currentIdx()] !== L.page) return stopBoil(L);
+    L.fl = L.fl.filter(function (el) { return el.getAttribute('src') && !el.complete; });
+    if (!L.todo.length || L.fl.length >= BOIL_INFLIGHT) return;
+    if (neighbourPlanesArriving(L.page)) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 500); return; }
+    var kick = function () { setTimeout(function () { pumpBoil(L); }, 0); };
+    while (L.fl.length < BOIL_INFLIGHT && L.todo.length) {
+      var el = L.todo.shift();
+      if (el.getAttribute('src')) continue;
+      el.addEventListener('load', kick, { once: true });
+      el.addEventListener('error', kick, { once: true });
+      try { el.fetchPriority = 'low'; } catch (e) { }                      // ⚠ before src, or it is already queued
+      el.src = el.__boilSrc;
+      L.fl.push(el);
+    }
+  }
+  function stopBoil(L) {
+    if (!L) return;
+    clearTimeout(L.t);
+    if (_boilLive === L) _boilLive = null;
+    L.fl.forEach(function (el) { if (!el.complete) el.removeAttribute('src'); });   // cancel what is still downloading
+    L.fl = [];
+    if (L.page.__boilQ === L.q) L.page.__boilGo = false;   // the next visit starts the rest again
+  }
   function loadBoil(page) {
     if (!page || page.__boilGo) return;
     var planes = page.__dio, q = page.__boilQ;
     if (!planes || !q) { if (built[pages.indexOf(page)] && !planes) artDone(page); return; }   // a page with no diorama has no boil to wait for
     page.__boilGo = true;
     var waits = planes.filter(function (p) { return q.indexOf(p.img) === -1; }).map(function (p) { return p.img; });
-    var left = waits.length + 1, fired = false;
+    var left = waits.length + 1, fired = false, stallT = 0;
     function planesUp() {
-      if (--left > 0 || fired) return;
-      fired = true;
+      if (--left > 0 || fired) { if (!fired) armStall(); return; }
+      fired = true; clearTimeout(stallT);
       setTimeout(function () {
         if (page.__boilQ !== q) return;                                         // freed or rebuilt meanwhile
         if (pages[currentIdx()] !== page) { page.__boilGo = false; return; }    // reader moved on: wait until they come back
         var n = q.length;
         if (!n) return artDone(page);
+        var todo = [];
         q.forEach(function (el) {
           var end = el.__boilEnd, counted = false;   // a ring's own counter (may be null), chained with the page's
           el.__boilEnd = function (good) {
@@ -4413,10 +4468,16 @@
             if (--n === 0 && page.__boilQ === q) artDone(page);
           };
           if (el.getAttribute('src')) return el.__boilEnd(true);                // already set on an earlier visit
-          try { el.fetchPriority = 'low'; } catch (e) { }                      // ⚠ before src, or it is already queued
-          el.src = el.__boilSrc;
+          todo.push(el);
         });
+        if (_boilLive) stopBoil(_boilLive);
+        if (todo.length) pumpBoil(_boilLive = { page: page, q: q, todo: todo, fl: [], t: 0 });
       }, 120);   // let the planes paint first
+    }
+    // backstop: one STUCK plane must not keep the page still for ever — but a slow one is not stuck
+    function armStall() {
+      clearTimeout(stallT);
+      stallT = setTimeout(function () { if (!fired && page.__boilQ === q) { left = 1; planesUp(); } }, BOIL_STALL_MS);
     }
     waits.forEach(function (im) {
       if (im.complete) return planesUp();
@@ -4424,7 +4485,6 @@
       im.addEventListener('error', planesUp, { once: true });
     });
     planesUp();
-    setTimeout(function () { if (!fired) { left = 1; planesUp(); } }, 10000);   // backstop: one stalled plane must not keep the page still for ever
   }
   // ⚠ THE CAST WARM-UP WAITS ITS TURN (Oct 8). On the cover it waits for the first swipe or for
   // the cover's own art to finish and the browser to go idle, whichever comes first; from page 5
@@ -4589,6 +4649,7 @@
   }
   book.addEventListener('scroll', function () {
     coverReady(); clearTimeout(sT); sT = setTimeout(settle, 110);
+    if (_boilLive && pages[currentIdx()] !== _boilLive.page) stopBoil(_boilLive);   // leaving: its drawings stop downloading now
     if (!_spRAF) _spRAF = requestAnimationFrame(scrollDepth);
   }, { passive: true });
   scrollDepth();   // swiping means you want the next page NOW, cover or no cover
