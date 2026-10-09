@@ -4401,21 +4401,91 @@
     if (page.__artDone) return _idle(f);
     (page.__artWait || (page.__artWait = [])).push(f);
   }
+  /* ---- ⚠ THE BOIL DRAWINGS NO LONGER FIGHT THE PICTURE (Oct 9) ----
+     Measured on Fast 3G with a 4x CPU (an emulated cheap Android): the cover's 8 planes were
+     requested at 5.4 s, and its 18 boil drawings (4.8 MB) at 15.5 s — exactly the 10 s backstop
+     below, which assumed a plane that had not landed in 10 s had STALLED. On 3G every cover plane
+     is simply slow, so the drawings were released on top of them, and the cover's full picture
+     arrived at 52 s instead of ~24 s. Three changes, none to what is drawn:
+       1. The backstop measures PROGRESS, not time since the start: it fires only when no plane of
+          the page has finished (loaded or failed) for BOIL_STALL_MS. A failed plane already counts
+          as finished (its error event), so only a genuinely stuck one waits it out.
+       2. None starts while a neighbouring page's planes are still arriving, or while the book is
+          moving — the next page the reader swipes to comes first. Then they ALL go in one task.
+          ⚠ ALL AT ONCE, NOT A FEW AT A TIME (Caspar's review, Oct 9). A first version released them
+          three at a time; the finished DESKTOP cover then differed from main by two 1-px vertical
+          seams (x = 814 and 1220 at 1280×800, up to 15/255) — every run, though every computed
+          style was identical. A forced repaint made it match main, so it was the browser's raster,
+          not the art: a drawing whose src is set after its siblings have painted leaves a tile edge
+          painted differently (releasing 38 of 39 together still left one seam). Released together,
+          as main does, the cover is identical to main to the pixel; only WHEN they start differs.
+       3. When the reader leaves the page, its drawings still in flight are CANCELLED at once (from
+          the scroll handler — settle()'s own free can be held up by the next page's build), so
+          they stop sharing the line with the page being swiped to. They start again if the reader
+          comes back. A cancelled drawing has no src, so it is neither a failure nor a "loaded". */
+  var BOIL_STALL_MS = 30000, _boilLive = null, _boilScrollT = -1e9;
+  function neighbourPlanesArriving(page) {
+    var i = pages.indexOf(page);
+    for (var j = i - 1; j <= i + 1; j += 2) {
+      var p = pages[j], pl = p && p.__dio;
+      if (!pl) continue;
+      var q = p.__boilQ || [];
+      for (var k = 0; k < pl.length; k++) {
+        var im = pl[k].img;
+        if (q.indexOf(im) === -1 && im.getAttribute('src') && !im.complete) return true;
+      }
+    }
+    return false;
+  }
+  function pumpBoil(L) {
+    if (_boilLive !== L || L.page.__boilQ !== L.q) return;
+    if (pages[currentIdx()] !== L.page) return stopBoil(L);
+    L.fl = L.fl.filter(function (el) { return el.getAttribute('src') && !el.complete; });
+    if (!L.todo.length) return;
+    // nor while the book is moving: a swipe may be on its way to the next page, whose planes come first
+    if (performance.now() - _boilScrollT < 400 || neighbourPlanesArriving(L.page)) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 500); return; }
+    var kick = function () { setTimeout(function () { pumpBoil(L); }, 0); };
+    while (L.todo.length) {                                                 // every one, in this one task (see 2. above)
+      var el = L.todo.shift();
+      if (el.getAttribute('src')) continue;
+      el.addEventListener('load', kick, { once: true });
+      el.addEventListener('error', kick, { once: true });
+      try { el.fetchPriority = 'low'; } catch (e) { }                      // ⚠ before src, or it is already queued
+      el.src = el.__boilSrc;
+      L.fl.push(el);
+    }
+  }
+  function stopBoil(L) {
+    if (!L) return;
+    clearTimeout(L.t);
+    if (_boilLive === L) _boilLive = null;
+    L.fl.forEach(function (el) { if (!el.complete) el.removeAttribute('src'); });   // cancel what is still downloading
+    L.fl = [];
+    if (L.page.__boilQ === L.q) L.page.__boilGo = false;   // the next visit starts the rest again
+  }
+  // run `f` in idle time once this page's PLANES (not its boil drawings) are in — see warmCast
+  function onPagePlanes(page, f) {
+    if (page.__planesIn) return _idle(f);
+    (page.__planesWait || (page.__planesWait = [])).push(f);
+  }
   function loadBoil(page) {
     if (!page || page.__boilGo) return;
     var planes = page.__dio, q = page.__boilQ;
-    if (!planes || !q) { if (built[pages.indexOf(page)] && !planes) artDone(page); return; }   // a page with no diorama has no boil to wait for
+    if (!planes || !q) { if (built[pages.indexOf(page)] && !planes) { page.__planesIn = true; (page.__planesWait || []).splice(0).forEach(function (f) { _idle(f); }); artDone(page); } return; }   // a page with no diorama has no boil to wait for
     page.__boilGo = true;
     var waits = planes.filter(function (p) { return q.indexOf(p.img) === -1; }).map(function (p) { return p.img; });
-    var left = waits.length + 1, fired = false;
+    var left = waits.length + 1, fired = false, stallT = 0;
     function planesUp() {
-      if (--left > 0 || fired) return;
-      fired = true;
+      if (--left > 0 || fired) { if (!fired) armStall(); return; }
+      fired = true; clearTimeout(stallT);
+      page.__planesIn = true;
+      (page.__planesWait || []).splice(0).forEach(function (f) { _idle(f); });   // see onPagePlanes
       setTimeout(function () {
         if (page.__boilQ !== q) return;                                         // freed or rebuilt meanwhile
         if (pages[currentIdx()] !== page) { page.__boilGo = false; return; }    // reader moved on: wait until they come back
         var n = q.length;
         if (!n) return artDone(page);
+        var todo = [];
         q.forEach(function (el) {
           var end = el.__boilEnd, counted = false;   // a ring's own counter (may be null), chained with the page's
           el.__boilEnd = function (good) {
@@ -4424,10 +4494,16 @@
             if (--n === 0 && page.__boilQ === q) artDone(page);
           };
           if (el.getAttribute('src')) return el.__boilEnd(true);                // already set on an earlier visit
-          try { el.fetchPriority = 'low'; } catch (e) { }                      // ⚠ before src, or it is already queued
-          el.src = el.__boilSrc;
+          todo.push(el);
         });
+        if (_boilLive) stopBoil(_boilLive);
+        if (todo.length) pumpBoil(_boilLive = { page: page, q: q, todo: todo, fl: [], t: 0 });
       }, 120);   // let the planes paint first
+    }
+    // backstop: one STUCK plane must not keep the page still for ever — but a slow one is not stuck
+    function armStall() {
+      clearTimeout(stallT);
+      stallT = setTimeout(function () { if (!fired && page.__boilQ === q) { left = 1; planesUp(); } }, BOIL_STALL_MS);
     }
     waits.forEach(function (im) {
       if (im.complete) return planesUp();
@@ -4435,7 +4511,6 @@
       im.addEventListener('error', planesUp, { once: true });
     });
     planesUp();
-    setTimeout(function () { if (!fired) { left = 1; planesUp(); } }, 10000);   // backstop: one stalled plane must not keep the page still for ever
   }
   /* ---- ⚠ THE NEXT PAGE'S PLANES ARE PREFETCHED WHEN THE BUDGET WON'T BUILD IT (Oct 9) ----
      Page 2's layers arrived ~1 s later on 4G after the Oct 8 loading pass (4.8 s from the swipe,
@@ -4495,7 +4570,12 @@
     if (idx !== _castFirst) _castSwiped = true;
     var page = pages[idx];
     if (!_castSwiped) {
-      if (page && !page.__castQ) { page.__castQ = 1; onPageArt(page, function () { _castSwiped = true; warmCast(currentIdx()); }); }
+      // ⚠ ON THE COVER: ONCE ITS PLANES ARE IN, not its whole art (Oct 9). The cover's boil drawings
+      // now come a few at a time after the planes (see loadBoil), so "art done" moved ~25 s later on
+      // 3G — and the first pages' cells, which used to land while the reader looked at the cover,
+      // slid into the first swipe and shared the line with page 1's own planes (measured: page 1
+      // +1.1-1.5 s on Fast 3G). Their turn is right after the picture, as it effectively was before.
+      if (page && !page.__castQ) { page.__castQ = 1; onPagePlanes(page, function () { _castSwiped = true; warmCast(currentIdx()); }); }
       return;
     }
     try { F.kidWarmAhead(idx, !!F.kidWarmAll); } catch (e) { }   // the next pages' cells now; with kidWarmAll exported, NOT the bulk
@@ -4619,7 +4699,7 @@
             dd[k].remove();
           }
           p.__dio = null;
-          p.__boilQ = null; p.__boilGo = false; p.__artDone = false;
+          p.__boilQ = null; p.__boilGo = false; p.__artDone = false; p.__planesIn = false;
           var pic = p.querySelector('picture');
           if (pic) pic.style.opacity = (DIO[i] && i !== 0) ? '0' : '';
         }
@@ -4693,6 +4773,8 @@
   }
   book.addEventListener('scroll', function () {
     coverReady(); clearTimeout(sT); sT = setTimeout(settle, 110);
+    _boilScrollT = performance.now();
+    if (_boilLive && pages[currentIdx()] !== _boilLive.page) stopBoil(_boilLive);   // leaving: its drawings stop downloading now
     if (!_spRAF) _spRAF = requestAnimationFrame(scrollDepth);
   }, { passive: true });
   scrollDepth();   // swiping means you want the next page NOW, cover or no cover
