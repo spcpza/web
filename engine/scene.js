@@ -4399,13 +4399,20 @@
        1. The backstop measures PROGRESS, not time since the start: it fires only when no plane of
           the page has finished (loaded or failed) for BOIL_STALL_MS. A failed plane already counts
           as finished (its error event), so only a genuinely stuck one waits it out.
-       2. The drawings go a few at a time (BOIL_INFLIGHT), and none starts while a neighbouring
-          page's planes are still arriving — the next page the reader swipes to comes first.
+       2. None starts while a neighbouring page's planes are still arriving, or while the book is
+          moving — the next page the reader swipes to comes first. Then they ALL go in one task.
+          ⚠ ALL AT ONCE, NOT A FEW AT A TIME (Caspar's review, Oct 9). A first version released them
+          three at a time; the finished DESKTOP cover then differed from main by two 1-px vertical
+          seams (x = 814 and 1220 at 1280×800, up to 15/255) — every run, though every computed
+          style was identical. A forced repaint made it match main, so it was the browser's raster,
+          not the art: a drawing whose src is set after its siblings have painted leaves a tile edge
+          painted differently (releasing 38 of 39 together still left one seam). Released together,
+          as main does, the cover is identical to main to the pixel; only WHEN they start differs.
        3. When the reader leaves the page, its drawings still in flight are CANCELLED at once (from
           the scroll handler — settle()'s own free can be held up by the next page's build), so
           they stop sharing the line with the page being swiped to. They start again if the reader
           comes back. A cancelled drawing has no src, so it is neither a failure nor a "loaded". */
-  var BOIL_STALL_MS = 30000, BOIL_INFLIGHT = 3, _boilLive = null, _boilScrollT = -1e9;
+  var BOIL_STALL_MS = 30000, _boilLive = null, _boilScrollT = -1e9;
   function neighbourPlanesArriving(page) {
     var i = pages.indexOf(page);
     for (var j = i - 1; j <= i + 1; j += 2) {
@@ -4423,11 +4430,11 @@
     if (_boilLive !== L || L.page.__boilQ !== L.q) return;
     if (pages[currentIdx()] !== L.page) return stopBoil(L);
     L.fl = L.fl.filter(function (el) { return el.getAttribute('src') && !el.complete; });
-    if (!L.todo.length || L.fl.length >= BOIL_INFLIGHT) return;
+    if (!L.todo.length) return;
     // nor while the book is moving: a swipe may be on its way to the next page, whose planes come first
     if (performance.now() - _boilScrollT < 400 || neighbourPlanesArriving(L.page)) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 500); return; }
     var kick = function () { setTimeout(function () { pumpBoil(L); }, 0); };
-    while (L.fl.length < BOIL_INFLIGHT && L.todo.length) {
+    while (L.todo.length) {                                                 // every one, in this one task (see 2. above)
       var el = L.todo.shift();
       if (el.getAttribute('src')) continue;
       el.addEventListener('load', kick, { once: true });
