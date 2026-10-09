@@ -3128,7 +3128,7 @@
       // Same frames, same pixels. A layer freed mid-build (sh.__dead) stops and gives the canvas back.
       var fi = 0;
       (function slice() {
-        if (sh.__dead) { sheet.width = sheet.height = 0; return; }
+        if (sh.__dead) { sheet.width = sheet.height = 0; for (var dk in _uniq) if (_uniq[dk]) _uniq[dk].width = _uniq[dk].height = 0; _uniq = {}; return; }   // the poses too, not only the strip
         var t0 = performance.now();
         do { drawFrame(fi++); } while (fi < SHEET_K && performance.now() - t0 < 12);
         if (fi < SHEET_K) setTimeout(slice, 0);
