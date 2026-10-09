@@ -1186,11 +1186,29 @@
       im.addEventListener('error', kidFlush);   // a cell that 404s must not strand a page for ever
     }
   }
-  // the rest of the cast, in PAGE ORDER, once the book is up: nearest first, a few at a
-  // time, at low priority, so it can never contend with what the reader is looking at.
+  // the rest of the cast, in PAGE ORDER, once the book is up: nearest first, ONE AT A TIME,
+  // at low priority, so it can never contend with what the reader is looking at.
+  // ⚠ ONE CELL AT A TIME, AND NEVER WHILE A PAGE IS STILL ARRIVING (Oct 9). This used to queue four
+  // cells per idle callback — and on an idle phone idle callbacks fire back to back, so all 22
+  // remaining cells (3.2 MB) were requested within 0.1 s. `fetchPriority='low'` does not stop them
+  // sharing the line with the next page's planes, which are low priority too: measured on Fast 3G
+  // with a 4x CPU, page 6 (`garden`) took 29 s to show its art, against 14 s when the cells went
+  // one by one. So: the next cell is asked for only when the previous one has landed, and only
+  // while `busy()` (passed by the scene engine: "are the current or next page's planes still
+  // loading?") says the line is free. On 2g / slow-2g or with Save-Data on, the bulk warm-up is
+  // skipped outright — each page still asks for its own cells (kidWarmAhead), so no figure is lost.
+  // ⚠ NOT ON 3G. Skipping on 3g was measured too (Fast 3G, 4x CPU, whole book, two runs): page 6
+  // got the same 17 s back, but pages 15, 16, 17 and 20 each lost 3-10 s, because their cells then
+  // came in late, alongside their planes. Paced, the cells use the gaps between pages instead.
   var KID_WARMED = 0;
-  function kidWarmAll() {
+  function kidSlowNet() {
+    var c = typeof navigator !== 'undefined' && navigator.connection;
+    if (!c) return false;
+    return !!c.saveData || /(^|-)2g$/.test(c.effectiveType || '');   // 2g and slow-2g; NOT 3g (see below)
+  }
+  function kidWarmAll(busy) {
     if (KID_WARMED) return; KID_WARMED = 1;
+    if (kidSlowNet()) return;   // 2g / slow-2g or Save-Data (NOT 3g — paced instead, see kidSlowNet): pages fetch their own cells, nothing in bulk
     var order = [], seen = {}, p, i;
     for (p = 0; p < 40; p++) {
       var cs = kidCellsFor(p);
@@ -1203,8 +1221,15 @@
       : function (fn) { setTimeout(fn, 90); };
     (function step() {
       if (at >= order.length) return;
-      for (var n = 0; n < 4 && at < order.length; n++) kidPreload([order[at++]], true);
-      idle(step);
+      var b = false;
+      try { b = typeof busy === 'function' && busy(); } catch (e) { }
+      if (b) { setTimeout(step, 1000); return; }   // a page is still arriving: wait, then ask again
+      var im = kidImage(order[at], true);
+      kidPreload([order[at++]], true);
+      if (im.complete) { idle(step); return; }      // already here (a page asked for it), or not shipped
+      var next = function () { im.removeEventListener('load', next); im.removeEventListener('error', next); idle(step); };
+      im.addEventListener('load', next);
+      im.addEventListener('error', next);           // a cell that fails must not stall the rest
     })();
   }
   // the next few pages' drawings, low priority — called by the scene engine as each page settles.

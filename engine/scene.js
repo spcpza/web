@@ -4472,6 +4472,22 @@
   // the bulk warm of every remaining cell (kidWarmAll) waits for the current page's art and idle
   // time instead of starting the moment the page settles. Each page still asks for ITS OWN cells
   // when it builds (buildActor), so no figure ever waits on this.
+  // ⚠ IS A PAGE STILL ARRIVING? The bulk cast warm-up (kidWarmAll) asks this before each cell and
+  // waits while it is true: any plane of the page being read, or of the next page in either
+  // direction, that is built but not yet loaded. Boil drawings do not count — they wait their own turn.
+  function planesArriving() {
+    var c = currentIdx();
+    for (var j = c - 1; j <= c + 1; j++) {
+      var p = pages[j], planes = p && p.__dio;
+      if (!planes) continue;
+      var q = p.__boilQ || [];
+      for (var k = 0; k < planes.length; k++) {
+        var im = planes[k].img;
+        if (q.indexOf(im) === -1 && im.getAttribute('src') && !im.complete) return true;
+      }
+    }
+    return false;
+  }
   var _castFirst = null, _castSwiped = false;
   function warmCast(idx) {
     if (!F || !F.kidWarmAhead) return;
@@ -4485,7 +4501,7 @@
     try { F.kidWarmAhead(idx, !!F.kidWarmAll); } catch (e) { }   // the next pages' cells now; with kidWarmAll exported, NOT the bulk
     if (idx >= 4 && F.kidWarmAll && page && !page.__castAll) {
       page.__castAll = 1;
-      onPageArt(page, function () { try { F.kidWarmAll(); } catch (e) { } });
+      onPageArt(page, function () { try { F.kidWarmAll(planesArriving); } catch (e) { } });
     }
   }
   // run `f` once this page's own planes (not its boil drawings) have landed — at once if it has none
