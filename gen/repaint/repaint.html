@@ -1,0 +1,224 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>repaint</title>
+<!-- gen/repaint/repaint.html — THE BRUSH THAT REFINES A PLATE (Oct 25). Driven headless by gen/repaint/repaint.mjs.
+     Fred: "the solichin.org brushstrokes are more refined. can you do another pass on balthazar.sh for the art?"
+     This is solichin.org's brush engine (spcpza/foundation public/main.js), turned from a live canvas into a
+     baking tool for ONE transparent plane at a time:
+       · the plane itself is laid down first — nothing the plate painted is ever lost under a gap;
+       · then broad → body → fine passes of bristle strokes, sizes spread wide (log-normal), each taking its
+         colour from the plane right where it lands, running along the page's flow map (gen/repaint/flow.py),
+         small and dense where the picture has detail, free and long where it is open;
+       · every stroke bends, presses at its loaded head and lifts thin at the dry tail; a two-load bristle
+         texture gives it ridges that catch light and grooves that hold shadow;
+       · each stroke pushes its colour a little (warmer/cooler, fuller/greyer) — broken colour;
+       · the result keeps the plane's own alpha, so a silhouette cuts exactly where it cut before.
+     A boil frame (fr of nb) is the SAME strokes, each nudged round its own small loop, so the hand still moves. -->
+<script>
+const VS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 corner;
+layout(location=1) in vec2 base;
+layout(location=2) in vec4 rnd;
+layout(location=3) in vec2 size;
+uniform sampler2D T, F;
+uniform vec2 RES;
+uniform float FR, NB, BAMP, VIVID;
+out vec2 vUv; out vec3 vCol; out float vSeed; out vec3 vBase; out float vFine;
+vec2 perp(vec2 d){ return vec2(-d.y, d.x); }
+void main(){
+  vec2 uv = base / RES;
+  vec4 c = textureLod(T, uv, 0.);
+  if (c.a < .55) { gl_Position = vec4(3., 3., 0., 1.); return; }        // no paint lands where the plane is empty
+  vec4 f = textureLod(F, uv, 0.);
+  float t = atan(f.g*2. - 1., f.r*2. - 1.) * .5;
+  vec2 dir = vec2(cos(t), sin(t));
+  vec2 wind = normalize(vec2(1., .22*sin(uv.x*5. + uv.y*7.)));
+  if (dot(dir, wind) < 0.) dir = -dir;
+  float coh = f.b, d = f.a;
+  dir = normalize(mix(wind, dir, smoothstep(.08, .45, coh)) + 1e-4);
+  float fine = smoothstep(.12, .8, d);                 // 1 on an edge, a face, a leaf; 0 in open sky
+  float free = 1. - fine; vFine = fine;
+  float sc = mix(1., .42, fine);                       // the brush gets small where the picture has detail
+  vec3 col = c.rgb; vBase = c.rgb;
+  // the hand: no two strokes alike — angle, colour, value
+  float a = (rnd.y - .5) * (.18 + .42*free);
+  dir = mat2(cos(a), sin(a), -sin(a), cos(a)) * dir;
+  float lv = dot(col, vec3(.3, .55, .15));
+  col = lv + (col - lv) * (1.03 + VIVID*(rnd.z - .5)*mix(.25, 1., free));
+  col += (rnd.w - .5) * (.018 + .06*free) * VIVID * vec3(.9, .1, -.9);
+  col *= mix(.985, .93, free) + mix(.03, .14, free) * rnd.z;
+  // the boil: this stroke's own small loop, one step per frame
+  float ph = rnd.x * 6.2832 + 6.2832 * FR / max(NB, 1.);
+  vec2 b = base + BAMP * sc * vec2(cos(ph), sin(ph));
+  float bend = (rnd.x - .5) * (.3 + 1.0*free);
+  float press = mix(1.15, .5, smoothstep(-.5, .5, corner.x)) * (1. + .18*sin(corner.x*9. + rnd.y*20.));
+  vec2 along = dir * corner.x * size.x * sc;
+  vec2 across = perp(dir) * (corner.y * size.y * press + bend * (corner.x*corner.x - .25) * size.x) * sc;
+  vec2 q = b + along + across;
+  gl_Position = vec4(q.x / RES.x * 2. - 1., 1. - q.y / RES.y * 2., 0., 1.);
+  vUv = corner + .5; vCol = col; vSeed = rnd.w;
+}`;
+const FS = `#version 300 es
+precision highp float;
+in vec2 vUv; in vec3 vCol; in float vSeed; in vec3 vBase; in float vFine;
+uniform sampler2D B, T;
+uniform vec2 RES;
+uniform float IMP, EDGE, EDGEFREE;
+out vec4 o;
+void main(){
+  vec4 b = texture(B, vec2(vUv.x, vUv.y*.5 + step(.5, vSeed)*.5));   // two bristle loads
+  if (b.a < .3) discard;
+  // ⭐ A STROKE ENDS AT A CONTOUR. Where the plate under this fragment is a different colour from where the stroke
+  // was loaded, the paint runs out — grass marks stay in the grass, a grape keeps its round edge, a post its line.
+  vec4 u = texture(T, vec2(gl_FragCoord.x / RES.x, 1. - gl_FragCoord.y / RES.y));
+  float dc = length(u.rgb - vBase) + (1. - u.a);
+  // …but only where the picture has FORMS. In open sky a stroke crosses the soft edges of the old marks freely —
+  // that is what turns translucent swatches into paint.
+  float e = mix(EDGEFREE, EDGE, smoothstep(.15, .55, vFine));
+  float keep = 1. - smoothstep(e, e * 2.1, dc);
+  if (keep < .02) discard;
+  vec3 c = vCol * (.8 + .3*b.r) + IMP*(.09*smoothstep(.4, 1., b.r)*(1. - vUv.y) - .05*smoothstep(.5, 0., b.r));   // ridges catch light, grooves hold shadow
+  o = vec4(clamp(c, 0., 1.), keep);
+}`;
+const VS_Q = `#version 300 es
+layout(location=0) in vec2 p; out vec2 uv;
+void main(){ uv = vec2(p.x*.5 + .5, .5 - p.y*.5); gl_Position = vec4(p, 0., 1.); }`;
+const FS_Q = `#version 300 es
+precision mediump float; in vec2 uv; uniform sampler2D T; out vec4 o;
+void main(){ vec4 c = texture(T, uv); o = vec4(c.rgb, 1.); }`;
+
+let gl;
+function sh(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+function prog(v, f) { const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, v)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, f)); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p)); return p; }
+function texture(src, mip) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+  if (mip) gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+// the brush: bristle streaks in a tapered stroke, fat at the loaded head, thin at the dry tail (two loads) — solichin.org's
+function bristles() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const g = c.getContext('2d');
+  let seed = 11; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let half = 0; half < 2; half++) {
+    const y0 = half * 64;
+    g.fillStyle = 'rgba(205,205,205,1)'; g.beginPath(); g.ellipse(118, y0 + 32, 112, 25, 0, 0, 7); g.fill();
+    for (let i = 0; i < 34; i++) {
+      const y = y0 + 6 + r() * 52, w = 1.2 + r() * 3, v = 130 + r() * 125;
+      const start = r() * 26, end = 256 - r() * 70 - (Math.abs(y - y0 - 32) / 32) * 50;
+      const grd = g.createLinearGradient(start, 0, end, 0);
+      grd.addColorStop(0, `rgba(${v},${v},${v},0)`); grd.addColorStop(.08, `rgba(${v},${v},${v},${.75 + r() * .25})`);
+      grd.addColorStop(.7, `rgba(${v},${v},${v},${.6 + r() * .3})`); grd.addColorStop(1, `rgba(${v},${v},${v},0)`);
+      g.strokeStyle = grd; g.lineWidth = w; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(start, y); g.quadraticCurveTo(128, y + (r() - .5) * 4, end, y + (r() - .5) * 3); g.stroke();
+    }
+  }
+  const img = g.getImageData(0, 0, 256, 128), d = img.data;
+  for (let y = 0; y < 128; y++) for (let x = 0; x < 256; x++) {
+    const v = ((y % 64) - 32) / 32, u = x / 256, half = .95 - .3 * u;
+    const k = Math.max(0, 1 - Math.pow(Math.abs(v) / half, 6)), i = (y * 256 + x) * 4;
+    d[i + 3] = d[i + 3] * k;
+  }
+  g.putImageData(img, 0, 0);
+  return texture(c, true);
+}
+const load = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error('load ' + src)); im.src = src; });
+function pixels(im) { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0); return g.getImageData(0, 0, c.width, c.height); }
+
+// strokes for a plane of W×H px: the same layout for every frame of a plane (seeded), so the boil is coherent
+function layout(W, H, flowA, fw, fh, o) {
+  const data = [];
+  let seed = o.seed || 7; const r = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+  const A = W / H, sm = o.scale || .7;
+  // broad → body → fine: [count per unit area, length, width] as fractions of the plane's height (solichin.org's passes)
+  const passes = [[260, .16, .045], [1100, .075, .026], [5600, .04, .014], [7200, .021, .008]];
+  for (const [n, len, wid] of passes) {
+    const N = Math.round(n * A * (o.dens || 1)), cols = Math.ceil(Math.sqrt(N * A)), rows = Math.ceil(N / cols);
+    for (let i = 0; i < N; i++) {
+      const x = (i % cols + r()) / cols, y = (Math.floor(i / cols) + r()) / rows;
+      const g = Math.sqrt(-2 * Math.log(r() + 1e-9)) * Math.cos(6.2832 * r());   // a wide spread of sizes
+      const f = Math.min(2.4, Math.max(.4, Math.exp(g * .42)));
+      data.push(x * W, y * H, r(), r(), r(), r(), len * H * sm * f, wid * H * sm * f);
+    }
+  }
+  // where the picture has detail, lay many more small strokes, in proportion — form built out of paint
+  const det = (x, y) => flowA[Math.min(fh - 1, y * fh | 0) * fw + Math.min(fw - 1, x * fw | 0)] / 255;
+  const NX = Math.round(42000 * A * (o.dens || 1)), NF = Math.round(60000 * A * (o.dens || 1));
+  for (let i = 0; i < NX; i++) {
+    const x = r(), y = r(), dv = det(x, y), q = r(), f = .7 + r() * .6, k = [r(), r(), r(), r()];
+    if (q > Math.pow(Math.max(0, dv - .06) / .6, 1.1)) continue;
+    data.push(x * W, y * H, ...k, .032 * H * sm * f, .012 * H * sm * f);
+  }
+  for (let i = 0; i < NF; i++) {
+    const x = r(), y = r(), dv = det(x, y), q = r(), f = .75 + r() * .5, k = [r(), r(), r(), r()];
+    if (dv < .45 || q > (dv - .45) / .4) continue;
+    data.push(x * W, y * H, ...k, .018 * H * sm * f, .0075 * H * sm * f);
+  }
+  return new Float32Array(data);
+}
+
+window.repaint = async function (o) {
+  const im = await load(o.plane), fl = await load(o.flow);
+  const W = im.width, H = im.height;
+  const cv = document.createElement('canvas');   // a fresh canvas per plane (the last one's context was released)
+  cv.width = W; cv.height = H;
+  gl = cv.getContext('webgl2', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: true, alpha: true });
+  const P = prog(VS, FS), Q = prog(VS_Q, FS_Q);
+  const T = texture(im, true), Fm = texture(fl, false), Bt = bristles();
+  const fpx = pixels(fl), fa = new Uint8Array(fl.width * fl.height); for (let i = 0; i < fa.length; i++) fa[i] = fpx.data[i * 4 + 3];
+  gl.viewport(0, 0, W, H); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  // 1 · the plane itself, as the underpainting (opaque where it has paint; alpha is restored at the end)
+  const qb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, qb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const qv = gl.createVertexArray(); gl.bindVertexArray(qv); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.useProgram(Q); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, T); gl.uniform1i(gl.getUniformLocation(Q, 'T'), 0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  // 2 · the strokes
+  const data = layout(W, H, fa, fl.width, fl.height, o);
+  const SEG = 8, strip = []; for (let i = 0; i <= SEG; i++) { const x = -.5 + i / SEG; strip.push(x, -.5, x, .5); }
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  const sb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, sb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(strip), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const ib = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, ib); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  const st = 8 * 4;
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, st, 0); gl.vertexAttribDivisor(1, 1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, st, 8); gl.vertexAttribDivisor(2, 1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 2, gl.FLOAT, false, st, 24); gl.vertexAttribDivisor(3, 1);
+  gl.useProgram(P);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, T); gl.uniform1i(gl.getUniformLocation(P, 'T'), 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, Fm); gl.uniform1i(gl.getUniformLocation(P, 'F'), 1);
+  gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, Bt); gl.uniform1i(gl.getUniformLocation(P, 'B'), 2);
+  gl.uniform2f(gl.getUniformLocation(P, 'RES'), W, H);
+  gl.uniform1f(gl.getUniformLocation(P, 'FR'), o.frame || 0); gl.uniform1f(gl.getUniformLocation(P, 'NB'), o.nb || 1);
+  gl.uniform1f(gl.getUniformLocation(P, 'BAMP'), o.bamp || 0); gl.uniform1f(gl.getUniformLocation(P, 'VIVID'), o.vivid == null ? 1 : o.vivid);
+  gl.uniform1f(gl.getUniformLocation(P, 'IMP'), o.impasto == null ? 1 : o.impasto);
+  gl.uniform1f(gl.getUniformLocation(P, 'EDGE'), o.edge == null ? .16 : o.edge);
+  gl.uniform1f(gl.getUniformLocation(P, 'EDGEFREE'), o.edgefree == null ? .6 : o.edgefree);
+  gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (SEG + 1) * 2, data.length / 8);
+  // 3 · read back, flip, and give the plane its own alpha back (a silhouette cuts exactly where it did)
+  const out = new Uint8Array(W * H * 4); gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, out);
+  const KEEP = o.keep == null ? .6 : o.keep;
+  const src = pixels(im).data, c2 = document.createElement('canvas'); c2.width = W; c2.height = H;
+  const g2 = c2.getContext('2d'), id = g2.createImageData(W, H), d = id.data;
+  for (let y = 0; y < H; y++) { const sy = (H - 1 - y) * W * 4, dy = y * W * 4; for (let x = 0; x < W * 4; x += 4) {
+    const a = src[dy + x + 3];
+    // KEEP the finest forms steady (solichin.org keeps faces steady): where detail is highest the plate's own
+    // pixels come back through the paint — a flower, a blossom, a figure's edge stays itself
+    const px = x >> 2, dv = fa[Math.min(fl.height - 1, (y * fl.height / H) | 0) * fl.width + Math.min(fl.width - 1, (px * fl.width / W) | 0)] / 255;
+    let k = KEEP > 0 ? Math.max(0, Math.min(1, (dv - KEEP) / .22)) : 0; k = k * k * (3 - 2 * k);
+    d[dy + x] = a ? out[sy + x] * (1 - k) + src[dy + x] * k : 0; d[dy + x + 1] = a ? out[sy + x + 1] * (1 - k) + src[dy + x + 1] * k : 0;
+    d[dy + x + 2] = a ? out[sy + x + 2] * (1 - k) + src[dy + x + 2] * k : 0; d[dy + x + 3] = a; } }
+  g2.putImageData(id, 0, 0);
+  const url = c2.toDataURL('image/png');
+  gl.getExtension('WEBGL_lose_context')?.loseContext();
+  return { strokes: data.length / 8, url };
+};
+window.ready = true;
+</script>
