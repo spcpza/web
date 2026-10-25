@@ -297,57 +297,47 @@
     // running WITH the grain, each keeping its own value, a lit rim on the side facing the
     // light and a dark one opposite, and a few knots. Same anatomy as paintTree's trunk in
     // gen/engine.mjs, so the swaying trees and the painted ones are the same wood.
-    trunk(0); ctx.fillStyle = '#7c5636'; ctx.fill();   // a bed, so gaps between strokes are never holes
-    ctx.save(); trunk(0); ctx.clip();
-    // ⚠ NOT TOO DARK, OR THE FILTER TURNS IT NAVY. The living-paint filter has a blue-violet
-    // shadow floor — anything below roughly luminance 45 gets pulled cold — and the first
-    // bark ramp bottomed out at [36,20,8], which came back on the page as near-black BLUE
-    // wood. The whole ramp is lifted so even its darkest note stays brown.
-    // ⚠ HEX STRINGS, NOT RGB TRIPLES. rampC() feeds each entry to hx6(), which does
-    // c.slice(1) + parseInt(...,16) — hand it an array and slice returns a shorter ARRAY,
-    // parseInt("46,26",16) is 70, and every stroke comes out rgb(0,0,70): navy wood.
-    // That, not the filter, is what turned these trunks blue-black.
-    var BARK = ['#4a2e1a', '#644024', '#805834', '#a07448', '#c49864'];
+    // ⭐ A REAL TRUNK (Oct 25 — Fred: "the tree trunk could be better… until you think it is beautiful"). Same anatomy as
+    // engine.mjs paintTrunkReal, so swaying trees and painted trees are one wood: the trunk FLARES into the ground,
+    // tapers as it climbs, and is a CYLINDER of grey-brown bark — warm and pale on the lit flank, deep in the shaded one,
+    // with a thin cool reflected light at the shaded edge — crossed by furrows that crowd toward the silhouette. No pale
+    // stripe down one side (that read as a cartoon outline).
+    var lx = (function () { var a = L(cx + w, topY), b = L(cx - w, topY); return Math.abs(a - b) < 0.01 ? -1 : (a > b ? 1 : -1); })();   // which side the light is on
+    var flare = tw * 0.55;
+    var twAt = function (yy) { var u = Math.max(0, Math.min(1, (baseY - yy) / (baseY - topY))); return tw * 0.5 * (1 - 0.45 * u) + flare * Math.exp(-u / 0.09); };
+    var cxAt = function (yy) { var u = Math.max(0, Math.min(1, (baseY - yy) / (baseY - topY))); return cx + bend * Math.sin(u * 2.4) * 0.9; };
+    function trunkR() {
+      ctx.beginPath(); var k, yy;
+      for (k = 0; k <= 16; k++) { yy = baseY - (baseY - topY) * k / 16; if (k) ctx.lineTo(cxAt(yy) - twAt(yy), yy); else ctx.moveTo(cxAt(yy) - twAt(yy), yy); }
+      for (k = 16; k >= 0; k--) { yy = baseY - (baseY - topY) * k / 16; ctx.lineTo(cxAt(yy) + twAt(yy), yy); }
+      ctx.closePath();
+    }
+    var BK = ['#3a2c22', '#4c3c2f', '#62503f', '#7e6a54', '#a08a6e', '#c4ae8e'];   // grey-brown bark; darkest kept above the filter's navy floor
+    var bkS = function (v, a) { var c = rampC(BK, Math.max(0, Math.min(1, v))); var wk = Math.max(0, v - 0.6) * 0.5; c = [c[0] + (250 - c[0]) * wk * 0.3, c[1] + (225 - c[1]) * wk * 0.25, c[2]]; return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a + ')'; };
+    trunkR(); ctx.fillStyle = bkS(0.18, 1); ctx.fill();
+    ctx.save(); trunkR(); ctx.clip();
     var bseed = ((T.seed || 7) * 2654435761) & 0x7fffffff;
     var brnd = function () { bseed = (bseed * 1103515245 + 12345) & 0x7fffffff; return bseed / 0x7fffffff; };
-    var nb = Math.max(70, Math.round(tw * h / 3.2));
+    var glT = Math.max(0, Math.min(1, L(cx, (topY + baseY) / 2)));
+    var vAt = function (s, yy) { var lit = 0.5 - 0.5 * s * (-lx); var v = 0.12 + Math.pow(lit, 1.5) * 0.62 + glT * 0.14; if (s * (-lx) > 0.78) v += (s * (-lx) - 0.78) * 0.5;
+      var u = (baseY - yy) / (baseY - topY); if (u > 0.7) v -= (u - 0.7) * 0.6; return v; };   // the crown's shadow on the top
+    var nb = Math.max(90, Math.round(tw * h / 2.2));
     ctx.lineCap = 'round';
-    for (var bi = 0; bi < nb; bi++) {
-      var bu = brnd();
-      var by = topY - 2 + bu * (baseY - topY + 4);
-      var taper = 0.55 + 0.45 * bu;                                   // wider at the foot
-      var bx = cx + (brnd() - 0.5) * tw * 1.02 * taper + bend * (1 - bu) * 0.6;
-      var side = (bx - cx) / Math.max(1, tw * 0.5 * taper);           // -1 lit .. +1 shadow
-      var tt = Math.max(0, Math.min(1, 0.62 - side * 0.4 + (brnd() - 0.5) * 0.26));
-      var bc = rampC(BARK, tt);
-      ctx.strokeStyle = 'rgba(' + (bc[0] | 0) + ',' + (bc[1] | 0) + ',' + (bc[2] | 0) + ','
-                      + (0.55 + brnd() * 0.45).toFixed(2) + ')';
-      ctx.lineWidth = tw * (0.07 + brnd() * 0.1);
-      var blen = h * (0.03 + brnd() * 0.07);                           // short, with the grain
-      ctx.beginPath();
-      ctx.moveTo(bx, by - blen / 2);
-      ctx.quadraticCurveTo(bx + (brnd() - 0.5) * tw * 0.16, by, bx, by + blen / 2);
-      ctx.stroke();
+    for (var bi = 0; bi < nb; bi++) {                                  // the modelling: short strokes WITH the grain, valued across the cylinder
+      var by = topY - 2 + brnd() * (baseY - topY + 4), ww = twAt(by);
+      var s = Math.sin((brnd() * 2 - 1) * Math.PI / 2 * 0.8), bx = cxAt(by) + s * ww * 0.95;
+      ctx.strokeStyle = bkS(vAt(s, by) + (brnd() - 0.5) * 0.1, (0.6 + brnd() * 0.4).toFixed(2));
+      ctx.lineWidth = Math.max(0.7, ww * 0.28 * Math.sqrt(1 - s * s));
+      var blen = Math.min(h * (0.03 + brnd() * 0.06), ww * 1.4);
+      ctx.beginPath(); ctx.moveTo(bx, by - blen / 2); ctx.lineTo(bx + (brnd() - 0.5) * ww * 0.1, by + blen / 2); ctx.stroke();
     }
-    for (var kk = 0; kk < 2; kk++) {                                   // a knot or two
-      var ky = topY + (0.2 + brnd() * 0.6) * (baseY - topY);
-      var kx = cx + (brnd() - 0.5) * tw * 0.5;
-      ctx.fillStyle = 'rgba(84,54,30,.45)';
-      ctx.beginPath(); ctx.ellipse(kx, ky, tw * 0.16, tw * 0.1, brnd(), 0, 6.2832); ctx.fill();
+    var nf = Math.max(4, Math.round(tw * 0.9));
+    for (var fk = 0; fk < nf; fk++) {                                  // furrows that wrap the cylinder
+      var fs = Math.sin(((fk + brnd() * 0.8) / nf * 2 - 1) * Math.PI / 2 * 0.8);
+      var y0 = baseY - (baseY - topY) * (0.04 + brnd() * 0.5), y1 = y0 - (baseY - topY) * (0.2 + brnd() * 0.45);
+      ctx.strokeStyle = bkS(vAt(fs, (y0 + y1) / 2) - 0.32, 0.8); ctx.lineWidth = Math.max(0.6, twAt((y0 + y1) / 2) * 0.12);
+      ctx.beginPath(); for (var fj = 0; fj <= 8; fj++) { var yy2 = y0 + (y1 - y0) * fj / 8, wob = (brnd() - 0.5) * 0.12; var xx2 = cxAt(yy2) + (fs + wob) * twAt(yy2) * 0.95; if (fj) ctx.lineTo(xx2, yy2); else ctx.moveTo(xx2, yy2); } ctx.stroke();
     }
-    ctx.restore();
-    // the rims — one lit, one dark, which is what gives a trunk its roundness
-    ctx.save(); ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(186,140,86,.55)'; ctx.lineWidth = Math.max(1, tw * 0.1);
-    ctx.beginPath();
-    ctx.moveTo(cx + tw * 0.30, baseY - 1);
-    ctx.quadraticCurveTo(cx + tw * 0.18 + bend, baseY - h * 0.28, cx + tw * 0.12, topY + 2);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(74,46,26,.45)'; ctx.lineWidth = Math.max(1, tw * 0.12);
-    ctx.beginPath();
-    ctx.moveTo(cx - tw * 0.34, baseY - 1);
-    ctx.quadraticCurveTo(cx - tw * 0.24 + bend, baseY - h * 0.28, cx - tw * 0.14, topY + 2);
-    ctx.stroke();
     ctx.restore();
 
     // ---- grass at the foot ----
@@ -565,7 +555,7 @@
       var my = y0 + Math.sin(a) * len * 0.5 + Math.cos(a) * len * bow * 0.35;
       var x1 = x0 + Math.cos(a) * len, y1 = y0 + Math.sin(a) * len;
       var side = Math.max(-1, Math.min(1, (x1 - cx) / Math.max(1, w * 0.6)));
-      var bc = rampC(BARK, Math.max(0, Math.min(1, 0.52 - side * 0.34 + N.swing('v', 0.14))));
+      var bc = rampC(BK, Math.max(0, Math.min(1, 0.52 - side * 0.34 + N.swing('v', 0.14))));
       // limbs stand INSIDE the crown, in leaf shadow — left at full bark value they read as
       // rust-red sticks laid over the green. Sink them toward the canopy's own shadow so the
       // skeleton reads as structure the eye finds, not as drawing on top of the leaves.
@@ -5503,47 +5493,46 @@
     // ---- THE TRUNK AND BOUGHS. A cypress hides its trunk; this one shows it, which is
     // most of why the two read as different trees at a glance.
     var forkT = 0.40;                                  // the trunk forks at 40% of the height
-    var limb = function (t0, t1, x0, x1, w0, w1) {
-      var segs = 7;
-      for (var i = 0; i < segs; i++) {
-        var a = i / segs, b = (i + 1) / segs;
-        var ta = t0 + (t1 - t0) * a, tb = t0 + (t1 - t0) * b;
-        var ax = x + x0 + (x1 - x0) * a + sway(ta), ay = base - span * ta;
-        var bx = x + x0 + (x1 - x0) * b + sway(tb), by = base - span * tb;
-        // warm bark with a lit left edge. At 44,36,52 the trunk vanished into the night
-        // ground and the tree read as a floating bush — the visible trunk IS the thing
-        // that distinguishes this species from the cypress, so it has to be seen.
-        var v = 0.85 + wn() * 0.4;
-        var bl = 1 + lit * 0.9 * (1 - a);
-        ctx.strokeStyle = 'rgba(' + Math.min(255, PAL.bark[0] * v * bl | 0) + ',' + Math.min(255, PAL.bark[1] * v * bl | 0) + ','
-                                  + Math.min(255, PAL.bark[2] * v | 0) + ',0.95)';
-        var wdt = (w0 + (w1 - w0) * a) * (0.85 + wn() * 0.3);
-        ctx.lineWidth = wdt;
-        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
-        // ⚠ BARK, NOT A TUBE. Fred, once the canopy matched: "change the branch to be
-        // similar." The painted trees run their trunk through a five-stop ramp
-        // (#241408 → #a67a48 in gen/engine.mjs paintTree) with texture strokes over it;
-        // this drew every segment in ONE colour times a small jitter, so it came out a
-        // smooth plastic tube — the last thing giving the sprite away at a glance.
-        // Three strokes per segment, off the same ramp, laid ALONG the limb and offset
-        // across it: the trunk gets light and dark down its length like real bark.
-        var nxq = -(by - ay), nyq = (bx - ax), nlq = Math.sqrt(nxq * nxq + nyq * nyq) || 1;
-        for (var q = 0; q < 3; q++) {
-          var m = [0.44, 0.68, 1.04, 1.30][(wn() * 4) | 0];
-          var off = (wn() - 0.5) * wdt * 0.74;
-          ctx.strokeStyle = 'rgba(' + Math.min(255, PAL.bark[0] * m * bl | 0) + ','
-                                    + Math.min(255, PAL.bark[1] * m * bl | 0) + ','
-                                    + Math.min(255, PAL.bark[2] * m | 0) + ',0.85)';
-          ctx.lineWidth = wdt * 0.26;
-          ctx.beginPath();
-          ctx.moveTo(ax + nxq / nlq * off, ay + nyq / nlq * off);
-          ctx.lineTo(bx + nxq / nlq * off, by + nyq / nlq * off);
-          ctx.stroke();
-        }
+    // ⭐ Oct 25 (Fred: "the tree trunk could be better"): each limb is ONE shaded cylinder — an opaque tapering body,
+    // valued across its width (lit flank pale and warm, shaded flank deep, cool reflected light at the very edge), with
+    // bark marks along it and a flare where the trunk meets the ground. The old version stroked seven round-capped
+    // segments with three random dashes each, which read as a beaded zipper.
+    var BKb = ['#3a2c22', '#4c3c2f', '#62503f', '#7e6a54', '#a08a6e', '#c4ae8e'];
+    var litDir = -1;                                   // the book's light comes from the upper left on these pages
+    var bkC = function (v, al) { var c = rampC(BKb, Math.max(0, Math.min(1, v)));
+      c = [c[0] * 0.88 + PAL.bark[0] * 0.12, c[1] * 0.88 + PAL.bark[1] * 0.12, c[2] * 0.88 + PAL.bark[2] * 0.12];
+      return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + al + ')'; };
+    var limb = function (t0, t1, x0, x1, w0, w1, isTrunk) {
+      var segs = 10, P = [], k;
+      for (k = 0; k <= segs; k++) { var a = k / segs, tt = t0 + (t1 - t0) * a;
+        P.push([x + x0 + (x1 - x0) * a + sway(tt), base - span * tt, (w0 + (w1 - w0) * a) * 0.5 * (isTrunk ? 1 + 0.9 * Math.exp(-a / 0.08) : Math.min(1, 0.35 + a / 0.15))]); }
+      var nrm = function (k2) { var p0 = P[Math.max(0, k2 - 1)], p1 = P[Math.min(segs, k2 + 1)]; var dx = p1[0] - p0[0], dy = p1[1] - p0[1], l = Math.sqrt(dx * dx + dy * dy) || 1;
+        var nx = -dy / l, ny = dx / l; if (isTrunk && k2 < 3) { var g = 1 - k2 / 3; nx = nx * (1 - g) + (nx < 0 ? -1 : 1) * g; ny *= (1 - g); var l2 = Math.sqrt(nx * nx + ny * ny) || 1; nx /= l2; ny /= l2; } return [nx, ny]; };
+      ctx.beginPath();
+      for (k = 0; k <= segs; k++) { var n1 = nrm(k); ctx[k ? 'lineTo' : 'moveTo'](P[k][0] + n1[0] * P[k][2], P[k][1] + n1[1] * P[k][2]); }
+      for (k = segs; k >= 0; k--) { var n2 = nrm(k); ctx.lineTo(P[k][0] - n2[0] * P[k][2], P[k][1] - n2[1] * P[k][2]); }
+      ctx.closePath(); ctx.fillStyle = bkC(0.2 - (1 - lit) * 0.05, 1); ctx.fill();
+      ctx.lineCap = 'round';
+      var nm = Math.round(segs * Math.max(10, w0 * 3.2));
+      for (var q = 0; q < nm; q++) {                     // the modelling, across the cylinder
+        var kq = Math.min(segs - 1, (wn() * segs) | 0), fq = wn(), pa = P[kq], pb = P[kq + 1];
+        var s2 = Math.sin((wn() * 2 - 1) * Math.PI / 2 * 0.78), nq = nrm(kq);
+        var px = pa[0] + (pb[0] - pa[0]) * fq + nq[0] * pa[2] * s2, py = pa[1] + (pb[1] - pa[1]) * fq + nq[1] * pa[2] * s2;
+        var litS = 0.5 - 0.5 * s2 * (nq[0] >= 0 ? litDir : -litDir) * -1;   // which side faces the light
+        var v = 0.06 + Math.pow(litS, 1.4) * 0.78 + lit * 0.1 + (wn() - 0.5) * 0.1; if (litS < 0.12) v += 0.07;   // reflected light at the shaded edge
+        if (!isTrunk) v -= 0.12;                          // boughs sit in the crown's shade
+        var L2 = Math.min(span * 0.05, pa[2] * 2.4) * (0.5 + wn() * 0.6), dx2 = pb[0] - pa[0], dy2 = pb[1] - pa[1], dl = Math.sqrt(dx2 * dx2 + dy2 * dy2) || 1;
+        ctx.strokeStyle = bkC(v, (0.7 + wn() * 0.3).toFixed(2)); ctx.lineWidth = Math.max(0.6, pa[2] * 0.45 * Math.sqrt(1 - s2 * s2));
+        ctx.beginPath(); ctx.moveTo(px - dx2 / dl * L2 / 2, py - dy2 / dl * L2 / 2); ctx.lineTo(px + dx2 / dl * L2 / 2, py + dy2 / dl * L2 / 2); ctx.stroke();
+      }
+      if (w0 > 3) for (var fz = 0; fz < 4; fz++) {          // a few furrows running the length, crowding toward the edges
+        var fs2 = Math.sin(((fz + 0.5) / 4 * 2 - 1) * Math.PI / 2 * 0.8), k0 = (wn() * segs * 0.4) | 0, k1 = Math.min(segs, k0 + 3 + ((wn() * 4) | 0));
+        ctx.strokeStyle = bkC(0.04, 0.75); ctx.lineWidth = Math.max(0.5, P[k0][2] * 0.16);
+        ctx.beginPath(); for (var kf = k0; kf <= k1; kf++) { var nf2 = nrm(kf); ctx[kf === k0 ? 'moveTo' : 'lineTo'](P[kf][0] + nf2[0] * P[kf][2] * fs2, P[kf][1] + nf2[1] * P[kf][2] * fs2); } ctx.stroke();
       }
     };
     var tw = Math.max(2.6, W * (big ? 0.17 : 0.13));
-    limb(0, forkT, 0, W * 0.04, tw, tw * 0.62);                       // the trunk
+    limb(0, forkT, 0, W * 0.04, tw, tw * 0.62, true);                 // the trunk
     limb(forkT, 0.80, W * 0.04, -W * 0.52, tw * 0.58, tw * 0.20);     // left bough
     limb(forkT, 0.86, W * 0.04, W * 0.46, tw * 0.55, tw * 0.18);      // right bough
     limb(forkT + 0.12, 0.92, W * 0.10, W * 0.02, tw * 0.40, tw * 0.16); // the leader

@@ -1183,7 +1183,7 @@ export function paintLight(out, counter, rng, caps) {
        note, more than anything else, is what stops a tree or a child from floating.
    It stretches AWAY from the light (`dir` = -1..1, `reach` = how far), and thins as it goes.
    ⚠ Own rng (hashed from its position): it never disturbs a plate's stream.                  */
-export function groundShadow(out, counter, x, y, rx, ry, { dir = 0.5, reach = 1, op = 1, tint = '#1b2f66', core = true } = {}) {   // ⚠ deep BLUE, not violet: '#2a2568' read as purple paint on a green meadow (pilot, bread)
+export function groundShadow(out, counter, x, y, rx, ry, { dir = 0.5, reach = 1, op = 1, tint = '#1b2f66', core = true, pen = null, coreCol = null } = {}) {   // ⚠ deep BLUE, not violet: '#2a2568' read as purple paint on a green meadow (pilot, bread)
   const sr = mulberry32(((Math.round(x * 13) * 73856093) ^ (Math.round(y * 17) * 19349663) ^ 0x5ad0) >>> 0);
   const cx = x + dir * rx * 0.55 * reach, RX = rx * (1 + 0.45 * reach * Math.abs(dir));
   const pass = (n, spread, col, lw, len, a) => strokes(out, counter, {
@@ -1195,9 +1195,9 @@ export function groundShadow(out, counter, x, y, rx, ry, { dir = 0.5, reach = 1,
     col: (px, py, r) => jig(col, r, 4),
     len, lw, steps: 2, lenJ: 0.6, relief: 0, impasto: 0, op: a * op,
   });
-  pass(Math.max(10, Math.round(RX * 0.55)), 1.35, mix(tint, '#4f78a8', 0.4), ry * 0.95, RX * 0.5, 0.15);   // penumbra
+  pass(Math.max(10, Math.round(RX * 0.55)), 1.35, pen || mix(tint, '#4f78a8', 0.4), ry * 0.95, RX * 0.5, 0.15);   // penumbra
   pass(Math.max(12, Math.round(RX * 0.8)), 0.92, tint, ry * 0.7, RX * 0.36, 0.30);                          // umbra
-  if (core) pass(Math.max(6, Math.round(rx * 0.35)), 0.34, mix(tint, '#0a1030', 0.6), ry * 0.42, rx * 0.22, 0.5);   // contact
+  if (core) pass(Math.max(6, Math.round(rx * 0.35)), 0.34, coreCol || mix(tint, '#0a1030', 0.6), ry * 0.42, rx * 0.22, 0.5);   // contact
 }
 
 // A soft CAST SHADOW grounding a figure (or any capsule cluster) on the floor —
@@ -2528,6 +2528,121 @@ export function pickTreeKind(rng) {
 // A trunk is: an opaque tapering BODY (nothing may show through it), grain running WITH it,
 // its lit side measured from the centreline AT THE MARK'S OWN HEIGHT, and cross-grain bark.
 // One painter, so it is fixed once and every tree gets it.
+// ══ A REAL TRUNK (Oct 25 — Fred: "the tree trunk could be better… until you think it is beautiful") ════════════
+// A trunk is a CYLINDER of bark under a lit sky, not a brown band with a light stripe down one edge. So:
+//   · shape: it flares into roots at the ground, tapers as it climbs, bends a little, and at the top PARTS into
+//     limbs that carry the crown (branchReal below);
+//   · light: value runs ACROSS the cylinder — warm and pale on the lit flank, mid in the core, deep and cool on the
+//     shaded flank, with a thin cool reflected light right at the shaded edge (light bouncing off the grass);
+//   · bark: vertical furrows that WRAP the cylinder (they crowd together toward the silhouette, because the bark
+//     turns away from you there) — dark fissures, pale ridges between them on the lit side, a little green on the
+//     shaded side;
+//   · the crown throws a shadow down the top of the trunk.
+// The lit flank is decided by the scene's light (lxDir), so every trunk in a plate agrees with its sun.
+const BARK = ['#17110d', '#261d16', '#3a2e24', '#504133', '#6a5843', '#8a7658', '#ad987a', '#c9b694'];
+function barkCol(v, warmK, x, y, r, L, tint) {
+  let c = ramp(BARK, Math.max(0, Math.min(1, v)));
+  c = mix(c, '#f2d9a6', Math.max(0, v - 0.55) * 0.55 * warmK);           // sunlight is warm
+  c = mix(c, '#25303a', Math.max(0, 0.35 - v) * 0.45);                    // shade is cool
+  return jig(tint ? tint(c, x, y) : c, r, 5);
+}
+// draw one tapered limb/trunk segment as a shaded cylinder. spine: [[x,y],...] root→tip; wAt(t) half-width at t∈[0,1].
+// litX: -1 light from the left, +1 from the right. opts: { flare, furrows, n, crownShadeFrom }
+export function barkCylinder(out, counter, rng, spine, wAt, litX, sc, L, opts = {}) {
+  const N = spine.length - 1, tint = opts.tint;
+  const at = t => { const f = Math.max(0, Math.min(0.9999, t)) * N, i = Math.min(N - 1, f | 0), u = f - i; const [ax, ay] = spine[i], [bx, by] = spine[i + 1];
+    return [ax + (bx - ax) * u, ay + (by - ay) * u, Math.atan2(by - ay, bx - ax)]; };
+  // a point on the cylinder: t along it, s across it (-1 lit edge .. +1 shaded edge). On a trunk standing on the ground
+  // (opts.ground) the across-direction turns HORIZONTAL at the foot, so the flare spreads along the ground instead of
+  // tilting with a leaning spine into a spike.
+  const pt = (t, s) => { const [x, y, a] = at(t); let nx = -Math.sin(a), ny = Math.cos(a);
+    if (opts.ground) { const g = Math.exp(-t / 0.12); nx = nx * (1 - g) + Math.sign(nx || 1) * g; ny = ny * (1 - g); const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l; }
+    const w = wAt(t) * s * litX; return [x + nx * w, y + ny * w, a]; };
+  // 1 · the body: an opaque silhouette in the mid-dark bark tone, so no mark ever shows grass through it
+  const Ls = [], Rs = [];
+  for (let i = 0; i <= 28; i++) { const t = i / 28; Ls.push(pt(t, -1)); Rs.push(pt(t, 1)); }
+  out.push(`<path d="M${Ls.map(p => R1(p[0]) + ' ' + R1(p[1])).join('L')}L${Rs.reverse().map(p => R1(p[0]) + ' ' + R1(p[1])).join('L')}Z" fill="${mix(BARK[1], BARK[2], 0.6)}"/>`); counter.n++;
+  let curS = 0, curT = 0, curA = 0;
+  const shade = (s, t, x, y) => {
+    const lit = 0.5 - 0.5 * s;                                              // 1 lit .. 0 shade
+    let v = 0.1 + Math.pow(lit, 1.6) * 0.5 + L(x, y) * 0.12;               // a trunk is a DARK thing with a lit flank
+    if (s > 0.78) v += (s - 0.78) * 0.55;                                    // reflected light at the shaded edge
+    if (opts.crownShadeFrom != null && t > opts.crownShadeFrom) v -= (t - opts.crownShadeFrom) / (1 - opts.crownShadeFrom) * 0.24;   // the crown's shadow
+    return v + (opts.dv || 0);
+  };
+  // 2 · the modelling: many short marks along the limb, each valued by its place across the cylinder, all inside it
+  const n = opts.n || Math.round(160 * sc + 60);
+  strokes(out, counter, {
+    rng, n,
+    sample: r => { curT = 0.02 + Math.pow(r(), 0.9) * 0.96; curS = Math.sin((r() * 2 - 1) * Math.PI / 2 * 0.72); const p = pt(curT, curS); curA = p[2]; return [p[0], p[1]]; },
+    dir: () => curA + (rng() - 0.5) * 0.1,
+    col: (x, y, r) => barkCol(shade(curS, curT, x, y) + (r() - 0.5) * 0.08, 1, x, y, r, L, tint),
+    len: () => Math.min((3 + rng() * 5) * sc, wAt(curT) * 1.1) * (opts.ground ? 1 - 0.8 * Math.exp(-curT / 0.12) : 1),   // never longer than the limb is wide — and short in the flare, where the silhouette narrows fast
+    lw: () => Math.max(0.5, wAt(curT) * 0.2 * Math.sqrt(1 - curS * curS)),
+    steps: 2, lenJ: 0.4, wJ: 0.3, impasto: 0.3, relief: 0, op: 0.95, flow: 0,
+  });
+  // 2b · the silhouette, one continuous soft line each side
+  for (const sg of [-1, 1]) {
+    const e0 = opts.edgeFrom || 0;                                          // a limb's edge starts where it LEAVES its parent, not inside it
+    const pts = []; for (let i = 1; i <= 16; i++) { const p = pt(e0 + (i / 16) * (0.99 - e0), sg * 0.93); pts.push([p[0], p[1]]); }
+    const v0 = shade(sg * 0.95, 0.4, pts[7][0], pts[7][1]);
+    paintPath(out, counter, rng, pts, (x, y, r) => barkCol(sg < 0 ? v0 - 0.05 : 0.07, 0.6, x, y, r, L, tint), { lw: Math.max(0.5, wAt(0.5) * 0.11), len: Math.min(2.5 * sc, wAt(0.5) * 0.8), density: 1.1, jitter: 0.08 });
+  }
+  // 3 · the furrows: long dark fissures that wrap the cylinder (uniform in angle → crowded toward the silhouette)
+  const nf = opts.furrows == null ? Math.round(7 + sc * 6) : opts.furrows;
+  for (let k = 0; k < nf; k++) {
+    const s = Math.sin(((k + rng() * 0.8) / nf * 2 - 1) * Math.PI / 2 * 0.8);
+    const t0 = Math.max(opts.edgeFrom || 0, 0.04 + rng() * 0.56), t1 = Math.min(0.97, t0 + 0.2 + rng() * 0.5), tm = (t0 + t1) / 2;
+    const pts = []; for (let i = 0; i <= 10; i++) { const t = t0 + (t1 - t0) * i / 10, p = pt(t, s + (fbm(k * 3.1, t * 9, 811) - 0.5) * 0.18); pts.push([p[0], p[1]]); }
+    const vv = shade(s, tm, pts[5][0], pts[5][1]);
+    paintPath(out, counter, rng, pts, (x, y, r) => barkCol(vv - 0.32 - r() * 0.08, 0.3, x, y, r, L, tint), { lw: Math.max(0.5, wAt(tm) * 0.12 * (1 - Math.abs(s) * 0.5)), len: Math.min(3 * sc, wAt(tm) * 0.7), density: 0.9, jitter: 0.12 });
+    if (s < 0.2) {                                                          // the ridge beside it catches the light
+      const q = []; for (let i = 2; i <= 8; i++) { const t = t0 + (t1 - t0) * i / 10, p = pt(t, s - 0.09); q.push([p[0], p[1]]); }
+      paintPath(out, counter, rng, q, (x, y, r) => barkCol(vv + 0.07 + r() * 0.05, 1, x, y, r, L, tint), { lw: Math.max(0.4, wAt(tm) * 0.06), len: Math.min(3 * sc, wAt(tm) * 0.7), density: 0.45, jitter: 0.12 });
+    }
+  }
+  // 4 · moss on the shaded flank near the ground, a few touches
+  if (opts.moss !== 0) strokes(out, counter, {
+    rng, n: Math.round(14 * sc + 4),
+    sample: r => { const p = pt(Math.pow(r(), 1.6) * 0.5, 0.3 + r() * 0.55); return [p[0], p[1]]; },
+    dir: () => -Math.PI / 2 + (rng() - 0.5) * 0.6,
+    col: (x, y, r) => jig(mix('#24361c', '#3e5a2a', r() * 0.6 + L(x, y) * 0.2), r, 5),
+    len: 1.2 * sc, lw: 0.6 * sc, steps: 1, relief: 0, op: 0.55, flow: 0,
+  });
+}
+// a real trunk: roots → flare → taper → the crown's shadow. Returns the top point and its half-width for the limbs.
+export function paintTrunkReal(out, counter, tr, cx, baseY, th, wBase, lean, lightFn, sc, litX, ex = {}) {
+  const L = lightFn || (() => 0.4);
+  const spine = []; for (let i = 0; i <= 14; i++) { const u = i / 14; spine.push([cx + Math.sin(lean * u) * th * u + Math.sin(u * 3.1) * 1.8 * sc * (ex.twist || 1), baseY - th * u]); }
+  const wAt = t => wBase * (1 - (ex.rings ? 0.22 : 0.42) * t) * (1 + (ex.rings ? 0.35 : 0.85) * Math.exp(-t / 0.06));   // root flare at the foot (a palm's is only a slight swelling)
+  // roots: 3–4 tapered flares spreading out into the ground, behind/at the sides of the foot
+  const nr = 3 + (tr() < 0.5 ? 1 : 0);
+  for (let k = 0; k < nr && ex.roots; k++) {   // (separate roots read as splinters — the flare carries the foot now)
+    const side = k % 2 ? 1 : -1, reach = wBase * (0.7 + tr() * 0.5), drop = (0.6 + tr() * 0.8) * sc;   // short broad buttresses, mostly sunk in the grass
+    const x0 = cx + side * wBase * (0.4 + tr() * 0.3), y0 = baseY - wBase * (0.8 + tr() * 0.4);
+    const rs = [[x0, y0], [x0 + side * reach * 0.45, baseY - drop * 0.2], [x0 + side * reach, baseY + drop]];
+    barkCylinder(out, counter, tr, rs, t => wBase * 0.5 * (1 - 0.75 * t), litX, sc * 0.5, L, { n: Math.round(18 * sc + 6), furrows: 0, moss: 0, tint: ex.tint });
+  }
+  barkCylinder(out, counter, tr, spine, wAt, litX, sc, L, { crownShadeFrom: 0.62, tint: ex.tint, ground: true, furrows: ex.rings ? 0 : undefined, moss: ex.rings ? 0 : undefined });
+  if (ex.rings) {                                    // a palm: the scars of every frond it has dropped — soft rings that curve round the cylinder, closer near the top
+    const at = t => { const f = Math.min(0.999, t) * 14, i = f | 0, u = f - i; return [spine[i][0] + (spine[i + 1][0] - spine[i][0]) * u, spine[i][1] + (spine[i + 1][1] - spine[i][1]) * u]; };
+    for (let t = 0.08; t < 0.97; t += 0.035 + 0.03 * (1 - t)) {
+      const [x, y] = at(t), w = wAt(t) * 0.86, pts = [];
+      for (let k = 0; k <= 8; k++) { const s2 = (-1 + k / 4) * 0.72; pts.push([x + s2 * w, y + (1 - s2 * s2) * w * 0.28]); }   // an ellipse seen from slightly above
+      paintPath(out, counter, tr, pts, (px, py, r) => barkCol(0.1 + (0.5 - 0.5 * (px - x) / w * -litX) * 0.25 + r() * 0.05, 0.5, px, py, r, L, ex.tint), { lw: Math.max(0.4, w * 0.12), len: Math.min(2 * sc, w * 0.3), density: 1.4, jitter: 0.05 });
+    }
+  }
+  const top = spine[spine.length - 1];
+  return { x: top[0], y: top[1], w: wAt(1) };
+}
+// a real limb: one shaded tapering cylinder along a gentle curve
+export function branchReal(out, counter, rng, x0, y0, x1, y1, w0, w1, bow, litX, sc, L, tint, dv = -0.24) {   // dv: limbs live in the crown's shade, as dark as the trunk's top
+  const mx = (x0 + x1) / 2 - (y1 - y0) * bow, my = (y0 + y1) / 2 + (x1 - x0) * bow;
+  const sp = []; for (let i = 0; i <= 8; i++) { const t = i / 8, u = 1 - t; sp.push([u * u * x0 + 2 * u * t * mx + t * t * x1, u * u * y0 + 2 * u * t * my + t * t * y1]); }
+  const sw = t => Math.min(1, 0.25 + t / 0.16);                            // it grows OUT of its parent: a narrow root inside the trunk, no flat cut end
+  barkCylinder(out, counter, rng, sp, t => (w0 + (w1 - w0) * t) * sw(t), litX, sc * 0.55, L, { n: Math.round(Math.hypot(x1 - x0, y1 - y0) * (w0 + w1) * 0.5 + 10), furrows: w0 > 2.5 ? 3 : 0, moss: 0, tint, dv, edgeFrom: 0.3 });
+}
+
 export function paintTrunk(out, counter, tr, cx, baseY, th, wBase, lean, lightFn, sc, ex = {}) {
   const L = lightFn || (() => 0.4);
   const uAt = y => Math.max(0, Math.min(1, (baseY - y) / th));
@@ -2724,14 +2839,18 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
   });
   // (38·sc, up from the old patch's 30: under a high light a tree's shadow is about as wide as its crown)
   if (opts.shadow !== 0) groundShadow(out, counter, cx, baseY + 4 * sc, 38 * sc * S.shadow, 10 * sc,
-    { dir: shadowDir * 0.85, reach: 1, op: Math.min(1.25, 0.55 + lightFn(cx, baseY) * 0.9) * (REAL ? 0.7 : 1), ...(REAL ? { tint: '#1f3a22' } : {}) });   // a harder light throws a firmer shadow; REAL: a shadow on grass is deep GREEN, not a blue pool
+    { dir: shadowDir * 0.85, reach: 1, op: Math.min(1.25, 0.55 + lightFn(cx, baseY) * 0.9) * (REAL ? 0.7 : 1), ...(REAL ? { tint: '#22401f', pen: '#2e5228', coreCol: '#14260f' } : {}) });   // a harder light throws a firmer shadow; REAL: a shadow on grass is deep GREEN, not a blue pool
   // 2 · the trunk — one painter for the whole book, see paintTrunk above
-  paintTrunk(out, counter, tr, cx, baseY, th, 7 * sc * S.tw, lean, lightFn, sc, { twist: S.twist, rings: S.rings });
+  const litX = lxDir === 0 ? -1 : -lxDir;   // -1: light comes from the left
+  let TOP = null;
+  if (REAL) TOP = paintTrunkReal(out, counter, sr, cx, baseY, th, 7 * sc * S.tw * (S.rings ? 1 : 1.25), lean, lightFn, sc, litX, { twist: S.twist, tint, rings: S.rings });   // REAL: a stouter trunk — a grown tree is not a sapling; a palm keeps its slender ringed one
+  else paintTrunk(out, counter, tr, cx, baseY, th, 7 * sc * S.tw, lean, lightFn, sc, { twist: S.twist, rings: S.rings });
   if (S.stems) {                                         // a fig or a pomegranate grows several stems from one foot
     const ns = S.stems - 1 + (sr() < 0.5 ? 0 : -1);
     for (let k = 0; k < ns; k++) {
       const side = k % 2 ? -1 : 1;
-      paintTrunk(out, counter, tr, cx + side * 3 * sc, baseY, th * (0.72 + sr() * 0.2), 7 * sc * S.tw * 0.55,
+      if (REAL) paintTrunkReal(out, counter, sr, cx + side * 3 * sc, baseY, th * (0.72 + sr() * 0.2), 7 * sc * S.tw * 0.55, side * (0.5 + sr() * 0.35), lightFn, sc, litX, { twist: S.twist, tint });
+      else paintTrunk(out, counter, tr, cx + side * 3 * sc, baseY, th * (0.72 + sr() * 0.2), 7 * sc * S.tw * 0.55,
                  side * (0.5 + sr() * 0.35), lightFn, sc, { twist: S.twist });
     }
   }
@@ -2899,10 +3018,10 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     const gl0 = lightFn(cx, baseY);
     strokes(out, counter, {
       rng: sr, n: Math.round(30 * sc * S.tw + 12),
-      sample: r => [cx + (r() + r() - 1) * 9 * sc * S.tw, baseY + 2 * sc - Math.pow(r(), 2) * 3 * sc],
+      sample: r => [cx + (r() + r() - 1) * 9 * sc * S.tw * (REAL ? 1.6 : 1), baseY + 2 * sc - Math.pow(r(), 2) * 3 * sc],
       dir: (x) => -Math.PI / 2 + (x - cx) * 0.03 / Math.max(0.5, sc) + (sr() - 0.5) * 0.7,
       col: (x, y, r) => { let c = ramp(['#1c3a1c', '#3a6a2c', '#6f9a3c', '#a8c25c'], r() * 0.6 + gl0 * 0.35); c = mix(c, BELLY, (1 - gl0) * 0.5); return jig(tint(c, x, y), r, 7); },
-      len: (x) => 5.5 * sc * (0.6 + sr() * 0.8), lw: 1.15 * sc, steps: 2, lenJ: 0.7, impasto: 0.5, op: 0.88,
+      len: (x) => 5.5 * sc * (0.6 + sr() * 0.8) * (REAL ? 0.6 : 1), lw: 1.15 * sc * (REAL ? 0.45 : 1), steps: 2, lenJ: 0.7, impasto: 0.5, op: 0.88,   // REAL: fine blades, not a pasted clump
     });
   };
   footTuft();
@@ -2912,7 +3031,22 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
   const limbCol = (x, y, r) => jig(mix('#3f2a16', '#6b5334', r() * 0.7 + lightFn(x, y) * 0.25), r, 7);
 
   if (S.form === 'lobed') {
-    const tips = limbs(out, counter, tr, GT, topX, topY, {
+    const REAL_LIMBS = [];
+    if (REAL && TOP) {                                    // the trunk PARTS into 2–3 limbs that rise into the crown
+      const nl = 2 + (sr() < 0.55 ? 1 : 0);
+      for (let k = 0; k < nl; k++) {
+        const f = nl === 1 ? 0 : k / (nl - 1) * 2 - 1;
+        const ang = -Math.PI / 2 + lean + f * (0.5 + sr() * 0.22), Lb = h * (0.17 + sr() * 0.05);   // the limbs climb INTO the crown
+        const ex2 = TOP.x + Math.cos(ang) * Lb, ey2 = TOP.y + Math.sin(ang) * Lb;
+        const LB = [TOP.x + f * TOP.w * 0.3, TOP.y + TOP.w * (1.3 + k * 0.7 + sr() * 0.4), ex2, ey2, TOP.w * (0.8 - Math.abs(f) * 0.12), TOP.w * 0.22, f * 0.12];   // rooted well down in the trunk, so the fork has no seam
+        branchReal(out, counter, sr, ...LB, litX, sc, lightFn, tint);
+        REAL_LIMBS.push(LB);
+        // and each limb forks once more, thinner, out toward the crown's edge
+        for (const g of [-1, 1]) { const a2 = ang + g * (0.35 + sr() * 0.2), L2 = Lb * (0.45 + sr() * 0.15);
+          branchReal(out, counter, sr, ex2, ey2, ex2 + Math.cos(a2) * L2, ey2 + Math.sin(a2) * L2, TOP.w * 0.22, TOP.w * 0.08, g * 0.1, litX, sc, lightFn, tint); }
+      }
+    }
+    const tips = limbs(REAL ? [] : out, REAL ? { n: 0 } : counter, tr, GT, topX, topY, {
       len0: h * (REAL ? 0.14 : 0.22), lw0: 1.7 * sc, up: -Math.PI / 2 + lean, minLen: h * 0.05, col: limbCol,   // REAL: limbs stay inside the crown
       pathOpts: { len: 4, density: 0.6, jitter: 0.5 },
     });
@@ -2922,7 +3056,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     let cl = [[topX, topY - h * 0.14, 1]].concat(arms.map(t => [t[0], t[1], 0.62]));
     // REAL: the crown is ONE mass the limbs disappear into — tip clusters pulled in toward the centre and
     // grown, so they merge (separate balls on bare branches read as topiary)
-    if (REAL) cl = [[topX, topY - h * 0.16, 1.25]].concat(arms.map(t => [topX + (t[0] - topX) * 0.62, topY - h * 0.16 + (t[1] - topY + h * 0.16) * 0.62, 0.85]));
+    if (REAL) cl = [[topX, topY - h * 0.24, 1.2]].concat(arms.map(t => [topX + (t[0] - topX) * 0.62, topY - h * 0.24 + (t[1] - topY + h * 0.16) * 0.62, 0.82]));   // lifted, so the trunk's fork shows under the crown
     if (kind === 'sycomore') {                           // the LOW LIMBS a boy could climb (Luke 19:4), below the crown, each with its own tuft of leaves
       for (const side of [-1, 1]) {
         const y0 = baseY - th * (0.5 + sr() * 0.15), ex = cx + side * h * (0.3 + sr() * 0.1), ey = y0 - h * (0.02 + sr() * 0.06);
@@ -2932,6 +3066,19 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     }
     lobedCrown(cl, 1);
     innerDark(topX, topY - h * 0.05, h * 0.28 * S.rr * S.rx, h * 0.1);
+    // REAL: the fork, seen in FRONT of the crown's shaded underside — the bottom of each main limb is painted again over
+    // the leaves, so the trunk visibly parts into branches that disappear upward into the foliage (no lollipop)
+    for (const [x0, y0, x1, y1, w0, w1, bow] of REAL_LIMBS) {
+      const k = 0.5, mx = x0 + (x1 - x0) * k, my = y0 + (y1 - y0) * k;
+      branchReal(out, counter, sr, x0, y0 - (y0 - my) * 0.12, mx, my, w0 * 0.94, w0 + (w1 - w0) * k, bow * 0.5, litX, sc, lightFn, tint, -0.24);   // under the crown, in its shade (barkCylinder's crownShadeFrom deepens the top)
+      // and the leaves close over its end — the limb goes INTO the foliage, it is not cut off
+      const lr = (w0 + (w1 - w0) * k) * 1.5 + 1.5 * sc;
+      strokes(out, counter, { rng: sr, n: Math.round(lr * lr * 0.55 + 6),
+        sample: r => { const a = r() * Math.PI * 2, d = Math.sqrt(r()); return [mx + Math.cos(a) * lr * d, my - lr * 0.35 + Math.sin(a) * lr * 0.8 * d]; },
+        dir: (x, y) => Math.atan2(y - my, x - mx) + Math.PI / 2 + (sr() - 0.5) * 1.1,
+        col: (x, y, r) => leafCol(0.3 + Math.max(0, (my - y) / lr) * 0.35, x, y, r, lr * 0.3 + 3, flankAt(x, mx, lr)),
+        len: 3.5 * p3 * S.mark[0], lw: 1.55 * p3 * S.mark[1], steps: 2, lenJ: 0.9, impasto: 0.62, relief: 0.6 });
+    }
     // 5 · blossom, on the lit side only (the oak and the apple keep the book's blossom)
     if (S.bloom && !REAL) for (let f = 0; f < blossom + ((tr() * 4) | 0); f++) {
       const [ax, ay] = cl[(tr() * cl.length) | 0];
