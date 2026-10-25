@@ -167,6 +167,15 @@ export function paint(E, opts = {}) {
       col: (x, y, r) => cloudCol(B, x, y, r),
       len: 3.5, lw: 0.9, steps: 2, op: 0.6, relief: 0,
     });
+    // swallows, high and small — two swept wings each, dark against the bright sky (Ps 104:12 "the fowls of the heaven")
+    const br = mulberry32(seed + 77);
+    for (const [bx, by, bs, tilt] of [[250, 92, 4.2, 0.1], [276, 104, 3.4, -0.15], [236, 116, 3.0, 0.2], [700, 150, 3.6, -0.1], [560, 60, 2.6, 0.05]]) {
+      const wing = side => { const tip = [bx + side * bs * 2.2, by - bs * (0.55 + br() * 0.3)], mid = [bx + side * bs * 1.1, by - bs * 0.5];
+        out.push(E.ribbon([[bx, by], mid, tip], bs * 0.42, '#2d3048', [1, 0.7, 0.05])); counter.n++; };
+      out.push(`<g transform="rotate(${R1(tilt * 57)} ${R1(bx)} ${R1(by)})">`); wing(-1); wing(1);
+      out.push(E.ribbon([[bx, by - bs * 0.2], [bx + bs * 0.25, by + bs * 0.9]], bs * 0.45, '#262840', [1, 0.6, 0.1])); counter.n++;   // body and forked tail
+      out.push('</g>');
+    }
   });
 
   /* ---------------- 3. THE FAR COUNTRY — ridges, hills, hedgerows, copses ---------------- */
@@ -219,6 +228,23 @@ export function paint(E, opts = {}) {
       const x0 = -20 + rng() * 700, x1 = x0 + 80 + rng() * 200, off = 12 + rng() * 22;
       for (let x = x0; x < x1; x += 4 + rng() * 4) copse(x, ridgeMid(x) + off + Math.sin(x / 30) * 2, 2.2 + rng() * 1.2, 0.6);
     }
+    // a village on the far slope: whitewashed walls lit by the low sun, terracotta roofs, one chimney smoking —
+    // tiny and hazed by distance, so it reads as far away (people live here; it was made for them too)
+    { const vr = mulberry32(seed + 501), houses = [];
+      for (let i = 0; i < 16; i++) { const hx = 590 + vr() * 150, hy = ridgeMid(hx) + 12 + vr() * 16; houses.push([hx, hy, 7 + vr() * 6, 5 + vr() * 3.5]); }
+      houses.push([668, ridgeMid(668) + 11, 5, 17, 1]);                 // a small tower
+      houses.sort((a, b) => a[1] - b[1]);
+      for (const [hx, hy, w, h, tower] of houses) {
+        const wall = mix(mix('#f6e8cc', '#d8c6a4', vr() * 0.4), '#a7b2c8', 0.15), shade = mix('#8a8288', '#a7b2c8', 0.2);
+        out.push(`<rect x="${R1(hx - w / 2)}" y="${R1(hy - h)}" width="${R1(w * 0.62)}" height="${R1(h)}" fill="${wall}"/>`);           // sunlit face
+        out.push(`<rect x="${R1(hx - w / 2 + w * 0.62)}" y="${R1(hy - h)}" width="${R1(w * 0.38)}" height="${R1(h)}" fill="${shade}"/>`); // shaded side
+        const rh = tower ? 2.6 : h * 0.55, roof = mix(mix('#a84c30', '#c46a40', vr()), '#a7b2c8', 0.12);
+        out.push(`<path d="M${R1(hx - w / 2 - 0.5)} ${R1(hy - h)}L${R1(hx)} ${R1(hy - h - rh)}L${R1(hx + w / 2 + 0.5)} ${R1(hy - h)}Z" fill="${roof}"/>`);
+        counter.n += 3;
+      }
+      const cx0 = 640, cy0 = ridgeMid(640) + 6;                         // smoke drifting away from the sun
+      strokes(out, counter, { rng: vr, n: 70, sample: r => { const t = r(); return [cx0 + t * 26 + Math.sin(t * 5) * 3, cy0 - t * 22]; },
+        dir: () => -0.7, col: (x, y, r) => jig(mix('#d6d2d4', '#eef0f2', r()), r, 4), len: 3, lw: 2.2, steps: 2, op: 0.3, relief: 0 }); }
     for (let k = 0; k < 3; k++) {                                 // hedgerows down the near slopes
       const x0 = -20 + rng() * 500, x1 = x0 + 160 + rng() * 260, y0 = ridgeMid(x0) + 14 + k * 9;
       for (let x = x0; x < x1; x += 5 + rng() * 5) copse(x, y0 + (x - x0) * 0.04 + Math.sin(x / 40) * 3, 1.8 + rng(), 0.5);
@@ -262,16 +288,55 @@ export function paint(E, opts = {}) {
         dir: (x) => -Math.PI / 2 + (x - tx) * 0.05 + (rng() - 0.5) * 0.5, col: (x, y, r) => grassCol(x, y, r, 0.3),
         len: 10 * sc, lw: 1.1 * sc, steps: 2, lenJ: 0.7, impasto: 0.65 });
     }
+    // ── THE STREAM ("he leadeth me beside the still waters", Ps 23:2) — down from the valley behind the child,
+    // widening toward us; it mirrors the sky (gold near the sun's line, blue elsewhere), dark banks, sun glints
+    const SP = t => [300 + 500 * t + 40 * Math.sin(t * 7), 298 + 176 * Math.pow(t, 1.6)];
+    const SW = t => 5 + 64 * Math.pow(t, 1.5);
+    const SPTS = []; for (let t = 0; t <= 1.0001; t += 0.01) SPTS.push([...SP(t), SW(t)]);
+    const inStream = (x, y, m = 0) => { for (const [px, py, w] of SPTS) if ((x - px) ** 2 + ((y - py) * 1.6) ** 2 < (w / 2 + m) ** 2) return true; return false; };
+    { const sr = mulberry32(seed + 311);
+      strokes(out, counter, { rng: sr, n: 7000, sample: r => { const t = Math.sqrt(r()), [px, py] = SP(t), w = SW(t); return [px + (r() - 0.5) * w * 1.3, py + (r() - 0.5) * w * 0.4]; },
+        dir: () => (sr() - 0.5) * 0.2,                                   // ripples lie flat
+        col: (x, y, r) => { if (!inStream(x, y, 1.5)) return jig(mix('#2c4a2a', '#41623a', r()), r, 6);   // the bank: wet dark grass
+          let c = ramp(['#2f4f86', '#46699e', '#6f90c0', '#a6bed8', '#e2e8e4'], 0.1 + r() * 0.45 + (y - 300) / 500);   // deeper toward us; it mirrors the blue sky
+          c = mix(c, '#ffe7b0', Math.max(0, 1 - Math.abs(x - SUN.x) / 160) * 0.55);                          // the sun's path on the water
+          return jig(c, r, 5); },
+        len: (x, y) => 5 * dS(y), lw: (x, y) => 1.2 * dS(y), steps: 1, lenJ: 0.6, impasto: 0.2, relief: 0 });
+      for (let i = 0; i < 160; i++) { const t = 0.15 + sr() * 0.85, [px, py] = SP(t), w = SW(t);                  // glints
+        const gx = px + (sr() - 0.5) * w * 0.9, gy = py + (sr() - 0.5) * w * 0.2; if (!inStream(gx, gy)) continue;
+        out.push(E.ribbon([[gx, gy], [gx + 2.5 * dS(gy), gy]], 0.7 * dS(gy), '#fffbe8', [0.4, 1, 0.4])); counter.n++; }
+      for (let i = 0; i < 26; i++) { const t = 0.3 + sr() * 0.7, [px, py] = SP(t), w = SW(t), side = sr() < 0.5 ? -1 : 1;   // reeds at the edge
+        const rx = px + side * w * 0.62, ry = py + 1; const sc = dS(ry);
+        for (let k = 0; k < 5; k++) paintPath(out, counter, sr, [[rx + k * 1.2 * sc, ry], [rx + k * 1.2 * sc + (sr() - 0.5) * 3 * sc, ry - (8 + sr() * 8) * sc]],
+          (x, y, r) => jig(mix('#4a6a30', '#9aa45a', r()), r, 6), { lw: 0.8 * sc, len: 3, density: 0.9, jitter: 0.2 }); } }
+    // ── THE FLOCK, grazing (Ps 23:1) — wool lit on the back, shadowed under, dark faces down in the grass
+    const sheep = (x, y, facing, sr) => {
+      const sc = dS(y) * 1.9, bw = 6.5 * sc, bh = 4.4 * sc;
+      groundShadow(out, counter, x + 1.5 * sc, y + 0.4 * sc, bw * 1.1, 1.3 * sc, { dir: 0.6, reach: 1, op: 0.45, tint: '#25381f' });
+      for (const lx of [-0.55, -0.25, 0.3, 0.55]) out.push(E.ribbon([[x + lx * bw, y - bh * 0.5], [x + lx * bw, y]], 0.8 * sc, '#2a2622', [1, 1])), counter.n++;
+      strokes(out, counter, { rng: sr, n: Math.round(40 + sc * 30),
+        sample: r => { const a = r() * 6.283, d = Math.sqrt(r()); return [x + Math.cos(a) * bw * d, y - bh * 0.95 + Math.sin(a) * bh * 0.7 * d]; },
+        dir: (px, py) => Math.atan2(py - (y - bh * 0.95), px - x) + Math.PI / 2,
+        col: (px, py, r) => { const up = Math.max(0, Math.min(1, 0.55 - (py - (y - bh * 0.95)) / bh * 1.2)); return jig(mix(ramp(['#a8a294', '#d2cab6', '#ece4d0', '#fdf8ea'], up), '#ffe6b8', sunFar(px, py) * up * 0.4), r, 4); },
+        len: 1.6 * sc, lw: 1.3 * sc, steps: 2, impasto: 0.4, relief: 0.15, flow: 0 });
+      const hx = x + facing * bw * 1.05, hy = y - bh * 0.55;                    // head down, grazing
+      out.push(E.ribbon([[x + facing * bw * 0.7, y - bh * 1.05], [hx, hy - bh * 0.1], [hx + facing * 1.4 * sc, hy + bh * 0.5]], 2.3 * sc, '#2e2a26', [0.9, 1, 0.7])); counter.n++;
+    };
+    { const fr = mulberry32(seed + 733), flock = [];
+      for (let i = 0; i < 11; i++) flock.push([150 + fr() * 150, 312 + fr() * 30]);     // on the slope behind the child
+      for (let i = 0; i < 7; i++) flock.push([560 + fr() * 160, 330 + fr() * 34]);      // and across the stream
+      flock.sort((a, b) => a[1] - b[1]);
+      for (const [x, y] of flock) if (y > brow(x) + 4 && !inStream(x, y, 6)) sheep(x, y, fr() < 0.5 ? -1 : 1, fr); }
     // flowers in colonies — one kind to a patch, a stem and a face, thinning with distance (Song 2:12)
     const KINDS = [['#f6f2e6', '#e9e2cf', '#f4d24a'], ['#f5d04a', '#e8b833', '#a8641e'], ['#c9b4e8', '#ad96d8', '#f2e28a'],
                    ['#e0566a', '#c63f55', '#3a2420'], ['#f0a8c4', '#e48eb0', '#fbe9a8']];
-    for (let c = 0; c < 30; c++) {
+    for (let c = 0; c < 46; c++) {
       const cx = -10 + rng() * 820, cy = 304 + rng() * 200;
-      if (cy < brow(cx) + 8 || (cx > 280 && cx < 440 && cy > 380 && cy < 432)) continue;   // the child's spot stays clear
+      if (cy < brow(cx) + 8 || inStream(cx, cy, 8) || (cx > 280 && cx < 440 && cy > 380 && cy < 432)) continue;   // the child's spot and the water stay clear
       const K = KINDS[(rng() * KINDS.length) | 0], spread = 14 + rng() * 40, count = 5 + ((rng() * 10) | 0);
       for (let i = 0; i < count; i++) {
         const fx = cx + (rng() + rng() - 1) * spread, fy = cy + (rng() + rng() - 1) * spread * 0.35;
-        if (fy < brow(fx) + 6) continue;
+        if (fy < brow(fx) + 6 || inStream(fx, fy, 3)) continue;
         const sc = dS(fy), st = (5 + rng() * 7) * sc;
         paintPath(out, counter, rng, [[fx, fy], [fx + (rng() - 0.5) * 3 * sc, fy - st]], (x, y, r) => jig(mix('#3d6a32', '#6c9442', r()), r, 6), { lw: 0.9 * sc, len: 3, density: 0.9, jitter: 0.2 });
         const hd = 1.6 * sc;
@@ -288,6 +353,21 @@ export function paint(E, opts = {}) {
     tree(98, 452, 210, 'oak', 11);        // a great oak at the left, framing the valley
     tree(720, 362, 96, 'oak', 23);        // a smaller olive farther off on the right
     tree(612, 318, 40, 'oak', 37);        // and one far down the meadow, small with distance
+    tree(500, 322, 44, 'willow', 41);     // a willow leaning over the water
+    tree(214, 310, 30, 'oak', 43); tree(236, 312, 24, 'oak', 47); tree(196, 314, 22, 'olive', 53);   // a grove on the far slope behind the child
+    tree(770, 330, 54, 'oak', 59); tree(792, 336, 40, 'olive', 61);                                     // trees along the far bank
+    tree(352, 302, 20, 'oak', 67);        // and one tiny far off where the valley opens
+    // low bushes, rooted in the grass (no outlines — a shrub is a small dark-bellied mass)
+    for (const [bx, by, bw] of [[22, 476, 30], [600, 452, 24], [470, 362, 13], [760, 486, 30]]) {
+      if (inStream(bx, by, 10)) continue;
+      const cl = []; for (let k = 0; k < 5; k++) cl.push([bx + (rng() - 0.5) * bw * 1.3, by - bw * (0.3 + rng() * 0.45), bw * (0.35 + rng() * 0.25)]);
+      cl.sort((a, b) => b[1] - a[1]);
+      for (const [cx, cy, cr] of cl) strokes(out, counter, { rng, n: Math.round(cr * cr * 1.6),
+        sample: r => { const a = r() * 6.283, d = Math.sqrt(r()); const y = cy + Math.sin(a) * cr * 0.8 * d; return y < by ? [cx + Math.cos(a) * cr * d, y] : null; },
+        dir: (x, y) => Math.atan2(y - cy, x - cx) + Math.PI / 2 + (rng() - 0.5) * 0.6,
+        col: (x, y, r) => { const up = Math.max(0, Math.min(1, (cy - y) / cr * 0.5 + 0.5)); let c = ramp(['#1e3a20', '#2d5428', '#457434', '#6a9644', '#9cbc5c'], up * 0.85 + r() * 0.15); c = mix(c, '#efe2a0', up * up * 0.3); return jig(c, r, 7); },
+        len: 2.6 * dS(by), lw: 1.6 * dS(by), steps: 2, lenJ: 0.6, impasto: 0.5, relief: 0.25 });
+    }
     // ✦ "1 John 4:8" in Greek, cut into the near turf (kept from the old plate)
     E.inscriptionText(out, E.greekRef(4, 8), { x: 520, y: 488, h: 13, body: '#e9e0bc', edge: '#14200f', op: 0.5, edgeOp: 0.4 });
   });
@@ -364,7 +444,7 @@ export function paint(E, opts = {}) {
   });
 
   /* ---------------- planes ---------------- */
-  const ALT = 'A green valley in late-afternoon sun: a deep blue sky warming to gold around the sun, white cumulus clouds lit golden on the sun side, pale blue ridges and green hills with hedgerows and copses far off, and a rolling meadow full of wildflowers where a great oak and an olive tree stand casting their shadows. In the grass near the child a russet hen sits with her wing spread low, chicks peeping out from under it and one at her breast looking up at her — as a hen gathers her chickens under her wings.';
+  const ALT = 'A green valley in late-afternoon sun, full of life: a deep blue sky warming to gold around the sun, white cumulus clouds lit golden on the sun side, pale blue ridges and green hills with hedgerows and copses far off, a village with a smoking chimney on the far hill, swallows high in the sky, a stream winding down through the meadow past a willow and reeds, sheep grazing on both slopes, and wildflowers, bushes and oaks casting their shadows. In the grass near the child a russet hen sits with her wing spread low, chicks peeping out from under it and one at her breast looking up at her — as a hen gathers her chickens under her wings.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };
   const pick = name => ranges[name].map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
   if (ranges[LAYER]) return svgWrap(ALT, pick(LAYER), RAW);
