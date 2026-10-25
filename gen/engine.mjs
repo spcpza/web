@@ -2680,6 +2680,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     crownCols,                    // override the canopy ramp if a page wants its own species
     sun = 1,                      // how much daylight sits on the clump tops (a NIGHT tree wants ~0.2 — looking's sycomore)
   } = opts;
+  const REAL = !!opts.real;       // Oct 25: irregular clumps, no drawn contours (see lobedCrown)
   const sc = h / 120;
   const tr = rng;
   const G0 = opts.node || gAt('tree', cx, baseY, h);
@@ -2714,7 +2715,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
   });
   // (38·sc, up from the old patch's 30: under a high light a tree's shadow is about as wide as its crown)
   if (opts.shadow !== 0) groundShadow(out, counter, cx, baseY + 4 * sc, 38 * sc * S.shadow, 10 * sc,
-    { dir: shadowDir * 0.85, reach: 1, op: Math.min(1.25, 0.55 + lightFn(cx, baseY) * 0.9) });   // a harder light throws a firmer shadow
+    { dir: shadowDir * 0.85, reach: 1, op: Math.min(1.25, 0.55 + lightFn(cx, baseY) * 0.9) * (REAL ? 0.7 : 1), ...(REAL ? { tint: '#1f3a22' } : {}) });   // a harder light throws a firmer shadow; REAL: a shadow on grass is deep GREEN, not a blue pool
   // 2 · the trunk — one painter for the whole book, see paintTrunk above
   paintTrunk(out, counter, tr, cx, baseY, th, 7 * sc * S.tw, lean, lightFn, sc, { twist: S.twist, rings: S.rings });
   if (S.stems) {                                         // a fig or a pomegranate grows several stems from one foot
@@ -2789,6 +2790,20 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
         lobes.push({ x: cx0 + (tr() - 0.5) * rr * 0.6 * (1 - t * 0.6), y: cy0 + rr * 0.4 - t * rr * 0.95 * S.ry,
                      rx: rr * (1.05 - t * 0.4) * (0.85 + tr() * 0.3) * S.rx, ry: rr * (0.46 + tr() * 0.12) * S.ry, k });
       }
+      // ⭐ REAL (Oct 25 — Fred: "no emoji looking things… slight realism"). The tiers above stack every
+      // crown into a pagoda of plates; a real crown is MANY irregular clumps scattered through its mass.
+      // Same rng spend for the tiers (they are drawn above and then replaced), so nothing after moves.
+      if (REAL) {
+        const n2 = NL * 4 + 5, sr2 = G0.child('real').rng();
+        lobes.length = 0;
+        for (let k = 0; k < n2; k++) {
+          const a = sr2() * Math.PI * 2, d = Math.sqrt(sr2()) * 0.62;
+          const lr = rr * (0.46 + sr2() * 0.3);               // big enough to MERGE into one crown (smaller left topiary balls on bare sticks)
+          lobes.push({ x: cx0 + Math.cos(a) * rr * d * S.rx, y: cy0 + rr * 0.05 + Math.sin(a) * rr * d * 0.8 * S.ry, rx: lr * S.rx, ry: lr * 0.78 * S.ry, k: 0 });
+        }
+        lobes.sort((p, q) => q.y - p.y);                       // low clumps first; the lit top ones lap over them
+        lobes.forEach((L, i) => L.k = Math.round(i / Math.max(1, lobes.length - 1) * (NL - 1)));
+      }
       const inLobe = (x, y) => { let best = -1, bd = 9; for (const L of lobes) { const d = Math.hypot((x - L.x) / L.rx, (y - L.y) / L.ry); if (d < bd) { bd = d; best = L.k; } } return [best, bd]; };
       const crownAt = (x, y) => { const [k] = inLobe(x, y); const L = lobes[Math.max(0, k)];
         return Math.max(0, Math.min(1, (L.y - y) / (L.ry * 1.1) * 0.5 + 0.5)) * (0.86 + 0.14 * (L.k / Math.max(1, NL - 1))); };
@@ -2812,7 +2827,8 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
           len: 3.6 * p3 * S.mark[0], lw: 1.7 * p3 * S.mark[1], steps: 2, lenJ: 0.8, impasto: 0.4, op: 0.85,
         });
         const arc = []; for (let i = 0; i <= 10; i++) { const a = Math.PI * (0.1 + 0.8 * i / 10); arc.push([L.x + Math.cos(a) * L.rx * 0.98, L.y + Math.sin(a) * L.ry * 1.02]); }
-        paintPath(out, counter, tr, arc, (x, y, r) => jig(mix('#06140c', CROWN[1], r() * 0.4), r, 4), { lw: 1.1 * p3, len: 3, density: 0.42, jitter: 0.8 });
+        // the drawn contour under each clump is the cartoon tell (a cloud of 'C's) — a REAL crown has none
+        if (!REAL) paintPath(out, counter, tr, arc, (x, y, r) => jig(mix('#06140c', CROWN[1], r() * 0.4), r, 4), { lw: 1.1 * p3, len: 3, density: 0.42, jitter: 0.8 });
       }
       // EDGE LEAVES — the silhouette is leaves against the sky, not a cut dome
       strokes(out, counter, {
@@ -2888,13 +2904,16 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
 
   if (S.form === 'lobed') {
     const tips = limbs(out, counter, tr, GT, topX, topY, {
-      len0: h * 0.22, lw0: 1.7 * sc, up: -Math.PI / 2 + lean, minLen: h * 0.05, col: limbCol,
+      len0: h * (REAL ? 0.14 : 0.22), lw0: 1.7 * sc, up: -Math.PI / 2 + lean, minLen: h * 0.05, col: limbCol,   // REAL: limbs stay inside the crown
       pathOpts: { len: 4, density: 0.6, jitter: 0.5 },
     });
     // 4 · the canopy — a central mass, plus clusters riding the outermost tips so the
     // SILHOUETTE follows the skeleton instead of every tree wearing the same dome.
     const arms = spreadTips(tips, 5, h * 0.09);
-    const cl = [[topX, topY - h * 0.14, 1]].concat(arms.map(t => [t[0], t[1], 0.62]));
+    let cl = [[topX, topY - h * 0.14, 1]].concat(arms.map(t => [t[0], t[1], 0.62]));
+    // REAL: the crown is ONE mass the limbs disappear into — tip clusters pulled in toward the centre and
+    // grown, so they merge (separate balls on bare branches read as topiary)
+    if (REAL) cl = [[topX, topY - h * 0.16, 1.25]].concat(arms.map(t => [topX + (t[0] - topX) * 0.62, topY - h * 0.16 + (t[1] - topY + h * 0.16) * 0.62, 0.85]));
     if (kind === 'sycomore') {                           // the LOW LIMBS a boy could climb (Luke 19:4), below the crown, each with its own tuft of leaves
       for (const side of [-1, 1]) {
         const y0 = baseY - th * (0.5 + sr() * 0.15), ex = cx + side * h * (0.3 + sr() * 0.1), ey = y0 - h * (0.02 + sr() * 0.06);
@@ -2905,7 +2924,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     lobedCrown(cl, 1);
     innerDark(topX, topY - h * 0.05, h * 0.28 * S.rr * S.rx, h * 0.1);
     // 5 · blossom, on the lit side only (the oak and the apple keep the book's blossom)
-    if (S.bloom) for (let f = 0; f < blossom + ((tr() * 4) | 0); f++) {
+    if (S.bloom && !REAL) for (let f = 0; f < blossom + ((tr() * 4) | 0); f++) {
       const [ax, ay] = cl[(tr() * cl.length) | 0];
       const bx = ax + (tr() - 0.5) * h * 0.3, by = ay + (tr() - 0.5) * h * 0.2;
       if (lightFn(bx, by) < 0.12) continue;

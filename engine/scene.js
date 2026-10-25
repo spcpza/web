@@ -759,7 +759,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=469';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=470';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -1094,13 +1094,7 @@
            { type: 'stars', x: 190, y: 96, w: 420, h: 300, seed: 31,
              stars: [[52, 44, 8], [368, 62, 9], [128, 232, 7], [318, 244, 8],
                      [206, 26, 6], [92, 150, 7], [352, 150, 6]] }],
-      4: [ { type: 'rabbit', x: 232, y: 462, s: 0.72, facing: 1, phase: 0.0 },   // was floating at the horizon; now sitting at the tree's foot     // love — clear of BOTH pilgrims (303,416 / 333,416) and above the poem
-           // clear of both children (303/333, feet 416) and of the rabbit at 214,322
-           { type: 'tree2', x: 180, y: 452, w: 26, h: 64, seed: 5, pal: 'night', lit: 0.30, phase: 1.1 },
-           { type: 'tree',  x: 690, y: 446, w: 11, h: 66, seed: 2, big: false, pal: 'night', lit: 0.20, phase: 3.4 },
-           { type: 'ladybug', x: 192, y: 412, s: 0.34, phase: 0.8 },   // was hanging in mid-air; now ON the tree at 180
-           // shifted LEFT of the two children (303/333) — it was over their faces
-           { type: 'butterfly', n: 16, s: 0.36, band: [170, 400, 296, 462] }],    // love — the meadow He made for you: DOWN in the flowers, not in the sky
+      4: [],   // Oct 25 (Fred: "no emoji looking things"): rabbit, ladybug, butterflies and two cartoon tree sprites removed — the plate's own painted oaks and hen carry the page    // love — the meadow He made for you: DOWN in the flowers, not in the sky
       // THE FIRE. x MUST match COLX in gen/plates/garden.mjs (186) — the plate's whole
       // light field is computed from that point, so the flame has to stand exactly
       // where the light says it does. w=100 spans 136..236, and the portrait window is
