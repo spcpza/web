@@ -74,138 +74,30 @@ export function paint(E, opts = {}) {
      the sky is nature, so it swirls (Munch) — a gentle radiant turn out of the
      rising light, the morning of the world, joyful, not storm. A luminous
      gradient underpaints it so every gap glows. */
-  out.push(`<defs><linearGradient id="dawn02" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="#a9e1fb"/>
-<stop offset="0.42" stop-color="#8fcaf2"/>
-<stop offset="0.7" stop-color="#f3b0c2"/>
-<stop offset="0.88" stop-color="#ffce7a"/>
-<stop offset="1" stop-color="#ffe49a"/>
-</linearGradient></defs>`);
-  out.push(`<rect x="-12" y="-12" width="${W + 24}" height="296" fill="url(#dawn02)"/>`);
-  counter.n++;
-  // THE ALIVE DAWN SKY (the fractal sky — motion at three scales): the whole
-  // morning WHEELS in one great spiral around the rising light (macro), a few
-  // eddies turn inside the wheel (mid), and every stroke curves with its parent
-  // current (micro). Swirls within swirls — the dawn is deep moving light, the
-  // same alive hand as looking/garden (kept warm/gentle, first-morning, not storm).
-  const WHEEL_X = 400, WHEEL_Y = 226;                 // the great wheel turns on the rising light
-  const EDDIES = [[150, 92, 54], [560, 72, -58], [672, 176, 50], [280, 150, -48]];
-  const nearV = (x, y) => { let m = 1e9; for (const [ex, ey] of EDDIES) m = Math.min(m, Math.hypot(x - ex, y - ey) / 52); return m; };
-  const skyDir = (x, y) => {
-    let vx = 14, vy = -5;   // a gentle upward breath (the light rising); the wheel rides on top
-    { const [a, b] = goldenSpiralV(x, y, WHEEL_X, WHEEL_Y, 115, 260); vx += a; vy += b; }   // MACRO — the great wheel of the dawn
-    for (const [ex, ey, s] of EDDIES) { const [a, b] = goldenSpiralV(x, y, ex, ey, s, 80); vx += a; vy += b; } // MID — eddies turning inside
-    const [c, d] = curlV(x, y, 31, 120); vx += c * 26; vy += d * 26;   // MICRO — fine turbulence on every stroke
-    return Math.atan2(vy, vx);
+  /* ⭐ REALISM (Oct 25 — Fred: "no emoji looking things… the background drawn with slight realism"). The first
+     morning's sky was a wheel of big translucent slabs. It is now a real dawn: clean blue high up, warming
+     through rose to gold over the sea where the sun is rising, painted in thousands of fine strokes that turn
+     gently round the sun — and real cumulus (sky1) lit gold on the sun side. The moon and the morning stars
+     (Gen 1:16, Job 38:7) stay on the top sheet. Old plate: attic/flame-pre-realism/. */
+  const skyCol = (x, y) => {
+    const up = Math.max(0, Math.min(1, 1 - y / 268));
+    let c = ramp(['#ffe2a0', '#f8c6a0', '#e7b4bc', '#a9bfe2', '#78a6e0', '#5b8fd6'], 0.08 + up * 0.92);
+    c = mix(c, '#fff4d2', Math.pow(rise(x, y), 1.6) * 0.85);      // the glow round the rising sun
+    return c;
   };
-  // jewel eddy-glows — each mid-eddy core breathes a deep dawn tint (rose/violet/
-  // gold), the alive richness (kept subtle; the rising light still overrides)
-  const EGLOW = [[150, 92, '#e28aa6'], [560, 72, '#e6b45a'], [672, 176, '#a07cc0'], [280, 150, '#d087b0']];
-  const skyCol = (x, y, r, lift) => {
-    const t = Math.max(0, Math.min(1, 0.05 + (y / 268) * 0.5 + fbm(x / 130, y / 120, 13) * 0.28));
-    let c = ramp(['#7ccdfb', '#6cb8f4', '#86aef0', '#f3a6c0', '#ffc66e', '#ffe08a'], t); // blue high → rose → gold low (Sep 21: the blues deepened — see the note below)
-    for (const [ex, ey, ec] of EGLOW) { const d2 = Math.hypot(x - ex, y - ey); c = mix(c, ec, Math.exp(-d2 / 80) * 0.3); }   // the eddy cores breathe faint jewel light
-    /* ⭐ "WHO COVEREST THYSELF WITH LIGHT AS WITH A GARMENT: WHO STRETCHEST OUT THE HEAVENS LIKE A
-       CURTAIN" (Ps 104:2, the creation psalm, on the creation page; Sep 21). Both halves are
-       cloth. So the firmament is painted as one: long soft FOLDS fanning out of the rising light
-       — a pleat is a valley of deeper blue beside a ridge that catches the light — strongest
-       high in the sky where it is stretched, and gone near the sun, where the cloth is simply
-       light. The folds ride a slow warp so no two are the same width; it is a hung thing, not
-       a ruled fan. (The Light's FIGURE is left exactly as it is: Fred ruled, from 1 John 1:5,
-       that He wears no garment — He IS light. This is His sky, not His robe.) */
-    { const ang = Math.atan2(y - WHEEL_Y, x - WHEEL_X), dist = Math.hypot(x - WHEEL_X, y - WHEEL_Y);
-      const fold = 0.5 + 0.5 * Math.sin(ang * 13 + fbm(x / 170, y / 150, 61) * 5.5);
-      const k = Math.max(0, Math.min(1, (dist - 120) / 200)) * (1 - Math.min(1, rise(x, y) * 1.4));
-      c = mix(c, '#5b8fd8', Math.pow(fold, 2.2) * 0.30 * k);              // the valley of the pleat
-      c = mix(c, '#ffffff', Math.pow(1 - fold, 5) * 0.34 * k); }          // the ridge, catching the morning
-    /* ⚠⚠ THE FIRST MORNING WAS GREY — MEASURED (Sep 21): the upper sky's planes had a saturation of
-       0.04. Not relief, not the filter: `glory` is a 360-unit pool centred at the TOP of the frame,
-       so pale gold was mixed into the pale blue across the entire sky, and the book's own rule
-       says what that makes — "yellow mixed over blue muddies green-grey; keep yellow at the
-       horizon." Gold now belongs to the SUN: it falls off fast with distance from the rising
-       light and is gone by the high sky, which is left a clean, committed blue. */
-    const warm = Math.pow(rise(x, y), 1.7);
-    c = mix(c, GOLD_PALE, warm * 0.62 + glory(x, y) * warm * 0.25);
-    if (lift) c = mix(c, '#ffffff', lift * (0.4 + warm * 0.6));
-    return jig(c, r, 6);
-  };
-  // the smooth dawn-sky GROUND — broad soft masses (opaque base); the swirling
-  // brushwork lives in the stacked sheets above, so their gaps reveal this paint
-  strokes(out, counter, {
-    rng, n: 900, sample: rej(-12, -12, 812, 296, (x, y) => y < seaY(x) + 8),
-    dir: skyDir, col: (x, y, r) => skyCol(x, y, r, 0),
-    len: (x, y) => 30 * lengthOf(x, y, 11), lw: (x, y) => 5.2 * widthOf(x, y, 13),
-    // ⚠ relief: 0.12 (Sep 21). This pass OMITTED relief, and strokes() defaults it to 1 — the book's
-    // known trap (relief_default_trap): every broad soft mark gets a full bevel and the first
-    // morning of the world came out as GREY FLAGSTONES, its blue-rose-gold ramp buried under its
-    // own shading. Air takes almost none.
-    steps: 4, follow: 0.91, wild: 0.05, lenJ: 0.3, wJ: 0.3, impasto: 0.5, relief: 0.12,
-  });
-  // VAN GOGH ARMS — streaming light: long curling filaments riding the new dawn,
-  // bright (rose into gold), glory pouring up across the firmament
-  strokes(out, counter, {
-    rng, n: 600,
-    sample: rej(-12, -12, 812, 282, (x, y) => y < seaY(x) + 2),
-    dir: skyDir,
-    col: (x, y, r) => {
-      const k2 = fbm(x / 88, y / 88, 17) + (r() - 0.5) * 0.2;
-      if (k2 > 0.78) return jig('#fffdf6', r, 8);  // bright cloud crests
-      return jig(mix(mix('#bfe6fb', '#f4b6c6', Math.min(1, y / 220)), GOLD_PALE, Math.min(0.8, 0.2 + lightAt(x, y) * 0.8)), r, 6);
-    },
-    len: (x, y) => 24 * lengthOf(x, y, 21), lw: (x, y) => 2.6 * widthOf(x, y, 23),
-    steps: 6, follow: 0.94, wild: 0.14, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.5,
-  });
-  /* ⚠ NOT DE-BAKED — this page goes the other way (Fred: "you can be creative!! maybe for
-     this one make the painting move"). `beginning` holds still and hands its light to a
-     rig; here the PAINTING is the animation: the sun stays painted, and the sea it lies on
-     actually flows. A page is allowed its own method. */
-  // the rising light's radiant core, low and central — the source of the first day
-  strokes(out, counter, {
-    rng, n: 150,
-    sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.78) * 52; return [lightC.x + Math.cos(a) * d, lightC.y + Math.sin(a) * d * 0.92]; },
-    dir: () => 0.2,
-    col: (x, y, r) => jig(ramp([GOLD_HOT, GOLD_PALE, GOLD], Math.hypot(x - lightC.x, (y - lightC.y) / 0.92) / 52), r, 5),
-    len: 8, lw: 3, steps: 2, impasto: 0.55,
-  });
-  // bold rays of the first morning streaming up and out across the sky
-  strokes(out, counter, {
-    rng, n: 96,
-    sample: r => { const a = -Math.PI * (0.05 + r() * 0.9); const d = (0.4 + 0.82 * r()) * 252; return [lightC.x + Math.cos(a) * d, lightC.y + Math.sin(a) * d * 0.9]; },
-    dir: (x, y) => Math.atan2(y - lightC.y, x - lightC.x),
-    col: (x, y, r) => jig(mix(GOLD_HOT, GOLD_PALE, r() * 0.5), r, 6),
-    len: (x, y) => 12 + Math.hypot(x - lightC.x, y - lightC.y) / 14, lw: 1.4, steps: 2, lenJ: 0.7, relief: 0,
-  });
-  // BIRDS of the fifth day rising into the new morning (Gen 1:20)
-  for (const [bx, by, s] of [[166, 76, 1], [202, 90, 0.85], [138, 94, 0.8], [628, 84, 0.9], [668, 70, 0.78], [602, 98, 0.7]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#5a6ea0', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
-  }
+  E.realSky(out, counter, rng, { skyCol, inSky: (x, y) => y < seaY(x) + 6, sun: lightC, y1: 300, swirl: 0.7, seed: 13 });
   const skyEnd = out.length;   // ← the smooth dawn-sky ground is the SKY plane (opaque)
 
   // the stacked SKY-SWIRL SHEETS — each an independent bold, gapped pass of the
   // first morning's gentle turn (paint on paint), own rng per sheet.
+  const _cloudBody = [], _cloudEdge = [];
+  E.realClouds(_cloudBody, _cloudEdge, { n: 0 }, mulberry32(seed + 1009), {
+    banks: [{ x: 110, y: 214, w: 220, h: 58 }, { x: 640, y: 206, w: 240, h: 64 }, { x: 760, y: 120, w: 110, h: 40 },
+            { x: 520, y: 80, w: 130, h: 34 }, { x: 160, y: 96, w: 120, h: 36 }],
+    sun: lightC, sunAt: (x, y) => rise(x, y) * 1.4,
+    cols: ['#a48fb0', '#c2a8bc', '#dcc2c6', '#f0dcd2', '#fbefe2', '#fff8ee'], warm: '#ffd796' });
   const skySheets = SKY_SHEETS.map((e, k) => {
-    const srng = mulberry32(seed + 1009 * (k + 1));
-    const sh = [];
-    strokes(sh, { n: 0 }, {
-      rng: srng, n: e.n, sample: rej(-12, -12, 812, 296, (x, y) => y < seaY(x) + 8),
-      dir: skyDir,
-      col: (x, y, r) => {
-        const near = nearV(x, y);
-        if (near < 1.1 && r() < 0.06) return jig(r() < 0.5 ? '#fff4d8' : '#f8d6e0', r, 12);   // BRIGHT dawn knot-sparks (gold-white + pale rose)
-        const k2 = fbm(x / 92, y / 92, 71) + (r() - 0.5) * 0.2;
-        if (k2 > 0.76) return jig('#fff4d8', r, 8);                                            // BRIGHT warm gold-white crests (read against the dawn)
-        return skyCol(x, y, r, e.lift);
-      },
-      len: (x, y) => e.len * lengthOf(x, y, 31 + k), lw: (x, y) => e.lw * widthOf(x, y, 37 + k),
-      steps: 5, follow: 0.91, wild: 0.14, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.5,
-      aJ: (x, y) => 0.16 + Math.max(0, 1.3 - nearV(x, y)) * 0.42,
-    });
-    /* ⭐ "WHEN THE MORNING STARS SANG TOGETHER, and all the sons of God shouted for joy" (Job 38:7) —
-       said of the very hour this page paints: "Where wast thou when I laid the foundations of the
-       earth?" (38:4). The first morning had a sun and no stars. They ride the TOP sheet, above
-       the brushwork, high in the blue and well clear of the rising light, which would drown
-       them; pale, because it is already day; and gathered rather than scattered — they sang
-       TOGETHER. (Sep 21, the fresh scripture search.) */
+    const sh = k === 0 ? _cloudBody : _cloudEdge;
     if (k === SKY_SHEETS.length - 1) {
       const c2 = { n: 0 };
       E.paintStars(sh, c2, mulberry32(seed ^ 0x3807), { x0: 150, y0: 4, x1: 650, y1: 118, n: 46, fall: 1.0, gloryK: 2.2, op: 0.8,
@@ -235,11 +127,14 @@ export function paint(E, opts = {}) {
     return sh.join('\n');
   });
 
+  const REALSEA = true;
+  const seaDepth = (x, y) => Math.max(0, (y - seaY(x)) / (H - seaY(x)));
   /* ---------------- 2. THE GATHERED WATERS — "let the waters be gathered" (Gen 1:9) ----------------
      the great deep, below the sea-line, catching fire with the morning. Water is
      nature, so it SWIRLS (Munch) — turning eddies of blue-green and gold under
      the rising light, "and the Spirit moved upon the face of the waters." */
   const waterDir = (x, y) => {
+    if (REALSEA) return (fbm(x / 60, y / 14, 37) - 0.5) * 0.24;   // Oct 25: a real sea lies FLAT — horizontal crests, not whirlpools
     // gentle ocean swirl: vortices in the deep + the morning glitter streaming out
     let vx = 14, vy = 0;
     const WV = [[300, 360, 70], [560, 392, -64], [180, 430, 56], [640, 446, -52]];
@@ -253,7 +148,7 @@ export function paint(E, opts = {}) {
   // an opaque body before its detail. Broad soft water strokes, the sea's own colours, no
   // whitening, so every gap between the finer marks is still sea.
   strokes(out, counter, {
-    rng, n: 1100,
+    rng, n: 5000,
     sample: rej(-10, 256, 810, 512, (x, y) => y > seaY(x) - 2),
     dir: waterDir,
     col: (x, y, r) => {
@@ -263,12 +158,11 @@ export function paint(E, opts = {}) {
       c = mix(c, '#a9d3e8', Math.pow(1 - depth, 2.2) * 0.4);
       return jig(c, r, 7);
     },
-    len: (x, y) => (14 + Math.max(0, (y - seaY(x)) / (H - seaY(x))) * 30) * lengthOf(x, y, 45),
-    lw: (x, y) => (3.0 + Math.max(0, (y - seaY(x)) / (H - seaY(x))) * 5.0) * widthOf(x, y, 47),
-    steps: 4, follow: 0.94, lenJ: 0.3, wJ: 0.3, impasto: 0.0, relief: 0.3,
+    len: (x, y) => 4 + seaDepth(x, y) * 14, lw: (x, y) => 0.9 + seaDepth(x, y) * 2.2,
+    steps: 2, follow: 0.94, lenJ: 0.5, wJ: 0.3, impasto: 0.0, relief: 0,
   });
   strokes(out, counter, {
-    rng, n: 3200,
+    rng, n: 9000,
     sample: rej(-10, 256, 810, 512, (x, y) => y > seaY(x) - 2),
     dir: waterDir,
     col: (x, y, r) => {
@@ -282,9 +176,8 @@ export function paint(E, opts = {}) {
     },
     // ONE-POINT SCALE GRADIENT: near swells are long and thick, far ripples tiny —
     // the sea itself recedes to the line where the light stands (still Munch-curved)
-    len: (x, y) => (5 + Math.max(0, (y - seaY(x)) / (H - seaY(x))) * 22) * lengthOf(x, y, 51),
-    lw: (x, y) => (1.0 + Math.max(0, (y - seaY(x)) / (H - seaY(x))) * 3.4) * widthOf(x, y, 53),
-    steps: 4, follow: 0.93, wild: 0.04, lenJ: 0.3, wJ: 0.3, impasto: 0.6, relief: 0.5,   // ⚠ wild 0.14 → 0.04: at 3,200 marks the long hairlines read as RAIN over the water on the page
+    len: (x, y) => 3 + seaDepth(x, y) * 11, lw: (x, y) => 0.6 + seaDepth(x, y) * 1.6,
+    steps: 2, follow: 0.93, lenJ: 0.5, wJ: 0.3, impasto: 0.3, relief: 0.1,   // ⚠ wild 0.14 → 0.04: at 3,200 marks the long hairlines read as RAIN over the water on the page
   });
   // the light on the water: hair-fine crests ONLY where the morning lies on the swells.
   // ⚠ At 1,100 marks everywhere and op 0.75 the whole sea went to TV snow on the page
@@ -404,6 +297,10 @@ export function paint(E, opts = {}) {
     });
   }
 
+  { const br = mulberry32(seed + 421);   // seabirds over the morning sea (Gen 1:20 "fowl that may fly above the earth in the open firmament")
+    for (const [bx, by, bs, t] of [[268, 222, 6.5, 0.1], [300, 206, 5.2, -0.2], [246, 196, 4.4, 0.25], [336, 236, 4.8, -0.1], [470, 180, 4, 0.15],
+                                   [520, 214, 5.6, -0.15], [552, 192, 4.2, 0.1], [640, 240, 6, 0.2], [690, 210, 4.6, -0.05], [420, 150, 3.4, 0.1], [370, 128, 3, -0.2]])
+      E.realBird(out, counter, br, bx, by, bs, { tilt: t, col: '#4e5468' }); }   // against the sunrise a gull is a dark silhouette
   const landTop = x => 380 + 13 * Math.sin(x / 120 + 1.2) - 8 * Math.exp(-(((x - 180) / 220) ** 2));
   const _fgLand = out.length;
   // underpaint: solid fresh green so gaps read lush
@@ -422,7 +319,7 @@ export function paint(E, opts = {}) {
     out.push(`<path d="${d}" fill="#3f8a3a"/>`); counter.n++;
   }
   strokes(out, counter, {
-    rng, n: 2400,
+    rng, n: 6000,
     sample: rej(-10, 364, 810, 512, (x, y) => y > landTop(x) - 1),
     dir: (x, y) => { const [vx, vy] = curlV(x, y, 167, 60); return Math.atan2(vy * 0.8 - 0.1, Math.abs(vx) + 0.7); },
     col: (x, y, r) => {
@@ -431,12 +328,12 @@ export function paint(E, opts = {}) {
       c = mix(c, GOLD_DEEP, lightAt(x, y) * 0.5);   // warming gold where the new light falls
       return jig(c, r, 12);
     },
-    len: (x, y) => 12 * lengthOf(x, y, 61), lw: (x, y) => 2.4 * widthOf(x, y, 63),
-    steps: 3, lenJ: 0.3, wJ: 0.3, wild: 0.12, impasto: 0.7,
+    len: (x, y) => 7 * lengthOf(x, y, 61), lw: (x, y) => 1.6 * widthOf(x, y, 63),
+    steps: 3, lenJ: 0.3, wJ: 0.3, wild: 0, impasto: 0.5, relief: 0.3,   // Oct 25: wild 0.12 → 0 — the raking hairlines and slabs read as confetti on the lawn
   });
   // GRASS IS BLADES: fine upward strokes over the dabs, bending with the same breeze
   strokes(out, counter, {
-    rng, n: 1600,
+    rng, n: 5000,
     sample: rej(-10, 364, 810, 512, (x, y) => y > landTop(x) + 2),
     dir: (x, y) => { const [vx] = curlV(x, y, 167, 60); return -Math.PI / 2 + vx * 0.9 + (fbm(x / 6, y / 6, 347) - 0.5) * 0.8; },
     col: (x, y, r) => {
@@ -445,7 +342,7 @@ export function paint(E, opts = {}) {
       c = mix(c, '#fff0b0', lightAt(x, y) * 0.45);
       return jig(c, r, 8);
     },
-    len: (x, y) => (5 + 7 * ((y - 364) / (H - 364))) * lengthOf(x, y, 65), lw: (x, y) => 1.0 * widthOf(x, y, 67),
+    len: (x, y) => (3 + 4 * ((y - 364) / (H - 364))) * (0.7 + 0.3 * lengthOf(x, y, 65)), lw: (x, y) => 0.7 + 0.25 * widthOf(x, y, 67),   // Oct 25: fine blades, not lozenges
     steps: 3, follow: 0.9, lenJ: 0.3, wJ: 0.3, impasto: 0.4, relief: 0.3, op: 0.85,
   });
   /* ---------------- THE CLIFF'S BRINK ----------------
@@ -500,13 +397,8 @@ export function paint(E, opts = {}) {
   E.horizonFringe(out, counter, rng, { horizonFn: landTop, x0: -10, x1: 810, cols: ['#2c7a4a', '#3f8a3a', '#5ea83e', '#86c44a'], hMax: 18, lightFn: lightAt, seed: 343 });
   // FLOURISHING — the third day's herb and fruit burst across the new shore
   // (Gen 1:11, "let the earth bring forth grass... the fruit tree yielding fruit")
-  E.groundFlowers(out, counter, rng, {
-    x0: -6, y0: 382, x1: 812, y1: 510, n: 520,
-    lightFn: lightAt,
-    depthFn: (x, y) => (y - 364) / (510 - 364),
-  });
-  // one more fruit tree so the shore reads ABUNDANT, not lawn (Gen 1:11-12)
-  E.fruitTree(out, counter, rng, 580, 470, 26, 34, E.LEAF_PALETTES[0], lightAt, 0.5, { crownOnly: true });   // a bush now: the great trees are the trees
+  E.realFlowers(out, counter, mulberry32(seed + 411), { colonies: 60, y0: 396, y1: 508, ok: (x, y) => y > landTop(x) + 14, dS: y => 1.6 + (y - 380) / 130 * 1.8 });   // Oct 25: in colonies, not confetti
+  E.realShrub(out, counter, mulberry32(seed + 413), 580, 474, 22, { lightAt });   // (was a patterned flower-cushion)
   fgRanges.push([_fgLand, out.length]);   // ← the near shore + its first life are foreground
 
   /* ---------------- DISTANT NEW HILLS — the far horizon of the made world [FAR plane] ---------------- */
@@ -547,11 +439,8 @@ export function paint(E, opts = {}) {
   const _fgTrees = out.length;
   // ⚠ BUSHES, not little trees. Two great trees now stand at the ends of this shore, and
   // a scatter of knee-high fruit trees underneath them reads as a nursery, not a coast.
-  E.fruitTree(out, counter, rng, 92,  474, 30, 40, E.LEAF_PALETTES[1], lightAt, 0.5, { crownOnly: true });
-  E.fruitTree(out, counter, rng, 716, 482, 32, 44, E.LEAF_PALETTES[3], lightAt, 0.5, { crownOnly: true });
-  E.fruitTree(out, counter, rng, 150, 456, 24, 32, E.LEAF_PALETTES[4], lightAt, 0.4, { crownOnly: true });
-  E.fruitTree(out, counter, rng, 268, 470, 26, 36, E.LEAF_PALETTES[2], lightAt, 0.4, { crownOnly: true });
-  E.fruitTree(out, counter, rng, 442, 478, 28, 38, E.LEAF_PALETTES[0], lightAt, 0.5, { crownOnly: true });
+  { const sr = mulberry32(seed + 417);   // the shore's shrubs: real, rooted, lit from the sunrise (were patterned cushions)
+    for (const [bx, by, bw] of [[92, 474, 26], [716, 482, 28], [150, 458, 18], [268, 470, 20], [442, 478, 22]]) E.realShrub(out, counter, sr, bx, by, bw, { lightAt }); }
   fgRanges.push([_fgTrees, out.length]);
 
   /* ---------------- THE TWO GREAT TREES [NEAR plane] ----------------

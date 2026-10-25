@@ -20,6 +20,12 @@ export default {
     // relative plate/script URL follows on https — and `_headers` sends HSTS so the browser
     // refuses plain http for this host from then on.
     // and www.balthazar.sh is one address, not a second copy of the site
+    // the PREVIEW host (wrangler.preview.toml) is a draft for surveying readers: keep it out of search engines
+    if (url.hostname === "preview.balthazar.sh" && url.protocol === "https:" && !url.pathname.startsWith("/.well-known/")) {
+      const r = await env.ASSETS.fetch(request);
+      const h = new Headers(r.headers); h.set("X-Robots-Tag", "noindex, nofollow");
+      return new Response(r.body, { status: r.status, statusText: r.statusText, headers: h });
+    }
     if (url.protocol === "http:" || url.hostname === "www.balthazar.sh") {
       url.protocol = "https:";
       url.hostname = "balthazar.sh";

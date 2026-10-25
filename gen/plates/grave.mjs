@@ -818,11 +818,19 @@ export function paint(E, opts = {}) {
     }
     paintPath(out, counter, kr, cord.map(([x, y]) => [x + 1.2, y + 2.2]), (x, y, r) => jig('#1c1a2c', r, 3), { lw: 2.0, len: 4, density: 0.9, jitter: 0.2 });   // its shadow on the stone
     paintPath(out, counter, kr, cord, (x, y, r) => jig(mix('#6e6456', '#b8a888', lit(x, y) * 0.6 + r() * 0.15), r, 5), { lw: 1.5, len: 3.5, density: 0.95, jitter: 0.2 });
+    // ⭐ Oct 25 (Fred: "no emoji looking things"): the seal was a perfect disc with a drawn ring and a cross — a
+    // red button. Real wax is a lump squeezed out under a press: irregular, thicker on one side, a drip or two
+    // running down, a shallow dented face, dull, with only its rim catching the moon. Painted, not drawn.
     for (const [cx, cy] of [A, B]) {
-      out.push(`<path d="M${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => { const a = i / 12 * Math.PI * 2, rr = 7.2 * (1 + (kr() - 0.5) * 0.18); return R1(cx + Math.cos(a) * rr) + ' ' + R1(cy + Math.sin(a) * rr * 0.92); }).join('L')}Z" fill="#5a1620"/>`); counter.n++;   // the wax
-      out.push(`<circle cx="${R1(cx - 1.2)}" cy="${R1(cy - 1.2)}" r="4.6" fill="none" stroke="#8c2a34" stroke-width="1.1" opacity="0.9"/>`); counter.n++;         // the ring the seal pressed
-      out.push(`<path d="M${R1(cx - 3)} ${R1(cy - 1.2)}H${R1(cx + 0.6)}M${R1(cx - 1.2)} ${R1(cy - 3)}V${R1(cy + 0.6)}" stroke="#3a0e16" stroke-width="0.9"/>`); counter.n++;
-      paintPath(out, counter, kr, [[cx - 6.4, cy - 2], [cx - 4, cy - 5.6], [cx, cy - 6.6]], (x, y, r) => jig(mix('#b8505a', '#e0808a', r() * 0.4), r, 4), { lw: 1.2, len: 2.5, density: 0.9, jitter: 0.2 });   // the moon on its rim
+      const blob = []; for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, rr = 6.2 * (1 + (kr() - 0.5) * 0.45) * (a > 0.3 && a < 1.6 ? 1.18 : 1); blob.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.85]); }
+      const inB = (x, y) => { let c = false; for (let i = 0, j = blob.length - 1; i < blob.length; j = i++) { const [xi, yi] = blob[i], [xj, yj] = blob[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+      for (const [dx, dl] of [[2.5, 6], [-1.5, 4]]) paintPath(out, counter, kr, [[cx + dx, cy + 4], [cx + dx + 0.4, cy + 4 + dl]], (x, y, r) => jig(mix('#4a1018', '#62202a', r()), r, 4), { lw: 1.6, len: 2, density: 1, jitter: 0.15 });   // drips
+      strokes(out, counter, { rng: kr, n: 70, sample: r => { const x = cx - 8 + r() * 16, y = cy - 8 + r() * 16; return inB(x, y) ? [x, y] : null; },
+        dir: (x, y) => Math.atan2(y - cy, x - cx) + Math.PI / 2,
+        col: (x, y, r) => { const d = Math.hypot(x - (cx - 0.8), y - (cy - 0.8)); const dent = d < 3.6 ? 0.5 : 0; const up = Math.max(0, (cy - y) / 7);
+          return jig(mix(mix('#5c1620', '#7a2430', up * 0.6 + r() * 0.25), '#3e0c14', dent * 0.6), r, 4); },
+        len: 1.8, lw: 1.3, steps: 2, relief: 0.2, impasto: 0.3, flow: 0 });
+      paintPath(out, counter, kr, blob.slice(10, 16), (x, y, r) => jig(mix('#9a4a52', '#c07078', r() * 0.4), r, 4), { lw: 0.9, len: 2, density: 0.8, jitter: 0.2 });   // moonlight on the upper-left rim only
     }
   }
   stoneR.push([_stone, out.length]);

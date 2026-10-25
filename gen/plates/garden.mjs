@@ -379,7 +379,7 @@ export function paint(E, opts = {}) {
   // fig 2.7 (his hiding tree — the crown arches over his head, the trunk between him and the fire), apple 3.2
   // and palm 3.8 framing the edges (cut by the frame), pomegranate 2.4 far back. fruitTree multiplies h by 1.12.
   const KIDU = y => 100 * (y - 302) / 168, TREE = (units, y) => units * KIDU(y) / 1.12;
-  fruitTree(-14, 508, TREE(3.2, 508), 130, ['#7a4ab0', '#9a5ac8', '#b87ae0'], 'apple');        // BRIGHT violet, frame left — an apple
+  fruitTree(-14, 508, TREE(3.2, 508), 130, ['#1f4a2c', '#2f6a38', '#4a8a44'], 'apple', { real: true, fruitK: 0.3 });   // Oct 25 realism: a real night apple tree, green, fire-lit (was BRIGHT violet)        // BRIGHT violet, frame left — an apple
   { const _o = [], _c = { n: 0 };   // the Oct 6 fig, painted into a THROWAWAY so the shared rng stream (and every mark after it) is unchanged — the fig itself is figTree() below
     E.paintTree(_o, _c, rng, 384, 478, TREE(2.4, 478) * 1.12, { species: 'fig', lightFn: light, crownCols: E.crownRamp(['#c83a82', '#e05a9a', '#f07ab0']), blossom: 3, fruitK: 1, shadowDir: -1, trunkK: 1.75 }); }
   /* ⭐ THE FIG HE HIDES UNDER (Oct 8 — Fred: "repaint the fig"). The lobed-crown painter stacked it into three pink
@@ -392,7 +392,7 @@ export function paint(E, opts = {}) {
   const figTree = () => {
     const fr = E.mulberry32(3907);
     const C0 = { x: 400, y: 304, rx: 108, ry: 70 };                      // crown: top ≈234, belly ≈374 — arches over his head (he kneels at 428, crown of his hood ≈395)
-    const CROWN = ['#3a1230', '#5a1a48', '#86275e', '#b23676', '#d8508e', '#ee72a8', '#ffa8cc'];
+    const CROWN = ['#0e2416', '#173a22', '#22522c', '#33703a', '#4c8c48', '#74a85a', '#a6c878'];   // Oct 25 realism: fig leaves are GREEN (was jewel pink)
     const edge = a => 1 + 0.13 * Math.sin(a * 3 + 0.7) + 0.08 * Math.sin(a * 5 + 2.1) + 0.05 * Math.sin(a * 8 + 4.0);   // a bumpy silhouette, never an ellipse
     const upAt = y => Math.max(0, Math.min(1, 0.5 - (y - C0.y) / (C0.ry * 2)));
     const warm = (c, x, y) => E.mix(c, '#ffab4a', light(x, y) * 0.6);   // the fire's side, the jewelBush rule
@@ -465,8 +465,8 @@ export function paint(E, opts = {}) {
     }
   };
   figTree();
-  fruitTree(812, 512, TREE(3.4, 512), 130, ['#2c9a86', '#3ac0a0', '#5ad8b8'], 'palm');         // BRIGHT teal, frame right — a palm
-  fruitTree(650, 400, TREE(2.4, 400), 60, ['#3a6ad0', '#4a7ae0', '#6a9af0'], 'pomegranate');   // BRIGHT blue, far back — a pomegranate
+  fruitTree(812, 512, TREE(3.4, 512), 130, ['#1d4630', '#2c6440', '#4a8650'], 'palm', { real: true, fruitK: 0.3 });         // BRIGHT teal, frame right — a palm
+  fruitTree(650, 400, TREE(2.4, 400), 60, ['#1c4230', '#2a5c3c', '#43784a'], 'pomegranate', { real: true, fruitK: 0.3 });   // BRIGHT blue, far back — a pomegranate
 
   /* lush jewel undergrowth + a fruitful scatter of garden flowers, visible even
      in the dark (brighter where the Light falls) — the ground itself is alive */
@@ -477,15 +477,17 @@ export function paint(E, opts = {}) {
     col: (x, y, r) => { const g = light(x, y); let c = ramp(cols, fbm(x / 12, y / 12, 261) + r() * 0.3); return jig(mix(mix(c, '#ffab4a', g * 0.72), '#0c1830', (1 - g) * 0.3), r, 10); },
     len: 7, lw: 2.4, steps: 2, lenJ: 0.5,
   });
-  jewelBush(36, 504, 24, 17, ['#5a2060', '#7a2a70', '#9a3a82']);
-  jewelBush(706, 472, 22, 15, ['#1f5a56', '#2c7060', '#3a8a6e']);
-  jewelBush(228, 502, 18, 12, ['#3a2a72', '#4a3a92', '#5a4ab0']);
-  jewelBush(594, 500, 16, 11, ['#6a2a5a', '#8a3a6a']);
+  jewelBush(36, 504, 24, 17, ['#173a24', '#22502c', '#336a36']);   // Oct 25 realism: night shrubs are deep green (were violet/teal/indigo)
+  jewelBush(706, 472, 22, 15, ['#1a4028', '#265a32', '#38703c']);
+  jewelBush(228, 502, 18, 12, ['#183c26', '#24542e', '#346c38']);
+  jewelBush(594, 500, 16, 11, ['#1a3e26', '#2a5a32']);
   strokes(out, counter, {        // jewel garden-flowers scattered on the dark ground
     rng, n: 220,
     sample: rej(-10, 320, 814, 512, (x, y) => y > horizon(x) + 10 && road(x, y) < 0.5),
     dir: () => -Math.PI / 2,
-    col: (x, y, r) => { const g = light(x, y); const k = r(); const c = k < 0.22 ? '#ee5c84' : k < 0.44 ? '#b77ce0' : k < 0.64 ? '#f6c63e' : k < 0.82 ? '#5ec0e0' : '#f29ad0'; return jig(mix(c, '#ffd08a', g * 0.55), r, 12); },
+    // Oct 25 realism: at night a flower is a pale point where the fire reaches and nearly nothing where it does not —
+    // five neon hues scattered evenly was confetti. Pale cream/white/soft yellow, lit by the fire, dim in the dark.
+    col: (x, y, r) => { const g = light(x, y); const k = r(); const c = k < 0.5 ? '#efe8d4' : k < 0.8 ? '#f2dc8a' : '#e6b8c8'; return jig(mix(mix(c, '#20304a', (1 - g) * 0.7), '#ffd08a', g * 0.4), r, 6); },
     len: (x, y) => 3 + depth(x, y) * 5, lw: (x, y) => 2 + depth(x, y) * 2, steps: 1, lenJ: 0.5,
   });
 

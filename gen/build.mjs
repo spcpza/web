@@ -66,6 +66,12 @@ const EP24 = new Set(('calling choice city cry delight everlasting gates house l
   + 'chosen empire feast gatekeeper gladness glass letters opendoor sackcloth sceptre threedays time twonames weaver web').split(' '));
 const EP24_BOOST = 1.0;   // density was NOT the difference (broken colour / manifold was) — no boost
 const densityFor = name => (DENSITY_TRIM[name] || 1) * (EP24.has(name) ? EP24_BOOST : 1);
+// ⭐ REALISM (Oct 25 — Fred: "i want the art style to not have emoji looking things. i want the background to be drawn
+// with slight realism"). Book-wide: no complementary-flip confetti (MANIFOLD 0), and the SKY planes are painted with a
+// brush about half the size and three times the marks — the 1.7× back-plane brush laid big translucent slabs that
+// overlapped like cellophane. REALISM=0 node gen/build.mjs <page> rebuilds the old way.
+const REALISM = process.env.REALISM !== '0';
+const SKY_FINE = 0.55, SKY_MORE = 3, SKY_TUNED = new Set(['love', 'flame']);   // these two already paint their own fine sky (engine realSky)
 // ep2/3/4 plates REDRAWN from scratch in ep1's vivid style — they carry their own
 // rich palette, so they skip the colour-punch (which is only for the old pale plates).
 const REPAINTED = new Set(['teach']);
@@ -601,7 +607,7 @@ for (const m of modules) {
   // low-contrast, so one flipped mark in ten read as RAINBOW CONFETTI over the whole
   // plate and averaged the picture to chalk. It survives as a rarity, which is what a
   // hidden bow is supposed to be.
-  const MANIFOLD_PAGE = { love: 0,   /* Oct 25 realism pass (Fred: "no emoji looking things… slight realism"): no flipped confetti marks */ paid: 0.012,   /* Golgotha was on the 0.10 default — lime chips over the mourning sky */ lost: 0,   /* ⚠ 0.004 → 0 (Sep 8): with 9,000+ marks even that left lime streaks in the sky */ looking: 0.006, grave: 0, road: 0.03, turning: 0.06, risen: 0.012, ran: 0.012, gift: 0.012, twoways: 0.012, nonight: 0.014, comes: 0.016, turning: 0.014 };   // ⚠ turning 0.06 → 0.014 (Sep 8 audit): at 0.06 the night sky over the road carried green chips of complementary flip that read as litter, not stars — the one thing on the page that was not painted   // ⚠ nonight/comes were still on the 0.10 site default — the rainbow-confetti fault, magenta and violet flecks strewn through canopy, meadow and sky. Every page Fred has approved sits near 0.012.   // ⚠ twoways was on the 0.10 default — rainbow confetti over the whole homecoming   // ⚠ gift: the same rainbow-confetti cure — 1-in-10 flipped marks is noise on a bright wide page   // ⚠ the same rainbow-confetti cure as `risen`: on a bright, wide, low-contrast page 1-in-10 flipped marks IS the noise
+  const MANIFOLD_PAGE = { love: 0, flame: 0,   /* Oct 25 realism pass (Fred: "no emoji looking things… slight realism"): no flipped confetti marks */ paid: 0.012,   /* Golgotha was on the 0.10 default — lime chips over the mourning sky */ lost: 0,   /* ⚠ 0.004 → 0 (Sep 8): with 9,000+ marks even that left lime streaks in the sky */ looking: 0.006, grave: 0, road: 0.03, turning: 0.06, risen: 0.012, ran: 0.012, gift: 0.012, twoways: 0.012, nonight: 0.014, comes: 0.016, turning: 0.014 , road: 0 /* Oct 25 realism */ };   // ⚠ turning 0.06 → 0.014 (Sep 8 audit): at 0.06 the night sky over the road carried green chips of complementary flip that read as litter, not stars — the one thing on the page that was not painted   // ⚠ nonight/comes were still on the 0.10 site default — the rainbow-confetti fault, magenta and violet flecks strewn through canopy, meadow and sky. Every page Fred has approved sits near 0.012.   // ⚠ twoways was on the 0.10 default — rainbow confetti over the whole homecoming   // ⚠ gift: the same rainbow-confetti cure — 1-in-10 flipped marks is noise on a bright wide page   // ⚠ the same rainbow-confetti cure as `risen`: on a bright, wide, low-contrast page 1-in-10 flipped marks IS the noise
   // ⚠ AND HOW DARK THE PAGE PAINTS. Weighted by each mark's own lightness inside `jig`, so
   // the night deepens and the home's gold stays gold. Set in BOTH passes below (the flat
   // press and the depth planes) — a knob set in only one of them is the bug that made
@@ -623,7 +629,7 @@ for (const m of modules) {
   // wholesale (47% of pixels), moved its flower band and swallowed its easter-egg
   // inscription. The genome may hand a NEW page its manifold; it must never restyle an old
   // one behind Fred's back. The same caution applies to any knob jig()/strokes() branch on.
-  engine.setManifold(MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10);
+  engine.setManifold(REALISM ? 0 : (MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10));
     engine.setDarken(DARKEN_PAGE[m.name] || 0);
   engine.setColorPunch(PUNCH_PAGE[m.name] != null ? PUNCH_PAGE[m.name]
                        : (EP24.has(m.name) && !REPAINTED.has(m.name) ? 0.5 : 0));
@@ -673,7 +679,7 @@ for (const m of modules) {
   engine.setSpeciesMix(process.env.SPECIES ? JSON.parse(process.env.SPECIES) : (SPECIES_PAGE[m.name] || null));
   const fx = (m.focal && m.focal.x) || 400;
   const svg = stampSig(m.paint(engine), fx, built.length, m.sig);   // sign the work — Immanuel, hidden
-  engine.setDensity(1); engine.setStrokeOpacity(0.6); engine.setStrokeRound(1); engine.setManifold(0.10); engine.setColorPunch(0); engine.setDarken(0); engine.setBrushScale(1); engine.setGlowLaw(null);   // ⚠ the glow law is per-plate; never let it leak to the next one
+  engine.setReliefK(1); engine.setDensity(1); engine.setStrokeOpacity(0.6); engine.setStrokeRound(1); engine.setManifold(0.10); engine.setColorPunch(0); engine.setDarken(0); engine.setBrushScale(1); engine.setGlowLaw(null);   // ⚠ the glow law is per-plate; never let it leak to the next one
   // ep2/3/4 render RAW (skip the heavy oil-surface tooth + grade) so their strokes
   // read soft and flowing like ep1's raw diorama planes, not a stamped brick crust.
   const rawOpt = EP24.has(m.name) ? { raw: true } : {};
@@ -714,7 +720,7 @@ for (const m of modules) {
     // up on the phone strewn with neon chips: the phone never shows the flat, it shows
     // these. Any per-plate paint knob has to be set in BOTH passes or the two pictures
     // are not the same picture.
-    engine.setManifold(MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10);
+    engine.setManifold(REALISM ? 0 : (MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10));
     engine.setDarken(DARKEN_PAGE[m.name] || 0);
     engine.setColorPunch(PUNCH_PAGE[m.name] != null ? PUNCH_PAGE[m.name]
                          : (EP24.has(m.name) && !REPAINTED.has(m.name) ? 0.5 : 0));
@@ -736,7 +742,10 @@ for (const m of modules) {
     const svgs = bands.map((L, i) => {
       const t = NB > 1 ? i / (NB - 1) : 0;               // 0 back → 1 front
       // THICK in back → really THIN up front, front-weighted (curve).
-      engine.setBrushScale(0.4 + 1.3 * Math.pow(1 - t, 1.35));   // ~1.7× back → ~0.4× front
+      const _skyBand = REALISM && /^sky/.test(L.name) && !SKY_TUNED.has(m.name);
+      engine.setBrushScale((0.4 + 1.3 * Math.pow(1 - t, 1.35)) * (_skyBand ? SKY_FINE : 1));   // ~1.7× back → ~0.4× front
+      engine.setDensity(densityFor(m.name) * (_skyBand ? SKY_MORE : 1));
+      engine.setReliefK(_skyBand ? 0.15 : 1);
       // per-layer opacity: a plate may override with {name:'hills', op:0.92} when that
       // layer holds a SOLID thing (a castle, a rock) that must not go hazy — "different
       // opacity for different things" (Fred). Default = aerial-perspective rule.
@@ -787,7 +796,7 @@ for (const m of modules) {
     engine.setBoilFlow(0, 0);
     engine.setBoilFlash(0);
     engine.setBoilTint(null, 0);
-    engine.setDensity(1);
+    engine.setDensity(1); engine.setReliefK(1);
     svgs[0] = stampSig(svgs[0], fx, built.length, m.sig);   // hide Immanuel on the opaque base so it shows on mobile too (same spot as the full)
     const out = [];
     bands.forEach((L, i) => {

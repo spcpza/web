@@ -230,18 +230,20 @@
     }
     // jewel fruit + blossoms, painted as dabs (ep1's FRUIT_COLS / BLOSSOM_COLS)
     if (berries) {
-      var FC = ['#f0c84a', '#ec6f9e', '#8fd0ee', '#f4a86a', '#c49ad8', '#f4e878'];
-      var nf = 3 + ((w * 0.14) | 0);
+      // ⚠ Oct 25 (Fred: "no emoji looking things"): jewel balls with a white gloss dot were the emoji tell.
+      // Real fruit in a crown is small, deep-coloured, half-hidden and matte: a few reds, ambers, a plum.
+      var FC = ['#a8322a', '#c0502a', '#b88a2c', '#6a2a3a', '#9a3a2a'];
+      var nf = 2 + ((w * 0.08) | 0);
       for (var f = 0; f < nf; f++) {
         var fa = rnd() * 6.2832, fd = Math.pow(rnd(), 0.5);
         var fx = ox + Math.cos(fa) * w * fd * 0.8, fy = oy + Math.sin(fa) * h * fd * 0.8;
-        var fr = Math.max(2, w * 0.085) * (0.8 + rnd() * 0.5);
+        var fr = Math.max(1.4, w * 0.05) * (0.8 + rnd() * 0.4);
         c.fillStyle = 'rgba(20,26,18,0.35)';                       // its own little shadow
         c.beginPath(); c.ellipse(fx + fr * 0.18, fy + fr * 0.34, fr * 0.94, fr * 0.8, 0, 0, 6.2832); c.fill();
         c.fillStyle = FC[(rnd() * FC.length) | 0];
         c.beginPath(); c.ellipse(fx, fy, fr, fr * 0.88, rnd() * 1.2, 0, 6.2832); c.fill();
-        c.fillStyle = 'rgba(255,250,235,.8)';
-        c.beginPath(); c.arc(fx - fr * 0.3, fy - fr * 0.32, fr * 0.3, 0, 6.2832); c.fill();
+        c.fillStyle = 'rgba(255,220,160,.28)';                       // a soft lit side, not a gloss dot
+        c.beginPath(); c.ellipse(fx - fr * 0.28, fy - fr * 0.3, fr * 0.45, fr * 0.32, -0.5, 0, 6.2832); c.fill();
       }
     }
     var sp = { cv: cv, ox: ox, oy: oy, w: cw, h: chh };

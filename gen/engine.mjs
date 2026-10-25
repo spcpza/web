@@ -413,6 +413,9 @@ const LIT_X = -0.7071, LIT_Y = -0.7071;
 // modelled as its own little form catching the light, not lit by a flat global rake.
 let RELIEF_LIGHT = null;
 export function setReliefLight(p) { RELIEF_LIGHT = p; }
+// a band-wide multiplier on every mark's relief (Oct 25 realism: the sky planes take ~none — ridged sky marks tile into fish scales)
+let RELIEF_K = 1;
+export function setReliefK(k) { RELIEF_K = k; }
 
 // ── the snowflake law (gen/genome.mjs) ────────────────────────────────────
 // Painted trees descend the same chain the runtime sprites do, so a tree in a
@@ -902,7 +905,7 @@ export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ 
     // lit edges: only wide strokes are ridges; hairlines stay single polys.
     // Near-black pigment skips entirely — its slivers would be invisible
     // (hk ~0.3*lum) but still cost two polys each; night plates save ~20%.
-    if (relief > 0 && w > 2 && lum(fill) > 0.14) { body += reliefPair(pts, w, fill, relief, prof, edge); counter.n += 2; }
+    if (relief * RELIEF_K > 0 && w > 2 && lum(fill) > 0.14) { body += reliefPair(pts, w, fill, relief * RELIEF_K, prof, edge); counter.n += 2; }
     out.push(op < 1 ? `<g opacity="${op.toFixed(2)}">${body}</g>` : body);
   }
 }
@@ -2680,7 +2683,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     crownCols,                    // override the canopy ramp if a page wants its own species
     sun = 1,                      // how much daylight sits on the clump tops (a NIGHT tree wants ~0.2 — looking's sycomore)
   } = opts;
-  const REAL = !!opts.real;       // Oct 25: irregular clumps, no drawn contours (see lobedCrown)
+  const REAL = opts.real !== false;   // Oct 25: irregular clumps, no drawn contours (see lobedCrown) — the DEFAULT now (Fred: no emoji-looking things); a plate rebuilt picks it up; real:false keeps the old tiers
   const sc = h / 120;
   const tr = rng;
   const G0 = opts.node || gAt('tree', cx, baseY, h);
@@ -2752,7 +2755,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
     }[F];
     if (!spec) return;
     const fr0 = spec.r * Math.pow(sc, 0.4);
-    const N = Math.round(rr * spec.n * (opts.fruitK == null ? 1 : opts.fruitK));
+    const N = Math.round(rr * spec.n * (opts.fruitK == null ? 1 : opts.fruitK) * (opts.real !== false ? 0.3 : 1));   // REAL: fruit is sparse and half-hidden (a crown full of it read as mushrooms / baubles)
     for (let i = 0; i < N; i++) {
       const L = lobes[Math.min(lobes.length - 1, (sr() * lobes.length) | 0)];
       const a = Math.PI * (0.05 + sr() * 0.9), d = 0.35 + Math.pow(sr(), 0.7) * 0.62;   // the lower half of the clump
@@ -3143,7 +3146,7 @@ export function fruitTree(out, counter, rng, cx, baseY, h, w, leafCols, lightFn,
     return paintTree(out, counter, rng, cx, baseY, h * 1.12, {
       species: opts.species, mix: opts.mix, lightFn: L, crownCols: crownRamp(leafCols),
       blossom: fruit < 0.1 ? 0 : 3, blossomCols: opts.blossomCols, fruitK: Math.min(1, 0.35 + fruit * 0.65),
-      shadowDir: opts.shadowDir == null ? 1 : opts.shadowDir, node: opts.node, tint: opts.tint });
+      shadowDir: opts.shadowDir == null ? 1 : opts.shadowDir, node: opts.node, tint: opts.tint, real: opts.real });
   }
   const bare = opts.crownOnly || h < 18;
   let ccy, cw, ch, topAt = null;
@@ -3891,4 +3894,103 @@ ${inner}
 ${weaveS}
 ${varnishS}
 </svg>`;
+}
+
+// ══ REALISM KIT (Oct 25) ═══════════════════════════════════════════════════════════════════════
+// Fred: "i want the art style to not have emoji looking things. i want the background to be drawn with
+// slight realism." Lifted from the page-4 (love) pilot so every page paints its sky, clouds, flowers
+// and shrubs the same honest way. Still brushstrokes — small, thin, many — but the FORMS are real:
+// a sky graded by height and by the sun, cumulus lit as one mass, flowers in colonies, shrubs with a
+// lit crown and a deep belly, nothing outlined.
+//   ⚠ a plate's sky band paints at ~1.7× brush scale (build.mjs) — the sizes below are small on purpose.
+
+// the sky: a graded ground (bands of skyCol), then two passes of fine strokes that turn gently round the
+// sun. skyCol(x,y) → '#rrggbb' is the page's own palette; inSky(x,y) says where the sky is.
+export function realSky(out, counter, rng, { skyCol, inSky, sun, y1 = 300, swirl = 0.9, n = [9000, 14000], seed = 7 }) {
+  for (let y = -12; y < y1; y += 6) { out.push(`<rect x="-12" y="${y}" width="824" height="7" fill="${skyCol(400, y + 3)}"/>`); counter.n++; }
+  const dirF = (x, y) => { const dx = x - sun.x, dy = y - sun.y, d = Math.hypot(dx, dy) + 1;
+    return Math.atan2(dy, dx) + Math.PI / 2 * Math.min(1, 140 / d) * swirl + (fbm(x / 160, y / 90, seed) - 0.5) * 0.9; };
+  for (const [k, [N, len, lw]] of [[0, [n[0], 11, 1.1]], [1, [n[1], 7, 0.7]]]) strokes(out, counter, {
+    rng, n: N, sample: rej(-12, -12, 812, y1, inSky), dir: dirF,
+    col: (x, y, r) => { let c = skyCol(x, y); c = mix(c, r() < 0.5 ? '#fff6dc' : '#4d6eb0', Math.max(0, r() - 0.3) * 0.1); return jig(c, r, 4); },
+    len, lw, steps: 3, follow: 0.85, lenJ: 0.5, wJ: 0.4, impasto: 0.12, relief: 0,
+  });
+}
+
+// cumulus banks: each a union of billows, lit from the gradient of that union (one mass, never a row of
+// lit rims). bodyOut takes the clouds, edgeOut their soft broken edges (two planes so the body can boil).
+// banks: [{x, y(base), w, h}]; sunAt(x,y) 0..1 glow of the sun; cols: shadow→light ramp; warm: sunlit tint.
+export function realClouds(bodyOut, edgeOut, counter, rng, { banks, sun, sunAt = () => 0,
+  cols = ['#9c97ad', '#b4adbd', '#cdc6cb', '#e6ded8', '#f7f1e8', '#fffaf1'], warm = '#ffdfa0', density = 1.6 }) {
+  for (const B of banks) {
+    B.p = [];
+    const n = Math.max(3, Math.round(B.w / 11));
+    for (let i = 0; i < n; i++) {
+      const t = (i + rng() * 0.9) / n, hump = Math.sin(t * Math.PI);
+      const r = (B.h * 0.22 + rng() * B.h * 0.2) * (0.5 + hump * 0.7);
+      B.p.push({ x: B.x - B.w / 2 + t * B.w + (rng() - 0.5) * 10, y: B.y - r * 0.5 - hump * B.h * 0.42 * (0.4 + rng() * 0.6), r });
+    }
+  }
+  const field = (B, x, y) => { let f = 0; for (const P of B.p) { const q = 1 - ((x - P.x) ** 2 + ((y - P.y) / 0.82) ** 2) / (P.r * P.r); if (q > f) f = q; } return y > B.y ? f * Math.max(0, 1 - (y - B.y) / 3) : f; };
+  const grad = (B, x, y) => { const e = 2.5; return [field(B, x + e, y) - field(B, x - e, y), field(B, x, y + e) - field(B, x, y - e)]; };
+  const light = (B, x, y) => {
+    const [gx, gy] = grad(B, x, y), gl = Math.hypot(gx, gy) + 1e-6, nx = -gx / gl, ny = -gy / gl;
+    const a = Math.atan2(sun.y - y, sun.x - x), f = field(B, x, y), edge = Math.min(1, gl * 6);
+    return Math.max(0, Math.min(1, 0.5 + (nx * Math.cos(a) + ny * Math.sin(a)) * 0.45 * edge - Math.max(0, y - (B.y - B.h * 0.25)) / B.h * 0.9 + (1 - f) * 0.1));
+  };
+  const col = (B, x, y, r) => { const L = light(B, x, y); let c = ramp(cols, L); c = mix(c, warm, sunAt(x, y) * Math.pow(L, 1.5) * 0.7); return jig(c, r, 4); };
+  const sample = (B, lo, hi) => r => { const x = B.x - B.w / 2 - 20 + r() * (B.w + 40), y = B.y - B.h * 1.2 + r() * B.h * 1.25, f = field(B, x, y); return f > lo && f < hi ? [x, y] : null; };
+  for (const B of banks) strokes(bodyOut, counter, {
+    rng, n: Math.round(B.w * B.h * density), sample: sample(B, 0.02, 9),
+    dir: (x, y) => { const [gx, gy] = grad(B, x, y); return Math.atan2(gy, gx) + Math.PI / 2 + (rng() - 0.5) * 0.7; },
+    col: (x, y, r) => col(B, x, y, r), len: 3.2, lw: 1.0, steps: 2, follow: 0.9, lenJ: 0.6, impasto: 0.08, relief: 0,
+  });
+  for (const B of banks) strokes(edgeOut, counter, {
+    rng, n: Math.round(B.w * 1.2), sample: sample(B, 0, 0.12), dir: () => (rng() - 0.5) * 0.5,
+    col: (x, y, r) => col(B, x, y, r), len: 3.5, lw: 0.9, steps: 2, op: 0.6, relief: 0,
+  });
+}
+
+// flowers in COLONIES — one kind to a patch, each a stem, five petals and a centre, sized by depth.
+// ok(x,y) says where a flower may grow; dS(y) is the page's depth scale.
+export const REAL_FLOWERS = [['#f6f2e6', '#e9e2cf', '#f4d24a'], ['#f5d04a', '#e8b833', '#a8641e'], ['#c9b4e8', '#ad96d8', '#f2e28a'],
+                             ['#e0566a', '#c63f55', '#3a2420'], ['#f0a8c4', '#e48eb0', '#fbe9a8']];
+export function realFlowers(out, counter, rng, { colonies = 30, x0 = -10, x1 = 810, y0, y1, ok = () => true, dS = () => 1, kinds = REAL_FLOWERS }) {
+  for (let c = 0; c < colonies; c++) {
+    const cx = x0 + rng() * (x1 - x0), cy = y0 + rng() * (y1 - y0);
+    if (!ok(cx, cy)) continue;
+    const K = kinds[(rng() * kinds.length) | 0], spread = 14 + rng() * 40, count = 5 + ((rng() * 10) | 0);
+    for (let i = 0; i < count; i++) {
+      const fx = cx + (rng() + rng() - 1) * spread, fy = cy + (rng() + rng() - 1) * spread * 0.35;
+      if (!ok(fx, fy)) continue;
+      const sc = dS(fy), st = (5 + rng() * 7) * sc;
+      paintPath(out, counter, rng, [[fx, fy], [fx + (rng() - 0.5) * 3 * sc, fy - st]], (x, y, r) => jig(mix('#3d6a32', '#6c9442', r()), r, 6), { lw: 0.9 * sc, len: 3, density: 0.9, jitter: 0.2 });
+      const hd = 1.6 * sc;
+      for (let k = 0; k < 5; k++) {
+        const a = k * 1.256 + rng() * 0.4, px = fx + Math.cos(a) * hd, py = fy - st + Math.sin(a) * hd * 0.6;
+        out.push(ribbon([[fx, fy - st], [(fx + px) / 2, (fy - st + py) / 2], [px, py]], 1.5 * sc, K[(rng() * 2) | 0], [0.5, 1, 0.6])); counter.n++;
+      }
+      out.push(`<circle cx="${R1(fx)}" cy="${R1(fy - st)}" r="${R1(0.8 * sc)}" fill="${K[2]}"/>`); counter.n++;
+    }
+  }
+}
+
+// a shrub: a few overlapping clumps, crown lit warm, belly deep, rooted (nothing below the ground line)
+export function realShrub(out, counter, rng, bx, by, bw, { lightAt = () => 0.5, cols = ['#1e3a20', '#2d5428', '#457434', '#6a9644', '#9cbc5c'], scale = 1 } = {}) {
+  const cl = []; for (let k = 0; k < 5; k++) cl.push([bx + (rng() - 0.5) * bw * 1.3, by - bw * (0.3 + rng() * 0.45), bw * (0.35 + rng() * 0.25)]);
+  cl.sort((a, b) => b[1] - a[1]);
+  for (const [cx, cy, cr] of cl) strokes(out, counter, { rng, n: Math.round(cr * cr * 1.6),
+    sample: r => { const a = r() * 6.283, d = Math.sqrt(r()); const y = cy + Math.sin(a) * cr * 0.8 * d; return y < by ? [cx + Math.cos(a) * cr * d, y] : null; },
+    dir: (x, y) => Math.atan2(y - cy, x - cx) + Math.PI / 2 + (rng() - 0.5) * 0.6,
+    col: (x, y, r) => { const up = Math.max(0, Math.min(1, (cy - y) / cr * 0.5 + 0.5)); let c = ramp(cols, up * 0.85 + r() * 0.15); c = mix(c, '#efe2a0', up * up * 0.3 * (0.5 + lightAt(x, y))); return jig(c, r, 7); },
+    len: 2.6 * scale, lw: 1.6 * scale, steps: 2, lenJ: 0.6, impasto: 0.5, relief: 0.25 });
+}
+
+// seabirds / swallows: two swept wings and a body, small and dark (or pale over dark water)
+export function realBird(out, counter, rng, bx, by, bs, { tilt = 0, col = '#2d3048' } = {}) {
+  const wing = side => { const tip = [bx + side * bs * 2.2, by - bs * (0.55 + rng() * 0.3)], mid = [bx + side * bs * 1.1, by - bs * 0.5];
+    out.push(ribbon([[bx, by], mid, tip], bs * 0.42, col, [1, 0.7, 0.05])); counter.n++; };
+  out.push(`<g transform="rotate(${R1(tilt * 57)} ${R1(bx)} ${R1(by)})">`); wing(-1); wing(1);
+  out.push(ribbon([[bx, by - bs * 0.2], [bx + bs * 0.25, by + bs * 0.9]], bs * 0.45, col, [1, 0.6, 0.1])); counter.n++;
+  out.push('</g>');
 }

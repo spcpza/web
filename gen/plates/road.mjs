@@ -482,13 +482,13 @@ export function paint(E, opts = {}) {
   // y 361 (125 below the far rim at 236); a fruit tree at y ~500 is twice as near, so a 4 m tree is ~300 there.
   // The two near trees are now FRAMING trees at the plate's edges (the road, gulf and home stay open between
   // them); the pomegranate went back onto the far rim, sized for that distance.
-  fruitTree(out, counter, rng, 96, 504, 300, 130, ['#2a5f30','#4b8f3c','#79b74d','#b77ce0'], lightAt, 1, { species: 'olive' });  // green + violet accent, near-left — an olive (after his kind, Sep 15)
+  fruitTree(out, counter, rng, 96, 504, 300, 130, ['#1f3a2a','#2e5236','#476c44','#6a8a58'], lightAt, 0.3, { species: 'olive', real: true });   // Oct 25 realism: no violet accent, a real night olive  // green + violet accent, near-left — an olive (after his kind, Sep 15)
   const taRange = [_t, out.length];
   _t = out.length;
-  fruitTree(out, counter, rng, 724, 508, 320, 140, ['#265a3a','#3f8a4a','#6fae52','#5ad8b8'], lightAt, 1, { species: 'fig' });  // green + teal accent, near-right — a fig
+  fruitTree(out, counter, rng, 724, 508, 320, 140, ['#1c3a26','#2a5432','#406e40','#5e8a50'], lightAt, 0.3, { species: 'fig', real: true });  // green + teal accent, near-right — a fig
   const tbRange = [_t, out.length];
   _t = out.length;
-  fruitTree(out, counter, rng, 760, 370, 108, 48, ['#2f6b34','#57993f','#86c055','#f07ab0'], lightAt, 1, { species: 'pomegranate' });  // green + pink accent, on the far rim — a pomegranate
+  fruitTree(out, counter, rng, 760, 370, 108, 48, ['#1e3c28','#2c5634','#447044','#628c54'], lightAt, 0.3, { species: 'pomegranate', real: true });  // green + pink accent, on the far rim — a pomegranate
   const tcRange = [_t, out.length];
   // sheep come home — small woolly forms grazing on the near hill
   const sheep = (sx, sy, s) => {

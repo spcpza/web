@@ -164,7 +164,10 @@ export function paint(E, opts = {}) {
   // the meeting arms, never crossing the sacred gap. Wings in Munch curves;
   // warm cream-gold so they read light-on-dark against the deep field.
   const rngL = mulberry32(seed ^ 0x51f7);   // separate stream — downstream texture untouched
-  const swift = (cx, cy, s, tw, glow) => {
+  // ⭐ Oct 25 (Fred: "no emoji looking things"): the fat cream sickles read as cartoon crescents. A swift seen
+  // against a night sky is a small dark-and-lit slash — two thin swept wings — so they are drawn real and small.
+  const swift = (cx, cy, s, tw, glow) => { E.realBird(out, counter, rngL, cx, cy, s * 0.13, { tilt: tw, col: mix('#e8dcc0', GOLD_PALE, glow * 0.5) }); };
+  const _oldSwift = (cx, cy, s, tw, glow) => {
     const rot = Math.atan2(cy - spark[1], cx - spark[0]) - Math.PI / 2 + tw;   // tangent heading — circling, not diving in
     const cs = Math.cos(rot), sn = Math.sin(rot);
     const P = (dx, dy) => [cx + dx * cs - dy * sn + (rngL() - 0.5) * 1.2, cy + dx * sn + dy * cs + (rngL() - 0.5) * 1.2];
@@ -395,9 +398,7 @@ export function paint(E, opts = {}) {
     counter.n += 6;
   };
   const petals = ['#ef8fb6', '#f2b46a', GOLD_PALE, '#c9a9ef', '#f6ead0'];
-  [[46, 494, 15], [92, 487, 18], [150, 496, 13], [214, 490, 17], [272, 497, 14],
-   [338, 491, 16], [452, 495, 15], [516, 489, 18], [582, 496, 13], [644, 490, 17],
-   [702, 497, 14], [756, 492, 16]].forEach(([bx, by, h], i) => bud(bx, by, h, petals[i % petals.length]));
+  // (Oct 25: the row of stick tulips along the frame's foot is gone — flowers standing in the empty night read as stickers)
   fgRanges.push([_fgChild, out.length]);   // ← the red child, the face, the spark, and the budding base are foreground
 
   /* ---------------- 7. EASTER EGG — John 1:3, in koine Greek ----------------

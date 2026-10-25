@@ -759,7 +759,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=471';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=472';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -1043,41 +1043,8 @@
            // ⚠ BIRDS BELONG ON THE WOOD (Fred: "put the birds on the tree"), not adrift over
            // open water — a bird in the middle of a sea with no perch is a sticker. These
            // sit in the two canopies, at the height the boughs actually reach.
-           { type: 'bird', x: 214, y: 196, s: 0.42, col: 'blue', phase: 0.0 },
-           { type: 'bird', x: 632, y: 168, s: 0.38, col: 'blue', phase: 1.3 },
-           { type: 'bird', x: 690, y: 240, s: 0.32, col: 'blue', phase: 2.4 },
-           // "He made the world, and filled it with light" — light lying on the great waters
-           // (Gen 1:2). Horizontal lenses only, shorter and dimmer up the band because
-           // that end is farther away.
-           // ⚠ THE LITTLE FISH: the emoji's cheerful shape, painted in the plate's hand,
-           // each swimming its own stretch of water and turning at the ends. They live in
-           // the near water below the sea-line, where a fish can actually be.
-           // THE GREAT WHALE (Gen 1:21), out by the light's track, cruising slowly — the
-           // painted one was a dark arc nobody could name ("what is this supposed to be?").
-           { type: 'whale', x: 372, y: 276, w: 150, h: 90, len: 78, facing: -1, seed: 7, swim: [96, 46] },
-           // ⚠ UP INTO THE OPEN WATER. Fred: "i can still see that it is on the ground."
-           // The sea runs from the sea-line (~y295) to where the land starts (~y378), and
-           // anything sitting in its last thirty units reads as beached — the shore's own
-           // colour is right behind it. They all moved up ~30 units, into water that has
-           // water underneath it.
-           // ⚠ TO SCALE, AND IN THE WATER. A 44-unit fish is two thirds of the whale (68) —
-           // on an 800-wide plate that is a fish the size of a boat. These are 11-17 units,
-           // and they sit between the sea-line (~y295) and the shore (~y375), which is the
-           // only band where a fish can actually be. The far one is smallest, as distance
-           // requires.
-           // ⚠ SPREAD RIGHT ACROSS THE SEA, not clustered in the middle of one screen. The
-           // sea is 800 units wide and a phone sees ~215 of them, so a shoal parked at the
-           // centre is three fish in one window and an empty ocean everywhere else. Six of
-           // them now, from x=132 to x=688, at different depths, sizes and speeds — the
-           // higher (further) ones smaller, as distance requires.
-           { type: 'fish2', x: 132, y: 312, w: 32, h: 24, len: 12, facing: 1, seed: 31, swim: [-48, 29] },
-           { type: 'fish2', x: 246, y: 336, w: 40, h: 30, len: 15, facing: -1, seed: 5, swim: [64, 22] },
-           { type: 'fish2', x: 352, y: 308, w: 30, h: 22, len: 11, facing: -1, seed: 21, swim: [42, 34] },
-           { type: 'fish2', x: 470, y: 332, w: 42, h: 32, len: 16, facing: 1, seed: 12, swim: [-58, 26] },
-           { type: 'fish2', x: 604, y: 316, w: 34, h: 26, len: 13, facing: -1, seed: 44, swim: [52, 31] },
-           { type: 'fish2', x: 688, y: 340, w: 38, h: 28, len: 14, facing: 1, seed: 58, swim: [-44, 24] },
-           { type: 'ripple', x: 60, y: 288, w: 700, h: 84, n: 30, seed: 23 },
-           { type: 'butterfly', n: 19, s: 0.34, band: [250, 428, 560, 482] }],   // was over open WATER; now low over the shore meadow   // flame — the world made, TEEMING (Gen 1:20-22)
+           // Oct 25 (Fred: "no emoji looking things"): the cartoon whale, six fish, three blue birds and the butterflies are gone — the plate paints seabirds over the sea now
+           { type: 'ripple', x: 60, y: 288, w: 700, h: 84, n: 30, seed: 23 }],   // was over open WATER; now low over the shore meadow   // flame — the world made, TEEMING (Gen 1:20-22)
       // 3 (`made`) — Fred: "it does not really match the storyline". This is the
       // Michelangelo reach, the moment YOU are made: two fingertips across the dark.
       // Meadow butterflies and a songbird belonged to a different page. Removed.
@@ -1141,9 +1108,6 @@
            // field. Fireflies gather at the FIRE (light draws them); the bee and the
            // ladybug are ON the far cypress (x 660, base 452, crown 292); the snail is at
            // its foot. Every creature now has a reason to be where it is.
-           { type: 'bee', x: 700, y: 292, s: 0.4, facing: -1, phase: 0.0 },
-           { type: 'ladybug', x: 728, y: 372, s: 0.34, phase: 1.3 },
-           { type: 'snail', x: 688, y: 442, s: 0.6, facing: 1, phase: 0.6 },
            { type: 'firefly', x: 272, y: 386, s: 0.5,  phase: 0.0 },
            { type: 'firefly', x: 152, y: 402, s: 0.44, phase: 1.3 },
            { type: 'firefly', x: 244, y: 320, s: 0.48, phase: 2.2 },
@@ -1195,7 +1159,7 @@
            { type: 'firefly', x: 214, y: 300, s: 0.5, phase: 0.0 },   // ⚠ one at the cypress (desktop only — the tree stands at x~186, outside the phone's 244..556)
            { type: 'firefly', x: 306, y: 348, s: 0.44, phase: 1.1 },   // the other two over the lit ridge, where a phone reader can see them
            { type: 'firefly', x: 344, y: 316, s: 0.5, phase: 2.0 } ],
-      10: [ { type: 'rabbit', x: 268, y: 452, s: 0.72, facing: 1, phase: 0.0 },   // off the skyline, down at the tree's foot    // road — was y=360, behind the poem
+      10: [ // Oct 25 (Fred: "no emoji looking things"): the white rabbit is gone
            // the near field either side of the lit road; the child stands at 380,361
            // Sep 26 (proportion): a bush at y 440 is ~1.6× the child's depth-scale — 48 read as a toy; 80 is a bush.
            // (the 50-unit cypress beside the road was a sapling where a cypress would stand 300+ — removed)
@@ -4010,6 +3974,7 @@
     // be tapped is a toy; a page that is simply alive is a painting. (Sep 25: the whole tap-reaction
     // system — INTERACT hotspots, runFx, the pilgrim move menu — was removed; a tap now opens the story card.)
     var _crs;
+    var STICKERS = { butterfly: 1, rabbit: 1, ladybug: 1, bee: 1, snail: 1, fish2: 1, whale: 1, dragonfly: 1, birdie: 1 };
     st(function () {
     _pageBudget = 0;                                      // a fresh budget for this page
     // ⚠ THE PLANES ARE NO LONGER CHARGED HERE, and that is deliberate. Charging them was
@@ -4031,6 +3996,11 @@
     var _gust = gustSpec(idx);                            // what is in this page's air
     if (_gust) layer.appendChild(buildCritter(_gust, fit, idx));
     _crs = expandCritters(CRITTERS[idx], idx);
+    // ⭐ NO STICKERS (Oct 25 — Fred: "i want the art style to not have emoji looking things. i want the background to
+    // be drawn with slight realism"). These cel-shaded little creatures were the emoji in the book: drawn on top of the
+    // painting in a different hand. They are skipped book-wide here (their entries stay in CRITTERS, so one line brings
+    // any of them back). Trees, fire, fireflies, ripples, tethers, birds-in-flight and the rest still move.
+    _crs = _crs.filter(function (c) { return !STICKERS[c.type]; });
     });
     // (expandCritters runs inside the step above, so the critter list is only known then —
     // one step per critter is queued from there, in the same order, ahead of everything below.)

@@ -4,6 +4,7 @@
 # Cloudflare infrastructure
 _worker.js
 wrangler.toml
+wrangler.preview.toml
 .assetsignore
 .git
 .git/**
