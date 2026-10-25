@@ -759,7 +759,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=472';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=474';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -3974,7 +3974,7 @@
     // be tapped is a toy; a page that is simply alive is a painting. (Sep 25: the whole tap-reaction
     // system — INTERACT hotspots, runFx, the pilgrim move menu — was removed; a tap now opens the story card.)
     var _crs;
-    var STICKERS = { butterfly: 1, rabbit: 1, ladybug: 1, bee: 1, snail: 1, fish2: 1, whale: 1, dragonfly: 1, birdie: 1 };
+    var STICKERS = { butterfly: 1, rabbit: 1, ladybug: 1, bee: 1, snail: 1, fish2: 1, whale: 1, dragonfly: 1, bird: 1 };   // `bird` here is drawBirdie, the cel-shaded PERCHED songbird; flying birds are SCENE birds and stay
     st(function () {
     _pageBudget = 0;                                      // a fresh budget for this page
     // ⚠ THE PLANES ARE NO LONGER CHARGED HERE, and that is deliberate. Charging them was

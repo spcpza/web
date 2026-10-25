@@ -629,7 +629,7 @@ for (const m of modules) {
   // wholesale (47% of pixels), moved its flower band and swallowed its easter-egg
   // inscription. The genome may hand a NEW page its manifold; it must never restyle an old
   // one behind Fred's back. The same caution applies to any knob jig()/strokes() branch on.
-  engine.setManifold(REALISM ? 0 : (MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10));
+  engine.setManifold(REALISM ? 0 : (MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10)); engine.setWild(!REALISM);
     engine.setDarken(DARKEN_PAGE[m.name] || 0);
   engine.setColorPunch(PUNCH_PAGE[m.name] != null ? PUNCH_PAGE[m.name]
                        : (EP24.has(m.name) && !REPAINTED.has(m.name) ? 0.5 : 0));
@@ -720,7 +720,7 @@ for (const m of modules) {
     // up on the phone strewn with neon chips: the phone never shows the flat, it shows
     // these. Any per-plate paint knob has to be set in BOTH passes or the two pictures
     // are not the same picture.
-    engine.setManifold(REALISM ? 0 : (MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10));
+    engine.setManifold(REALISM ? 0 : (MANIFOLD_PAGE[m.name] != null ? MANIFOLD_PAGE[m.name] : 0.10)); engine.setWild(!REALISM);
     engine.setDarken(DARKEN_PAGE[m.name] || 0);
     engine.setColorPunch(PUNCH_PAGE[m.name] != null ? PUNCH_PAGE[m.name]
                          : (EP24.has(m.name) && !REPAINTED.has(m.name) ? 0.5 : 0));
@@ -742,7 +742,7 @@ for (const m of modules) {
     const svgs = bands.map((L, i) => {
       const t = NB > 1 ? i / (NB - 1) : 0;               // 0 back → 1 front
       // THICK in back → really THIN up front, front-weighted (curve).
-      const _skyBand = REALISM && /^sky/.test(L.name) && !SKY_TUNED.has(m.name);
+      const _skyBand = REALISM && !SKY_TUNED.has(m.name) && m.name !== 'word' && (/^sky/.test(L.name) || (i === 0 && /^(bg|bgA)$/.test(L.name)));   // many pages keep their sky in the backmost `bg`
       engine.setBrushScale((0.4 + 1.3 * Math.pow(1 - t, 1.35)) * (_skyBand ? SKY_FINE : 1));   // ~1.7× back → ~0.4× front
       engine.setDensity(densityFor(m.name) * (_skyBand ? SKY_MORE : 1));
       engine.setReliefK(_skyBand ? 0.15 : 1);

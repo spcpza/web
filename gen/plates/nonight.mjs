@@ -792,14 +792,17 @@ export function paint(E, opts = {}) {
        depth in the leaves, on a short stem, and no two are quite the same size. Still exactly
        twelve manner (Rev 22:2), and a child can still count them — they are simply growing
        now instead of being displayed. */
-    const MANNER = ['#e8402e', '#ff8c22', '#ffc832', '#ffe96a', '#fff6da', '#48e0b0',
-                    '#3ab6f0', '#3a66e0', '#8a5ae8', '#c84ae0', '#f05ab0', '#ff9eb8'];
+    // Oct 25 (Fred: "no emoji looking things"): twelve REAL fruits of the land (Deut 8:8 and its kin) — pomegranate,
+    // orange, lemon, quince, apple, pear, green fig, purple fig, plum, cherry, dark grape, green grape — not
+    // twelve paint-box colours (teal and blue fruit read as baubles). Still exactly twelve, still countable.
+    const MANNER = ['#b02a24', '#e07a1e', '#e6c235', '#cfae4a', '#c0402c', '#d2b45a',
+                    '#7e9a3a', '#5a2a52', '#6e1c34', '#a4182a', '#3a2440', '#b8c464'];
     const fRng = mulberry32(seed ^ 0x12f7);
     for (let i = 0; i < 12; i++) {
       const a = (i + 0.5) / 12 * Math.PI * 2 + (fRng() - 0.5) * 0.42;
       const rr = 0.44 + fRng() * 0.46;
       const fx2 = tx + Math.cos(a) * rx * rr, fy2 = ty - Math.sin(a) * ry * rr;
-      const fr = 10.4 + fRng() * 4.0;
+      const fr = (10.4 + fRng() * 4.0) * 0.62;   // Oct 25: fruit-sized, not bauble-sized
       // the stem it hangs from, up into the leaves
       paintPath(out, counter, fRng, [[fx2 - 1, fy2 - fr * 2.1], [fx2, fy2 - fr * 0.9]],
         (x, y, r) => jig(mix('#4e6a24', '#8a9a3a', r() * 0.6), r, 6), { lw: 1.6, len: 3, density: 0.9, jitter: 0.3 });

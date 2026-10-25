@@ -185,8 +185,9 @@ export function paint(E, opts = {}) {
       // T's and check-marks. A bird in a gale is two bent wings: a gull-wing, five points,
       // a finer brush — still one mark each, still countable.
       const w = 5 + RB() * 2.4, d = 2.2 + RB() * 1.3, tilt = (RB() - 0.5) * 1.0;
-      paintPath(out, counter, RB, [[p.x - w, p.y + d + tilt], [p.x - w * 0.5, p.y - d * 0.55], [p.x, p.y + d * 0.15], [p.x + w * 0.5, p.y - d * 0.55], [p.x + w, p.y + d - tilt]],
-        (x, y, r) => jig(col, r, 7), { lw: 1.3, len: 3, density: 0.9, jitter: 0.35 });
+      // Oct 25 (Fred: "no emoji looking things"): the bent-stroke 'M's read as a printed glyph. Same count, same two
+      // colours (the cipher stands), but each is a real bird in the gale: two swept wings and a body, deep-toned.
+      E.realBird(out, counter, RB, p.x, p.y, w * 0.42, { tilt: tilt * 0.6, col: GREEN.has(i) ? '#24582c' : '#5a1a14' });
     }
   }
 

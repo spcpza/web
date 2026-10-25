@@ -416,6 +416,9 @@ export function setReliefLight(p) { RELIEF_LIGHT = p; }
 // a band-wide multiplier on every mark's relief (Oct 25 realism: the sky planes take ~none — ridged sky marks tile into fish scales)
 let RELIEF_K = 1;
 export function setReliefK(k) { RELIEF_K = k; }
+// Oct 25 realism: the `wild` marks (random oversized slabs and stray hairlines) read as confetti — REALISM turns them off
+let WILD_ON = true;
+export function setWild(on) { WILD_ON = !!on; }
 
 // ── the snowflake law (gen/genome.mjs) ────────────────────────────────────
 // Painted trees descend the same chain the runtime sprites do, so a tree in a
@@ -733,7 +736,7 @@ export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ 
     const lenB = (lenFn ? len(s[0], s[1]) : len) * BRUSH_SCALE * ECO * FL;
     const lwB = (lwFn ? lw(s[0], s[1]) : lw) * BRUSH_SCALE * ECO * (n >= 40 && flow ? GROUND_BOLD : 1);
     let L, w;
-    if (wild > 0 && rng() < wild) {
+    if (wild > 0 && rng() < wild && WILD_ON) {   // (the rng order shifts when off — the picture changes, so rebuild the plate)
       if (rng() < 0.62) { w = 0.8 + rng() * 1.4; L = lenB * (1.3 + rng() * 1.4); }   // raking hairline
       else { w = 8 + rng() * 6; L = lenB * (0.4 + rng() * 0.45); }                    // bold slab
     } else {
@@ -2695,7 +2698,10 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
   const th = h * (S.trunk[0] + tr() * S.trunk[1]) * (opts.trunkK || 1);   // trunkK (Oct 6): lift a crown so a figure can sit UNDER it (garden's fig) — default unchanged
   const topX = cx + Math.sin(lean) * th, topY = baseY - th;
   // ⚠ belly deeper than any grass; crown warm and pale — this ramp IS the rule above
-  const CROWN = crownRamp(crownCols) || S.crown;
+  let CROWN = crownRamp(crownCols) || S.crown;
+  // REAL: a page's free jewel colours (a BLUE cedar, a violet apple) are pulled most of the way to the species' own
+  // greens — leaves are green; only blossom keeps its colour (Oct 25, Fred: "no emoji looking things")
+  if (REAL && crownCols && !/almond|blossom/.test(kind) && !opts.keepColour) CROWN = CROWN.map((c, i) => mix(c, S.crown[i] || S.crown[S.crown.length - 1], 0.72));
   const BELLY = S.belly || '#07160f';
   const p3 = Math.pow(sc, 0.3);
   // ⭐ WHICH SIDE THE LIGHT IS ON (Sep 15, Fred: "make the trees better"). The crown-warm /
@@ -3053,7 +3059,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
       const y = S.cone ? baseY - h * (0.24 + 0.72 * t) : topY - h * (0.02 + 0.40 * t) + h * 0.06;
       const W = S.cone ? h * (0.34 * (1 - 0.86 * t) + 0.035) * (0.85 + sr() * 0.3)
                        : h * (0.44 - 0.24 * Math.pow(t, 1.4)) * (0.82 + sr() * 0.36);
-      const ry = h * (S.cone ? 0.055 : 0.052) * (0.85 + sr() * 0.3);
+      const ry = h * (S.cone ? 0.055 : 0.052) * (0.85 + sr() * 0.3) * (REAL ? 2.0 : 1);   // REAL: thick overlapping masses of bough, not a stack of thin plates
       const tx = cx + Math.sin(lean) * (baseY - y);
       tiers.push({ x: tx + (sr() - 0.5) * W * 0.2, y, W, ry, t, skew: (sr() - 0.5) * 0.3 });
     }
@@ -3076,7 +3082,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
         len: 3.4 * p3, lw: 1.35 * p3, steps: 1, lenJ: 0.8, impasto: 0.6, op: 0.94, flow: 0,
       });
       const und = []; for (let k = 0; k <= 8; k++) { const x = T.x - T.W * 0.92 + T.W * 1.84 * k / 8; und.push([x, yAt(x) + T.ry * 1.05]); }
-      paintPath(out, counter, sr, und, (x, y, r) => jig(mix('#06140c', CROWN[1], r() * 0.4), r, 4), { lw: 1.0 * p3, len: 3, density: 0.34, jitter: 0.9 });
+      if (!REAL) paintPath(out, counter, sr, und, (x, y, r) => jig(mix('#06140c', CROWN[1], r() * 0.4), r, 4), { lw: 1.0 * p3, len: 3, density: 0.34, jitter: 0.9 });
     }
     if (S.cone) {                                        // the spire
       strokes(out, counter, { rng: sr, n: Math.round(24 * Math.pow(sc, 0.5) + 8),
