@@ -71,6 +71,7 @@ const densityFor = name => (DENSITY_TRIM[name] || 1) * (EP24.has(name) ? EP24_BO
 // brush about half the size and three times the marks — the 1.7× back-plane brush laid big translucent slabs that
 // overlapped like cellophane. REALISM=0 node gen/build.mjs <page> rebuilds the old way.
 const REALISM = process.env.REALISM !== '0';
+engine.lockManifold(REALISM ? 0 : null);
 const SKY_FINE = 0.55, SKY_MORE = 3, SKY_TUNED = new Set(['love', 'flame']);   // these two already paint their own fine sky (engine realSky)
 // ep2/3/4 plates REDRAWN from scratch in ep1's vivid style — they carry their own
 // rich palette, so they skip the colour-punch (which is only for the old pale plates).

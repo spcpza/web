@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Compare — live vs new art</title>
+<!-- preview.balthazar.sh/compare (Oct 26 — Fred: "host another version… so i can compare it side by side").
+     The live book (balthazar.sh) and the new-art preview (this host) in two frames, turned together. Only served
+     on the preview deploy (branch `realism`); the live site has no /compare. -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+  :root { --bg: #141826; --panel: #1d2234; --ink: #efe6d2; --dim: #a9a294; --gold: #e6c27a; --line: #2e3550; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.4 Georgia, 'Times New Roman', serif; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 15px; font-weight: normal; margin: 0 8px 0 0; color: var(--gold); letter-spacing: .02em; }
+  button, select { font: inherit; color: var(--ink); background: #262c42; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:hover, select:hover { border-color: var(--gold); }
+  button:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  select { max-width: min(62vw, 420px); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: transparent; padding: 6px 10px; }
+  .seg button[aria-pressed="true"] { background: #353d5c; color: var(--gold); }
+  .hint { color: var(--dim); font-size: 13px; margin-left: auto; }
+  main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; min-height: 0; }
+  .pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .pane .label { font-size: 13px; color: var(--dim); padding: 0 2px 6px; display: flex; justify-content: space-between; gap: 8px; }
+  .pane .label b { color: var(--ink); font-weight: normal; }
+  .pane .label a { color: var(--dim); }
+  .frame { flex: 1; position: relative; min-height: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #000; }
+  .frame iframe { position: absolute; left: 50%; top: 50%; border: 0; transform-origin: 50% 50%; background: #000; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } .hint { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Live vs new art</h1>
+  <button id="prev" aria-label="Previous page">‹</button>
+  <select id="page" aria-label="Page">
+      <option value="0">0 · Cover</option>
+      <option value="1">1 · Before there was anything, there was the Light</option>
+      <option value="2">2 · The Light made the whole world. He put colour</option>
+      <option value="3">3 · Best of all, the Light made you. He knew your</option>
+      <option value="4">4 · What was He like? Everything He made, He made</option>
+      <option value="5">5 · But you let go of His hand. You turned your fa</option>
+      <option value="6">6 · He came looking. You hid. But He called you —</option>
+      <option value="7">7 · You went far into the dark. Then farther. You</option>
+      <option value="8">8 · But even then — far out, like a balloon on the</option>
+      <option value="9">9 · Then the Light did what no one expected. He di</option>
+      <option value="10">10 · Now you wanted home more than anything. He set</option>
+      <option value="11">11 · It was too wide to jump. It was too deep to cl</option>
+      <option value="12">12 · The way home cost everything. The Light paid e</option>
+      <option value="13">13 · They laid Him in the dark. They shut it with a</option>
+      <option value="14">14 · The dark could not hold Him. The stone could n</option>
+      <option value="15">15 · You still could not walk the last step home. B</option>
+      <option value="16">16 · The way home stood open. It was a gift. You d</option>
+      <option value="17">17 · He carried you the last of the way, in through</option>
+      <option value="18">18 · He washed you with His own hands. Every stain</option>
+      <option value="19">19 · He made you new. Not mended — new. And He put</option>
+      <option value="20">20 · Your life began again. Everything you planted</option>
+      <option value="21">21 · Every day He feeds you. Every night He keeps y</option>
+      <option value="22">22 · Storms still came. Storms always do. But your</option>
+      <option value="23">23 · You were not alone. Others walked the road wit</option>
+      <option value="24">24 · He gave you a whole family: many faces, one Li</option>
+      <option value="25">25 · When the dark came close, you talked to Him. H</option>
+      <option value="26">26 · The Light who made you. The Light who loved yo</option>
+      <option value="27">27 · Now He holds the door open. Will you come home</option>
+      <option value="28">28 · Then He gives you work to do — the best work t</option>
+      <option value="29">29 · His light is in you now. So carry it into the</option>
+      <option value="30">30 · One day soon the Light is coming back. Not for</option>
+      <option value="31">31 · At last you will be home for good. No more dar</option>
+      <option value="32">32 · Back cover</option>
+  </select>
+  <button id="next" aria-label="Next page">›</button>
+  <span class="seg" role="group" aria-label="Screen shape">
+    <button data-shape="desktop" aria-pressed="true">Desktop</button>
+    <button data-shape="phone" aria-pressed="false">Phone</button>
+  </span>
+  <span class="hint">← → turns both books together</span>
+</header>
+<main>
+  <section class="pane"><div class="label"><b>Live today</b><a href="https://balthazar.sh/" target="_blank" rel="noopener">balthazar.sh ↗</a></div><div class="frame"><iframe id="a" title="Live book, balthazar.sh"></iframe></div></section>
+  <section class="pane"><div class="label"><b>New art</b><a href="/" target="_blank" rel="noopener">preview ↗</a></div><div class="frame"><iframe id="b" title="New art, preview"></iframe></div></section>
+</main>
+<script>
+(function () {
+  var LIVE = 'https://balthazar.sh/', NEW = location.origin + '/';
+  var N = 33, sel = document.getElementById('page'), A = document.getElementById('a'), B = document.getElementById('b');
+  var shape = 'desktop';
+  try { shape = localStorage.getItem('cmpShape') || 'desktop'; } catch (e) {}
+  var SIZES = { desktop: [1280, 800], phone: [390, 844] };
+  function fit() {
+    var s = SIZES[shape];
+    [A, B].forEach(function (f) {
+      var box = f.parentNode.getBoundingClientRect(), k = Math.min(box.width / s[0], box.height / s[1]);
+      f.style.width = s[0] + 'px'; f.style.height = s[1] + 'px';
+      f.style.transform = 'translate(-50%,-50%) scale(' + k + ')';
+    });
+  }
+  // the book reads its page from #N and listens for hashchange, so changing only the hash turns the page without reloading
+  function go(i, first) {
+    i = Math.max(0, Math.min(N - 1, i)); sel.value = String(i);
+    var h = i ? '#' + i : '';
+    if (first) { A.src = LIVE + h; B.src = NEW + h; }
+    else { A.src = LIVE + (h || '#0'); B.src = NEW + (h || '#0'); }
+    try { history.replaceState(null, '', '#' + i); } catch (e) {}
+  }
+  function setShape(s) {
+    shape = s; try { localStorage.setItem('cmpShape', s); } catch (e) {}
+    document.querySelectorAll('[data-shape]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.shape === s)); });
+    fit(); go(+sel.value, true);   // reload both so each book lays itself out for the new screen shape
+  }
+  document.getElementById('prev').onclick = function () { go(+sel.value - 1); };
+  document.getElementById('next').onclick = function () { go(+sel.value + 1); };
+  sel.onchange = function () { go(+sel.value); };
+  document.querySelectorAll('[data-shape]').forEach(function (b) { b.onclick = function () { setShape(b.dataset.shape); }; });
+  addEventListener('keydown', function (e) {
+    if (e.target.closest && e.target.closest('select')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(+sel.value + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(+sel.value - 1); }
+  });
+  addEventListener('resize', fit);
+  document.querySelectorAll('[data-shape]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.shape === shape)); });
+  fit();
+  go(parseInt((location.hash || '#1').slice(1), 10) || 0, true);
+})();
+</script>
+</body>
+</html>

@@ -184,7 +184,7 @@ export function paint(E, opts = {}) {
   const COLD_ACC = ['#4ad2ff', '#7c6bff', '#9a7cff', '#5f8fff'];   // the cold side keeps to cold: green chips in a night sky read as litter
   strokes(out, counter, {
     rng, n: 70,
-    sample: rej(-10, -10, 810, 520, () => true),
+    sample: (() => { const b = rej(-10, -10, 810, 520, () => true); return r => { const p = b(r); return p && p[1] > HZ - 10 ? p : null; }; })(),   // Oct 26: on the ground only — in the sky these flecks read as confetti
     dir: (x, y) => (fbm(x / 11, y / 8, 323) - 0.5) * 3.2,
     col: (x, y, r) => {
       const w = warm(x, y);

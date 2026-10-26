@@ -221,7 +221,9 @@ let MANIFOLD = 0.10;
 // which is the whole of chiaroscuro and the reason a dark page can still blaze.
 let DARKEN = 0;
 export function setDarken(d) { DARKEN = d; }
-export function setManifold(m) { MANIFOLD = m; }
+let MANIFOLD_LOCK = null;   // Oct 26 realism: when locked, no plate can turn the confetti back on locally
+export function setManifold(m) { MANIFOLD = MANIFOLD_LOCK != null ? MANIFOLD_LOCK : m; }
+export function lockManifold(v) { MANIFOLD_LOCK = v; if (v != null) MANIFOLD = v; }
 export function getManifold() { return MANIFOLD; }   // so a painter can suppress flecks locally and put the plate's own rate back
 // COLOUR PUNCH — ep2/3/4 were painted in a pale, desaturated "lean" palette that
 // reads washed-out next to ep1's vivid impasto. This lifts saturation and pulls

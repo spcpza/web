@@ -144,8 +144,8 @@ export function paint(E, opts = {}) {
   const skyCol = (x, y, r, lift) => {
     const near = nearE(x, y);
     const g = lightAt(x, y);
-    if (g > 0.16 && g < 0.3 && r() < 0.03) return jig('#d96f2e', r, 18);            // a breath of the home's warmth
-    if (near < 0.7 && r() < 0.05) return jig(mix(GOLD_DEEP, '#9a8a5a', r()), r, 12); // a faint warm knot at an eddy core
+    if (g > 0.16 && g < 0.3 && r() < 0.03) return jig(mix(ramp(NIGHT, 0.65), '#d96f2e', 0.25), r, 8);   // a breath of the home's warmth — mixed into the sky (Oct 26: a pure orange chip read as confetti)
+    if (near < 0.7 && r() < 0.05) return jig(mix(ramp(NIGHT, 0.65), GOLD_DEEP, 0.3), r, 8); // a faint warm knot at an eddy core
     let c = ramp(NIGHT, Math.max(0, Math.min(1, 0.6 + fbm((x + tx) / 85, (y + ty) / 85, 13) * 0.3)));
     c = g > 0.05 ? mix(c, '#b08a40', g * 0.45) : mix(c, '#1a2340', 0.16);           // luminous, never black
     for (const [ex, ey, ec] of EGLOW) { const d2 = Math.hypot(x - ex, y - ey); c = mix(c, ec, Math.exp(-d2 / 95) * 0.5); }   // eddy cores breathe deep jewel light
@@ -326,7 +326,7 @@ export function paint(E, opts = {}) {
       dir: skyDir,
       col: (x, y, r) => {
         const near = nearE(x, y);
-        if (near < 0.55 && r() < 0.06) return jig(r() < 0.5 ? '#e6ecfb' : '#e6c98a', r, 12);   // pale-silver sparks at the eddy knots (a touch of the home's gold)
+        if (near < 0.55 && r() < 0.06) return jig(mix(skyCol(x, y, r, e.lift), '#e6ecfb', 0.45), r, 6);   // pale-silver at the eddy knots, mixed into the sky
         const k2 = fbm(x / 92, y / 92, 71) + (r() - 0.5) * 0.2;
         if (k2 > 0.76) return jig('#d4ddf4', r, 8);                                          // pale-silver twilight cloud-crests (only the crest edges catch light)
         return skyCol(x, y, r, e.lift);
