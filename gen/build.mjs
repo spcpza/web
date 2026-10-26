@@ -143,6 +143,8 @@ if (only && !modules.some(m => m.name === only)) {
 // SVG -> canvas -> per-pixel impasto relief / canvas tooth / dry-brush /
 // varnish -> DOM replaced with the processed canvas. The virtual-time budget
 // lets the async image decode + GL pass finish before Chrome shoots.
+const TMP_PNGS = new Set();   // every screenshot this run made — removed on exit (they piled up to GBs in /tmp)
+process.on('exit', () => { for (const f of TMP_PNGS) { try { unlinkSync(f); } catch {} } });
 function rasterize(slug, svg, w, h, viewW = 800, viewX0 = 0, focal = null, opts = {}) {
   const scale = (w / viewW) / 2;   // 1.0 at the 1600x1000 landscape press
   // THE REMBRANDT GRADE script goes in first (defines window.__grade); the
@@ -163,7 +165,8 @@ svg{display:block;width:${w}px;height:${h}px}
     `--window-size=${w},${h}`, '--hide-scrollbars', '--force-device-scale-factor=1'];
   if (opts.transparent) args.push('--default-background-color=00000000');
   args.push(pathToFileURL(tmpHtml).href);
-  execFileSync(CHROME, args, { stdio: 'pipe' });
+  try { execFileSync(CHROME, args, { stdio: 'pipe' }); }
+  finally { try { unlinkSync(tmpHtml); } catch {} TMP_PNGS.add(tmpPng); }   // ⚠ Oct 26: each html is up to 300 MB and every band/frame has its own name — 19 GB of them filled the disk
   return tmpPng;
 }
 
