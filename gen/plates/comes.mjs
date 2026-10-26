@@ -980,76 +980,16 @@ export function paint(E, opts = {}) {
      its brightness — bright only reads against dark.
      It is drawn almost in silhouette. Only the undersides that face the rift catch anything,
      and what they catch is a thin warm rim: this is a mass BETWEEN us and the light. */
+  /* ⚠ Oct 26 — Fred: "fix comes as well, the tree on the side is not that nice." The bough above was a dark
+     limb with clumps hung off it on twigs: up close a chain of green balloons and a bare black stick. The
+     repoussoir is kept — something near and dark in the west corner, between us and the glory — but it is
+     now a TREE, painted by the book's one tree painter: an old oak standing at the very edge, half out of
+     the frame, its trunk and roots in the near ground and its crown filling the top-left corner. A child
+     can name it, and it belongs to the ground it stands on. (Old bough: attic/comes-pre-oak.mjs.) */
   {
     const bRng = mulberry32(seed ^ 0x8014);
-    const LIMB = [[-52, 8], [48, 44], [140, 86], [214, 138], [262, 196]];
-    /* ⚠⚠ A SILHOUETTE MUST BE OPAQUE FIRST. The first cut of this bough came back as a bare
-       dead branch with speckle round it: every leaf mark on this plate paints at 58% opacity
-       (STROKE_STYLE), so a dark cluster laid straight onto a blazing sky lets the blaze up
-       between every stroke and never becomes a MASS. The same lesson the ground taught —
-       whatever the marks fail to cover IS the picture there. So each cluster is built as a
-       lumpy opaque body of dark first, and the leaves are painted onto that. */
-    /* ⚠⚠ AND THE OPAQUE BODY MUST STAY IN THE MIDDLE. Filling each cluster with big round
-       dabs to its full radius gave a bunch of dark BALLOONS — a silhouette against a bright
-       sky is read at its EDGE, and a leafy edge is feathery and broken, with sky coming
-       through between the leaves. So the opaque core is small and central and the outer half
-       of every cluster is leaf-marks only.
-       ⚠ And it cannot be near-black: the live filter has a blue-violet shadow floor, so an
-       almost-black green comes up on the page as PURPLE. Dark, but a real green. */
-    const cluster = (cx0, cy0, rr, squash) => {
-      for (let i = 0; i < 9; i++) {                                   // a small opaque core, lumpy, never an ellipse
-        const a2 = bRng() * Math.PI * 2, d = Math.pow(bRng(), 0.75);
-        E.daub(out, counter, cx0 + Math.cos(a2) * rr * d * 0.44, cy0 + Math.sin(a2) * rr * d * 0.38 * squash,
-          rr * (0.20 + bRng() * 0.16), jig(mix('#16301f', '#22412a', bRng() * 0.7), bRng, 5), bRng);
-      }
-      strokes(out, counter, {                                         // and the leaves, on top of it
-        rng: bRng, n: Math.min(2400, Math.round(rr * rr * 3.0)),
-        sample: r => { const a2 = r() * Math.PI * 2, d = Math.pow(r(), 0.5);
-                       return [cx0 + Math.cos(a2) * rr * d * 1.1, cy0 + Math.sin(a2) * rr * d * 0.92 * squash]; },
-        dir: (x, y) => Math.atan2(y - cy0, x - cx0) + Math.PI / 2 + (bRng() - 0.5) * 0.9,
-        col: (x, y, r) => {
-          // only the undersides that face the tearing heaven catch anything, and only a rim:
-          // this is a mass BETWEEN us and the light.
-          const toward = Math.max(0, Math.min(1, 1 - Math.hypot(x - RIFTX, y - RIFTY) / 700));
-          const up = Math.max(0, Math.min(1, (cy0 - y) / (rr * 0.9) * 0.5 + 0.5));
-          let c = ramp(['#12241a', '#1a3322', '#24462a', '#2f5c34', '#3d7440', '#4f8c4c'],
-            up * 0.56 + fbm(x / 12, y / 10, 733) * 0.42 + (r() - 0.5) * 0.2);
-          c = mix(c, '#d8b268', Math.pow(toward, 1.6) * 0.44 * (0.3 + r() * 0.7));
-          if (r() < 0.05) c = mix(c, '#f4e2b4', 0.66);                // chinks of sky through the leaves
-          return jig(c, r, 7);
-        },
-        len: 3.4, lw: 1.8, steps: 2, lenJ: 0.85, impasto: 0.62, relief: 0.4,
-      });
-    };
-    // the limb — mostly buried in its own foliage, thick where it leaves the frame
-    for (let i = 0; i < LIMB.length - 1; i++) {
-      const u = i / (LIMB.length - 1);
-      paintPath(out, counter, bRng, [LIMB[i], LIMB[i + 1]],
-        (x, y, r) => jig(mix('#0e0c09', '#3a2c1c', r() * 0.55 + Math.max(0, 1 - Math.hypot(x - RIFTX, y - RIFTY) / 700) * 0.28), r, 6),
-        { lw: 15 - 10 * u, len: 7, density: 0.95, jitter: 0.45 });
-    }
-    /* ⚠ AND THE CLUMPS MUST OVERLAP INTO ONE MASS. Seven of them spaced along the limb read
-       as bunches of grapes hanging off a bare stick — the same "a tree alone in its own gap
-       is a shrub on a lawn" fault, at branch scale. Foliage is CONTINUOUS: the clumps run
-       into each other, the limb disappears inside its own leaves except where it leaves the
-       frame, and only the outermost tips break away as separate sprays. */
-    // the mass gathered at the corner the bough comes from — this is what does the framing
-    cluster(-40, 18, 100, 1.0); cluster(22, 56, 74, 0.95); cluster(-24, 118, 78, 1.0);
-    cluster(58, 8, 58, 0.9);    cluster(40, 140, 54, 0.95); cluster(-30, 190, 52, 1.0);
-    cluster(92, 60, 52, 0.92);  cluster(6, -18, 66, 0.9);
-    // and clumps riding the limb as it reaches in, thinning as they go
-    for (let i = 0; i < 13; i++) {
-      const t = 0.10 + (i / 12) * 0.88 + (bRng() - 0.5) * 0.035;
-      const k = Math.min(LIMB.length - 2, Math.floor(t * (LIMB.length - 1)));
-      const f = t * (LIMB.length - 1) - k;
-      const ax = LIMB[k][0] + (LIMB[k + 1][0] - LIMB[k][0]) * f;
-      const ay = LIMB[k][1] + (LIMB[k + 1][1] - LIMB[k][1]) * f;
-      const drop = 8 + bRng() * 30, side = (bRng() - 0.5) * 46;
-      paintPath(out, counter, bRng, [[ax, ay], [ax + side * 0.5, ay + drop * 0.6], [ax + side, ay + drop]],
-        (x, y, r) => jig(mix('#0d0b09', '#31261a', r() * 0.6), r, 6),
-        { lw: 3.6 - 1.8 * bRng(), len: 5, density: 0.9, jitter: 0.5 });
-      cluster(ax + side, ay + drop + 6, (50 - i * 2.6) * (0.82 + bRng() * 0.45), 0.9);
-    }
+    const oakLight = (x, y) => 0.18 + 0.5 * Math.max(0, 1 - Math.hypot(x - RIFTX, y - RIFTY) / 760);   // backlit: only the side toward the rift catches
+    E.paintTree(out, counter, bRng, 34, NEAR(34) + 40, 430, { species: 'oak', lightFn: oakLight, shadowDir: -1, blossom: 0, sun: 0.45 });
   }
 
   /* ⭐⭐ THE CAST SHADOWS — and this is the thing the page was really missing. A field can be

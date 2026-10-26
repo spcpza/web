@@ -335,8 +335,8 @@ export function paint(E, opts = {}) {
       dir: (x, y) => Math.atan2(y - HC[1], x - HC[0]) + Math.PI / 2, col: (x, y, r) => jig(mix('#e9b86a', '#5a3f6a', Math.hypot(x - HC[0], y - HC[1]) / 42), r, 6),
       len: 6, lw: 2.2, steps: 2, lenJ: 0.5, relief: 0.1, op: 0.35, flow: 0,   // a soft warm air round it — tangential, never a splash
     });
-    E.underpaintCapsules(out, counter, arm, '#7a5a26');
-    E.paintFigure(out, counter, hr, arm, (x, y, r) => gj(ramp(['#a87428', '#d09a40', GOLD, GOLD_PALE], fbm(x / 22, y / 22, 43) * 0.3 + (x + 30) / 260), r), 1.6);
+    E.underpaintCapsules(out, counter, arm, E.LIGHT_PAL.edge);   // Oct 26: the Light's one colour (engine LIGHT_PAL)
+    E.paintFigure(out, counter, hr, arm, (x, y, r) => gj(E.lightBody(0.5 + (fbm(x / 22, y / 22, 43) - 0.5) * 0.8), r), 1.6);
     // round, not flat: lit along the top of the forearm, deep along its underside
     strokes(out, counter, {
       rng: hr, n: 260, sample: rej(-40, 50, 170, 175, (x, y) => arm.some(c => E.inCap(x, y, c)) && !arm.some(c => E.inCap(x, y - 5, c))),
@@ -344,10 +344,10 @@ export function paint(E, opts = {}) {
     });
     strokes(out, counter, {
       rng: hr, n: 240, sample: rej(-40, 50, 170, 175, (x, y) => arm.some(c => E.inCap(x, y, c)) && !arm.some(c => E.inCap(x, y + 5, c))),
-      dir: () => -0.2, col: (x, y, r) => gj(mix('#9a6f30', '#6a4620', r() * 0.6), r), len: 5, lw: 1.4, steps: 2, lenJ: 0.4, relief: 0.4, flow: 0,
+      dir: () => -0.2, col: (x, y, r) => gj(E.lightRim(r() * 0.6), r), len: 5, lw: 1.4, steps: 2, lenJ: 0.4, relief: 0.4, flow: 0,
     });
-    E.underpaintCapsules(out, counter, hand, '#7a5a2a');
-    E.paintFigure(out, counter, hr, hand, (x, y, r) => gj(ramp([GOLD_HOT, GOLD_PALE, GOLD, '#c89a50'], fbm(x / 12, y / 12, 47) * 0.4 + 0.2), r), 1.9);
+    E.underpaintCapsules(out, counter, hand, E.LIGHT_PAL.edge);
+    E.paintFigure(out, counter, hr, hand, (x, y, r) => gj(E.lightBody(fbm(x / 12, y / 12, 47) * 0.9), r), 1.9);
     // the gaps between the spread fingers stay open: a line of the dark air between each
     for (const [ax, ay, bx, by] of [[48, 3, 76, 2], [48, 13, 77, 16], [44, 22, 70, 29]]) {
       paintPath(out, counter, hr, [HT([ax, ay]), HT([bx, by])], (x, y, r) => jig(mix('#3a2a4a', '#241a36', r()), r, 4), { lw: 1.5, len: 2.4, density: 0.95, jitter: 0.2 });   // the dark air between the fingers

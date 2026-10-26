@@ -310,7 +310,7 @@ export function paint(E, opts = {}) {
       rng, n: 110,
       sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.85) * 46; return [hx + Math.cos(a) * d, hy + 12 + Math.sin(a) * d * 0.9]; },
       dir: () => 0.1,
-      col: (x, y, r) => jig(ramp([GOLD_PALE, GOLD, GOLD_DEEP, '#8a5a30'], Math.hypot(x - hx, (y - hy - 12) / 0.9) / 46), r, 9),
+      col: (x, y, r) => jig(ramp([E.LIGHT_PAL.base, E.LIGHT_PAL.aura, E.LIGHT_PAL.rim], Math.hypot(x - hx, (y - hy - 12) / 0.9) / 46), r, 9),   // Oct 26: the Light's one colour — the brown fade made it read as a flame
       len: 8, lw: 2.4, steps: 2, impasto: 0.4,
     });
     const hdCaps = [
@@ -321,8 +321,8 @@ export function paint(E, opts = {}) {
       { ax: hx + 9, ay: hy + 1, bx: hx + 6, by: hy - 10, r: 2.8 },  // finger
       { ax: hx - 6, ay: hy + 2, bx: hx - 13, by: hy - 5, r: 3 },    // thumb pinning the string
     ];
-    underpaintCapsules(out, counter, hdCaps, '#8a6a2e');
-    paintFigure(out, counter, rng, hdCaps, (x, y, r) => jig(ramp([GOLD_HOT, GOLD_PALE, GOLD, '#d49a44'], fbm(x / 12, y / 12, 57) * 0.5 + (y - (hy - 12)) / 70), r, 8), 2.0);
+    underpaintCapsules(out, counter, hdCaps, E.LIGHT_PAL.edge);
+    paintFigure(out, counter, rng, hdCaps, (x, y, r) => jig(E.lightBody(fbm(x / 12, y / 12, 57) * 0.5 + (y - (hy - 12)) / 70), r, 8), 2.0);
     strokes(out, counter, {   // rays streaming off the hand
       rng, n: 50,
       sample: r => { const a = r() * Math.PI * 2, d = (0.6 + 0.5 * r()) * 40; return [hx + Math.cos(a) * d, hy + 8 + Math.sin(a) * d * 0.85]; },
@@ -339,31 +339,53 @@ export function paint(E, opts = {}) {
   E.fruitTree(out, counter, rng, 732, 478, 54, 25, E.LEAF_PALETTES[1], light, 1, { species: 'olive' });
 
   /* ---------------- LIFE: THE FLOCK GONE ASTRAY (Isa 53:6) ----------------
-     "All we like sheep have gone astray; we have turned every one to his own
-     way" — the page quotes it, so the sheep are HERE: pale wool silhouettes
-     scattered across the dark hill, each one turned its own way, none looking
-     at the hand that holds. (MID — they graze the hill they stand on.) */
-  const sheep = (sx, sy, s, face) => {
-    strokes(out, counter, {   // the wool — one bold pale blob of curled strokes (living = curved)
-      rng, n: Math.round(30 * s),
-      sample: r => { const a = r() * Math.PI * 2, d = Math.sqrt(r()); return [sx + Math.cos(a) * 11 * s * d, sy - 5 * s + Math.sin(a) * 6 * s * d]; },
-      dir: (x, y) => Math.atan2(y - (sy - 5 * s), x - sx) + Math.PI / 2 + 0.5,
-      col: (x, y, r) => jig(mix('#c2bda0', '#7e7b63', fbm(x / 8, y / 8, 91) * 0.5 + ((y - (sy - 11 * s)) / (13 * s)) * 0.5), r, 6),
-      len: 4.5 * s, lw: 2.3 * s, steps: 2, follow: 0.9, lenJ: 0.4,
+     "All we like sheep have gone astray; we have turned every one to his own way."
+     Oct 26 — Fred: "the sheep should be in the tornado no?" They were six dark combs on the
+     hill, too small to read. Now the flock is CAUGHT IN THE WHIRLWIND with the child: each sheep
+     tumbling its own way round the great wheel, wool streaming downwind — and only the child
+     is on the string. Painted as real sheep (a wool body lit from the break, cool lilac shade
+     underneath — never black — a dark face, ears, legs flung out), and on the BIRDS plane so the
+     gale throws them like it throws the flock of birds. Own rng: the rest of the plate keeps its marks. */
+  const _sheep = out.length, RS = mulberry32(seed + 5303);
+  const sheep = (sx, sy, s, rot, face) => {
+    const ca = Math.cos(rot), sa = Math.sin(rot);
+    const P = (u, v) => [sx + (u * ca - v * sa) * s, sy + (u * sa + v * ca) * s];   // sheep space → plate
+    const wind = skyDir(sx, sy);
+    for (let k = 0; k < 3; k++) {   // a few wisps of wool torn off downwind (7 long ones read as tentacles)
+      const [ax, ay] = P((RS() - 0.5) * 16, (RS() - 0.5) * 8), L = (4 + RS() * 6) * s;
+      paintPath(out, counter, RS, [[ax, ay], [ax + Math.cos(wind) * L * 0.5, ay + Math.sin(wind) * L * 0.5 - 2 * s], [ax + Math.cos(wind) * L, ay + Math.sin(wind) * L]],
+        (x, y, r) => jig(mix('#e6e0cc', '#b8b4c8', r()), r, 5), { lw: (0.6 + RS() * 0.5) * s, len: 3, density: 0.9, jitter: 0.3 });
+    }
+    for (const [lu, lv, kick] of [[-6.5, 3, -0.9], [-2.5, 4, -0.3], [2.5, 4, 0.4], [6.5, 3, 1.0]]) {   // legs flung out by the tumble
+      const [a0, b0] = P(lu, lv), [a1, b1] = P(lu + kick * 4, lv + 7.5);
+      paintPath(out, counter, RS, [[a0, b0], [(a0 + a1) / 2, (b0 + b1) / 2], [a1, b1]], (x, y, r) => jig('#2b2340', r, 4), { lw: 1.5 * s, len: 2.5, density: 1.1, jitter: 0.2 });
+    }
+    strokes(out, counter, {   // the wool body — curled marks, lit toward the break in the clouds, lilac-grey belly
+      rng: RS, n: Math.round(70 * s * s + 20),
+      sample: r => { const a = r() * Math.PI * 2, d = Math.sqrt(r()); return P(Math.cos(a) * 11 * d, Math.sin(a) * 6.5 * d); },
+      dir: (x, y) => Math.atan2(y - sy, x - sx) + Math.PI / 2 + 0.6,
+      col: (x, y, r) => {
+        const dx = x - sx, dy = y - sy, dl = Math.hypot(LX - sx, LY - sy) || 1;
+        const lit = Math.max(0, Math.min(1, 0.5 + ((dx * (LX - sx) + dy * (LY - sy)) / dl) / (11 * s) * 0.6));
+        let c = ramp(['#8f87a8', '#b9b2c4', '#e2dccb', '#f6f1e2'], lit * 0.75 + r() * 0.25);
+        return jig(mix(c, '#fff4d6', light(x, y) * 0.35), r, 5);
+      },
+      len: 3.2 * s, lw: 2.1 * s, steps: 2, follow: 0.9, lenJ: 0.4, relief: 0.2,
     });
-    // the dark head dipped to its own patch of grass — half against the wool so it reads
-    paintPath(out, counter, rng, [[sx + face * 7 * s, sy - 6 * s], [sx + face * 11.5 * s, sy - 3.5 * s], [sx + face * 13 * s, sy + 0.5 * s]],
-      (x, y, r) => jig('#141b32', r, 6), { lw: 3.2 * s, len: 3.2, density: 1.15, jitter: 0.4 });
-    for (const lx of [-6.5, -2.5, 2.5, 6.5])   // legs planted in the dark grass
-      paintPath(out, counter, rng, [[sx + lx * s, sy - s], [sx + lx * s + face, sy + 6 * s]],
-        (x, y, r) => jig('#10162a', r, 5), { lw: 1.5 * s, len: 3, density: 1.1, jitter: 0.35 });
+    const [hx, hy] = P(face * 12, -2), [ex, ey] = P(face * 9.5, -5.5);   // the face — dark, with an ear thrown back
+    strokes(out, counter, { rng: RS, n: Math.round(14 * s + 6), sample: r => { const a = r() * 6.283, d = Math.sqrt(r()); return [hx + Math.cos(a) * 3.6 * s * d, hy + Math.sin(a) * 2.8 * s * d]; },
+      dir: () => rot, col: (x, y, r) => jig(mix('#2a2238', '#4a3c4c', r()), r, 4), len: 2.2 * s, lw: 1.6 * s, steps: 1, relief: 0 });
+    paintPath(out, counter, RS, [[ex, ey], P(face * 6.5, -8.5)], (x, y, r) => jig('#3a2f44', r, 4), { lw: 1.4 * s, len: 2, density: 1, jitter: 0.2 });
+    const [ix, iy] = P(face * 13.2, -2.8); out.push(`<circle cx="${R1(ix)}" cy="${R1(iy)}" r="${R1(0.55 * s)}" fill="#f2e6c8"/>`); counter.n++;   // a catch-light in the eye
   };
-  sheep(98, 414, 0.75, -1);   // far on the crest, drifting west
-  sheep(115, 456, 1.05, 1);   // just past the hand's reach, facing away east
-  sheep(300, 430, 0.85, 1);
-  sheep(355, 463, 1.2, -1);   // near, turned back on the light
-  sheep(505, 444, 0.9, -1);
-  sheep(548, 483, 1.35, 1);   // nearest, wandering off its own way
+  //      x    y    size  tumble face
+  sheep(478, 150, 2.0,  0.55,  1);   // ahead of the child, flung round the wheel
+  sheep(560, 292, 2.4, -0.45, -1);   // nearest, belly up to the gale
+  sheep(172, 262, 1.7,  1.25,  1);   // west of the eye, rolling
+  sheep(400, 340, 1.9,  2.45, -1);   // under the eye, upside down
+  sheep(662, 182, 1.45, -1.05,  1);  // far out on the rim
+  sheep(96, 358, 1.5, -2.1,  -1);    // last off the hill, just lifting
+  birdRanges.push([_sheep, out.length]);
 
   /* ---------------- LIFE: MOTHS TO THE LIGHT ----------------
      a few pale moths drifting in toward the radiant hand — the small things

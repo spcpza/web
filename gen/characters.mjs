@@ -26,8 +26,12 @@ export const CAST = {
   // from creation to the homecoming. He is LIGHT, but he must read as somebody:
   // white alone disappears against his own glory, so his light is woven with gold.
   light: {
-    body:    ['#8a6a22', '#c39a3c', '#efd07a', '#fdf0c2', '#fffdf2'],
-    contour: '#2a1608',      // ⚠ a radiant figure still needs an EDGE or it dissolves
+    // ⚠ Oct 26 (Fred: "make sure the father figure is in the same color on all pages"): the SAME colours as
+    // engine LIGHT_PAL / paintLight — white on top, warm gold beneath, an orange-gold rim. The old ramp ran down
+    // to #8a6a22 with a #2a1608 outline, so on twoways he came out darker, browner and orange-flecked beside
+    // the white-gold Father of bridge and ran.
+    body:    ['#e8a838', '#f6c64e', '#ffdf86', '#fff2cc', '#ffffff'],
+    contour: '#c87a22',      // ⚠ a radiant figure still needs an EDGE or it dissolves — a warm rim, never mud
     halo:    ['#fff8dc', '#ffe6a2', '#e8c268'],
     haloR:   0.34,           // × height — modest; a big halo erases the figure it haloes
     contourK: 1.42,          // how much fatter than the body the contour sits

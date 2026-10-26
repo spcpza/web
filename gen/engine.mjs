@@ -1179,6 +1179,12 @@ export function lightEdge(out, counter, cx, cy, rx, ry = rx, opts = {}) {
   counter.n += 2;
 }
 
+// ⭐ THE LIGHT'S ONE COLOUR (Oct 26, Fred: "make sure the father figure is in the same color on all pages").
+// Every part of Him — a whole figure (paintLight), the great arm on made/turning, the hand on string — takes
+// its paint from here: brilliant white on top, warming to gold underneath, a warm orange-gold rim. Never brown.
+export const LIGHT_PAL = { top: '#ffffff', gold: '#ffd45c', base: '#fff7df', rim: '#f0b040', edge: '#d88a26', aura: '#ffd24f' };
+export function lightBody(t) { return mix(LIGHT_PAL.top, LIGHT_PAL.gold, 0.06 + 0.34 * Math.max(0, Math.min(1.4, t))); }
+export function lightRim(k) { return mix(LIGHT_PAL.rim, LIGHT_PAL.edge, k); }
 export function paintLight(out, counter, rng, caps) {
   if (globalThis.__CAP_LIGHT && caps && caps.length) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -2674,15 +2680,37 @@ export function paintTrunkReal(out, counter, tr, cx, baseY, th, wBase, lean, lig
   const L = lightFn || (() => 0.4);
   const spine = []; for (let i = 0; i <= 14; i++) { const u = i / 14; spine.push([cx + Math.sin(lean * u) * th * u + Math.sin(u * 3.1) * 1.8 * sc * (ex.twist || 1), baseY - th * u]); }
   const wAt = t => wBase * (1 - (ex.rings ? 0.22 : 0.42) * t) * (1 + (ex.rings ? 0.35 : 0.85) * Math.exp(-t / 0.06));   // root flare at the foot (a palm's is only a slight swelling)
-  // roots: 3–4 tapered flares spreading out into the ground, behind/at the sides of the foot
-  const nr = 3 + (tr() < 0.5 ? 1 : 0);
-  for (let k = 0; k < nr && ex.roots; k++) {   // (separate roots read as splinters — the flare carries the foot now)
-    const side = k % 2 ? 1 : -1, reach = wBase * (0.7 + tr() * 0.5), drop = (0.6 + tr() * 0.8) * sc;   // short broad buttresses, mostly sunk in the grass
-    const x0 = cx + side * wBase * (0.4 + tr() * 0.3), y0 = baseY - wBase * (0.8 + tr() * 0.4);
-    const rs = [[x0, y0], [x0 + side * reach * 0.45, baseY - drop * 0.2], [x0 + side * reach, baseY + drop]];
-    barkCylinder(out, counter, tr, rs, t => wBase * 0.5 * (1 - 0.75 * t), litX, sc * 0.5, L, { n: Math.round(18 * sc + 6), furrows: 0, moss: 0, tint: ex.tint });
+  // ⭐ ROOTS (Oct 26, Fred: "make sure the base of the tree is not just one straight line? draw some roots").
+  // Surface roots the way an old tree shows them: each swells out of the flare as a KNEE that stands a little
+  // proud of the soil, runs outward and down, and sinks back into the grass, tapering to nothing. The BACK ones
+  // are painted first (higher, shorter — behind the trunk), the FRONT ones after the trunk, lower and longer,
+  // so the foot sits IN the ground with depth instead of on a ruled line. A palm keeps a low boss of short roots.
+  const rootsBack = [], rootsFront = [];
+  if (ex.roots !== false) {
+    const nr = ex.rings ? 5 : 3 + (tr() < 0.6 ? 1 : 0);
+    for (let k = 0; k < nr; k++) {
+      const side = k % 2 ? 1 : -1, front = k >= 1 || ex.rings;           // two behind, the rest in front of the trunk
+      const reach = wBase * (ex.rings ? 0.7 + tr() * 0.4 : 0.75 + tr() * 0.85) * (front ? 1 : 0.6);
+      const dy = front ? (0.3 + tr() * 0.7) * wBase * 0.3 : -(0.1 + tr() * 0.3) * wBase * 0.25;   // in front the root comes TOWARD us (lower)
+      const knee = wBase * (ex.rings ? 0.1 : 0.16 + tr() * 0.14);         // how proud of the soil it stands
+      const x0 = cx + side * wBase * 0.55, y0 = baseY - wBase * (ex.rings ? 0.4 : 0.8);
+      const pts = [[x0, y0], [cx + side * wBase * 1.05, baseY - knee], [cx + side * (wBase + reach * 0.55), baseY - knee * 0.45 + dy * 0.5], [cx + side * (wBase + reach), baseY + dy]];
+      (front ? rootsFront : rootsBack).push({ pts, w0: wBase * (ex.rings ? 0.26 : 0.38 + tr() * 0.1), end: [cx + side * (wBase + reach), baseY + dy] });
+    }
   }
+  const root = R => {
+    const sp = []; for (let i = 0; i <= 10; i++) { const t = i / 10, P = R.pts, u = 1 - t;   // cubic through the four points
+      sp.push([u*u*u*P[0][0] + 3*u*u*t*P[1][0] + 3*u*t*t*P[2][0] + t*t*t*P[3][0], u*u*u*P[0][1] + 3*u*u*t*P[1][1] + 3*u*t*t*P[2][1] + t*t*t*P[3][1]]); }
+    barkCylinder(out, counter, tr, sp, t => R.w0 * Math.pow(1 - t, 0.85) * (0.35 + 0.65 * Math.min(1, t / 0.12 + 0.6)) + 0.25 * sc, litX, sc * 0.6, L,
+      { n: Math.round(R.w0 * 16 + 10), furrows: 0, moss: R.w0 > 4 ? 1 : 0, tint: ex.tint, ground: true, dv: -0.06 });
+    const [ex2, ey2] = R.end;   // the soil and grass close over the tip: it goes INTO the ground, it is not cut off
+    strokes(out, counter, { rng: tr, n: Math.round(6 + R.w0 * 2.4), sample: r => [ex2 + (r() - 0.6) * R.w0 * 2.4, ey2 + (r() - 0.3) * R.w0 * 0.7],
+      dir: () => -Math.PI / 2 + (tr() - 0.5) * 0.8, col: (x, y, r) => jig(mix('#3f6a2c', '#7aa04a', r() * 0.8 + L(x, y) * 0.2), r, 8),
+      len: Math.max(1.6, 2.6 * sc), lw: Math.max(0.6, 0.9 * sc), steps: 2, relief: 0, flow: 0 });
+  };
+  for (const R of rootsBack) root(R);
   barkCylinder(out, counter, tr, spine, wAt, litX, sc, L, { crownShadeFrom: 0.62, tint: ex.tint, ground: true, furrows: ex.rings ? 0 : undefined, moss: ex.rings ? 0 : undefined });
+  for (const R of rootsFront) root(R);
   if (ex.rings) {                                    // a palm: the scars of every frond it has dropped — soft rings that curve round the cylinder, closer near the top
     const at = t => { const f = Math.min(0.999, t) * 14, i = f | 0, u = f - i; return [spine[i][0] + (spine[i + 1][0] - spine[i][0]) * u, spine[i][1] + (spine[i + 1][1] - spine[i][1]) * u]; };
     for (let t = 0.08; t < 0.97; t += 0.035 + 0.03 * (1 - t)) {

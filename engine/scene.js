@@ -296,9 +296,11 @@
     + '@keyframes scBreath{from{transform:rotate(-.35deg)}to{transform:rotate(.35deg)}}'
     + '@keyframes scHop{0%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(1.3deg)}70%{transform:translateY(2px)}100%{transform:translateY(0)}}'
     + '.sc-sheet{position:absolute;inset:0;background-repeat:no-repeat;background-position:0 0;}'
-    + '.on .sc-sheet{animation:scSheet 5.4s steps(' + 18 + ') infinite;}'
-    + '.sc-sheet.tapwave{animation:scSheet 1.5s steps(' + 18 + ') 1!important;}'
-    + '@keyframes scSheet{to{background-position-x:calc(var(--fw) * -' + 18 + ')}}'
+    + '.on .sc-sheet{animation:scSheet 5.4s step-end infinite;}'
+    + '.sc-sheet.tapwave{animation:scSheet 1.5s step-end 1!important;}'
+    // ⭐ Oct 26 (Fred: "hands… the sprite loads really slow"): the strip holds the 8 DISTINCT poses only, and the
+    // keyframes walk the same 18-step rhythm over them (rest ×5 · blink · rest ×3 · six wave tips · rest ×3).
+    + '@keyframes scSheet{' + [0,0,0,0,0,1,0,0,0,2,3,4,5,6,7,0,0,0].map(function (m, i) { return (i * 100 / 18).toFixed(3) + '%{background-position-x:calc(var(--fw) * -' + m + ')}'; }).join('') + '100%{background-position-x:0}}'
     + '.sc-sway.poke,.sc-nod.poke{animation:scPoke .6s cubic-bezier(.3,1.4,.4,1) 1!important;}'
     + '@keyframes scPoke{0%{transform:rotate(0)}25%{transform:rotate(7deg)}55%{transform:rotate(-5deg)}80%{transform:rotate(2deg)}100%{transform:rotate(0)}}'
     + '.sc-glow.flare{animation:scFlare .7s ease-out 1!important;}'
@@ -759,7 +761,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=479';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=480';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -2665,6 +2667,8 @@
     (isR ? F.drawRadiant : F.drawPilgrim)(g, p, anim);
   }
   var SHEET_K = 18;   // frames in a pilgrim's idle loop (rest · blink · wave)
+  var SHEET_MAP = [0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 3, 4, 5, 6, 7, 0, 0, 0], SHEET_U = 8;   // step → which of the 8 distinct poses (mirrors the scSheet keyframes)
+  var SHEET_REP = [0, 5, 9, 10, 11, 12, 13, 14];                                     // one step that shows each pose
   function waveTip(a, box, i) {   // the free hand's local tip on frame i, or null (rest)
     if (i < 9 || i > 14) return null;
     var side = a.armR ? 'L' : 'R';                   // wave with the hand that isn't holding a staff/another hand
@@ -2691,7 +2695,7 @@
   //  the reader's eye resolves "held against Him" instead of counting limbs.
   function carrierHands(g, a, box) {
     if (!a.carry) return;
-    var GOLD = ['#8a6a22', '#c39a3c', '#efd07a', '#fdf0c2'];
+    var GOLD = ['#e8a838', '#f6c64e', '#ffdf86', '#fff2cc'];   // the Light's one palette (gen/characters.mjs CAST.light, engine LIGHT_PAL)
     var hx = box.w / 2 + (a.carry[0][0] - a.x);       // plate → this actor's frame
     var hy = (box.h - 4) + (a.carry[0][1] - a.y);
     var R = a.h * 0.15;   // shoulder-sized, not a golden boulder eating the frame
@@ -3056,7 +3060,7 @@
       var GUT = 6;                                   // gutter, plate px
       var stride = box.w + GUT;
       var sheet = document.createElement('canvas');
-      var SS = 2; sheet.width = stride * SHEET_K * SS; sheet.height = box.h * SS;
+      var SS = Math.min(2, 8192 / (stride * SHEET_U)); sheet.width = Math.round(stride * SHEET_U * SS); sheet.height = Math.round(box.h * SS);   // 8 poses, not 18 slots — and never past a width a phone can encode quickly
       var g = sheet.getContext('2d'); g.scale(SS, SS); g.imageSmoothingEnabled = true; try { g.imageSmoothingQuality = 'high'; } catch (e) { }   // crisp edges — see frameCanvas
       // ⭐ EIGHT DISTINCT POSES, NOT EIGHTEEN DRAWS (Oct 8 — "lighten page 23"). The idle
       // loop is rest · blink · wave, and eleven of the eighteen steps are the SAME resting
@@ -3076,7 +3080,7 @@
           });
           _uniq[key] = fc;
         }
-        g.drawImage(fc, i * stride, 0, box.w, box.h);
+        g.drawImage(fc, SHEET_MAP[i] * stride, 0, box.w, box.h);
         // free the unique canvases only after the last slot is filled (see slice end)
       };
       var sh = document.createElement('div'); sh.className = 'sc-sheet';
@@ -3088,8 +3092,8 @@
       (function slice() {
         if (sh.__dead) { sheet.width = sheet.height = 0; for (var dk in _uniq) if (_uniq[dk]) _uniq[dk].width = _uniq[dk].height = 0; _uniq = {}; return; }   // the poses too, not only the strip
         var t0 = performance.now();
-        do { drawFrame(fi++); } while (fi < SHEET_K && performance.now() - t0 < 12);
-        if (fi < SHEET_K) setTimeout(slice, 0);
+        do { drawFrame(SHEET_REP[fi++]); } while (fi < SHEET_U && performance.now() - t0 < 12);
+        if (fi < SHEET_U) setTimeout(slice, 0);
         else {
           for (var uk in _uniq) { if (_uniq[uk]) { _uniq[uk].width = _uniq[uk].height = 0; } }
           _uniq = {};
@@ -3098,7 +3102,7 @@
       })();
       var strideCss = stride * fit.s;
       sh.style.setProperty('--fw', strideCss + 'px');
-      sh.style.backgroundSize = (strideCss * SHEET_K) + 'px 100%';
+      sh.style.backgroundSize = (strideCss * SHEET_U) + 'px 100%';
       sh.addEventListener('animationend', function () { sh.classList.remove('tapwave'); });   // fast wave over → back to the slow idle loop
       el.appendChild(sh);
       el.__sheet = sh;
@@ -4566,6 +4570,13 @@
     if (!L.todo.length) return;
     // nor while the book is moving: a swipe may be on its way to the next page, whose planes come first
     if (performance.now() - _boilScrollT < 400 || neighbourPlanesArriving(L.page)) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 500); return; }
+    // ⚠ NOR BEFORE THIS PAGE'S OWN CHILDREN (Oct 26, Fred: "hands… loads very long, and the sprite loads really
+    // slow"). On `hands` the trio's drawing (342 KB) was sharing the line with twelve grass and cloud drawings (~3 MB),
+    // so the three children came in seconds after the picture. The figures are the story; the boil is the weather.
+    // Capped at 10 s so a drawing that never arrives cannot keep the page still.
+    if (!L.c0) L.c0 = performance.now();
+    var _cells = F && F.kidCellsFor ? F.kidCellsFor(pages.indexOf(L.page)) : null;
+    if (_cells && _cells.length && F.kidReady && !F.kidReady(_cells) && performance.now() - L.c0 < 10000) { clearTimeout(L.t); L.t = setTimeout(function () { pumpBoil(L); }, 300); return; }
     var kick = function () { setTimeout(function () { pumpBoil(L); }, 0); };
     while (L.todo.length) {                                                 // every one, in this one task (see 2. above)
       var el = L.todo.shift();

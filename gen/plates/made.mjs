@@ -245,8 +245,8 @@ export function paint(E, opts = {}) {
     { ax: 176, ay: 130, bx: 260, by: 182, r: 22 },  // elbow BEND into the forearm (angle changes here)
     { ax: 260, ay: 182, bx: 324, by: 216, r: 17.5 },// forearm tapering to the wrist
   ];
-  underpaintCapsules(out, counter, fore, '#6e5020');
-  paintFigure(out, counter, rng, fore, (x, y, r) => gj(ramp(['#b0863c', '#d6a854', GOLD, GOLD_PALE], fbm(x / 22, y / 22, 41) * 0.3 + (x + 14) / 360), r), 1.6);
+  underpaintCapsules(out, counter, fore, E.LIGHT_PAL.edge);   // Oct 26: the Light's one colour (engine LIGHT_PAL)
+  paintFigure(out, counter, rng, fore, (x, y, r) => gj(E.lightBody(0.5 + (fbm(x / 22, y / 22, 41) - 0.5) * 0.8), r), 1.6);
   // CYLINDER shading so the arm reads round, not flat: bright highlight rippling
   // down its TOP edge, deep shadow along its UNDER edge
   strokes(out, counter, {
@@ -255,7 +255,7 @@ export function paint(E, opts = {}) {
   });
   strokes(out, counter, {
     rng, n: 400, sample: rej(-14, 30, 330, 240, (x, y) => fore.some(c => inCap(x, y, c)) && !fore.some(c => inCap(x, y + 6, c))),
-    dir: () => 0.42, col: (x, y, r) => gj(mix('#9a6f30', '#5e3f1a', r() * 0.6), r), len: (x, y) => 6 * lengthOf(x, y, 141), lw: (x, y) => 1.5 * widthOf(x, y, 143), steps: 2, lenJ: 0.3, wJ: 0.3, relief: 0.5,
+    dir: () => 0.42, col: (x, y, r) => gj(E.lightRim(r() * 0.6), r), len: (x, y) => 6 * lengthOf(x, y, 141), lw: (x, y) => 1.5 * widthOf(x, y, 143), steps: 2, lenJ: 0.3, wJ: 0.3, relief: 0.5,
   });
   // wrist + open giving hand, the index finger reaching RIGHT toward the gap
   const dHand = [
@@ -267,11 +267,11 @@ export function paint(E, opts = {}) {
     { ax: 360, ay: 264, bx: 373, by: 270, r: 3.6 },    // finger 4
     { ax: 350, ay: 224, bx: 364, by: 220, r: 5.0 },    // thumb, up and out
   ];
-  underpaintCapsules(out, counter, dHand, '#6e5226');
-  paintFigure(out, counter, rng, dHand, (x, y, r) => gj(ramp([GOLD_HOT, GOLD_PALE, GOLD, '#c89a50'], fbm(x / 12, y / 12, 41) * 0.4 + 0.2), r), 1.9);
+  underpaintCapsules(out, counter, dHand, E.LIGHT_PAL.edge);
+  paintFigure(out, counter, rng, dHand, (x, y, r) => gj(E.lightBody(fbm(x / 12, y / 12, 41) * 0.9), r), 1.9);
   // dark grooves between the fingers so distinct fingers read (not a lump)
   for (const [ax, ay, bx, by] of [[364, 246, 379, 250], [362, 254, 377, 258], [358, 261, 371, 266]]) {
-    paintPath(out, counter, rng, [[ax, ay], [bx, by]], (x, y, r) => jig(mix('#8a6a34', '#5a3a1c', r()), r, 6), { lw: 1.4, len: 2.6, density: 0.95, jitter: 0.3 });
+    paintPath(out, counter, rng, [[ax, ay], [bx, by]], (x, y, r) => jig(mix(E.LIGHT_PAL.edge, '#b8641a', r()), r, 6), { lw: 1.4, len: 2.6, density: 0.95, jitter: 0.3 });
   }
   // hot rim along the gap-facing edge of the hand + the reaching fingertip
   strokes(out, counter, {

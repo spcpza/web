@@ -5532,7 +5532,26 @@
       }
     };
     var tw = Math.max(2.6, W * (big ? 0.17 : 0.13));
+    // ⭐ ROOTS (Oct 26, Fred: "make sure the base of the tree is not just one straight line? draw some roots") —
+    // the same surface roots the plate trees have (engine.mjs paintTrunkReal): each swells out of the flare, runs
+    // out and down, and sinks into the grass. One behind the trunk, two or three in front of it.
+    var root = function (side, reach, dy, w) {
+      var x0 = x + side * tw * 0.28, y0 = base - tw * 0.4, x1 = x + side * (tw * 0.5 + reach), y1 = base + dy;
+      var mx = x + side * tw * 0.62, my = base - tw * 0.12;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0 - w);
+      ctx.quadraticCurveTo(mx, my - w * 0.9, x1, y1);                  // the lit top of the root
+      ctx.quadraticCurveTo(mx, my + w * 0.5, x0 - side * w * 0.4, base); // its underside, back into the foot
+      ctx.closePath(); ctx.fillStyle = bkC(0.16, 1); ctx.fill();
+      ctx.strokeStyle = bkC(0.55, 0.8); ctx.lineWidth = Math.max(0.5, w * 0.35); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x0 + side * w * 0.2, y0 - w * 0.6); ctx.quadraticCurveTo(mx, my - w * 0.75, x1 - side * reach * 0.25, y1 - w * 0.25); ctx.stroke();
+      ctx.strokeStyle = 'rgba(70,112,50,0.85)'; ctx.lineWidth = Math.max(0.6, w * 0.22);   // the grass closes over the tip
+      for (var gq = 0; gq < 4; gq++) { var gx = x1 - side * (wn() * reach * 0.35), gh = w * (1.2 + wn() * 1.6);
+        ctx.beginPath(); ctx.moveTo(gx, y1 + 0.5); ctx.lineTo(gx + (wn() - 0.5) * w, y1 - gh); ctx.stroke(); }
+    };
+    if (tw > 3.2) root(-1 * litDir, tw * 0.9, -tw * 0.1, tw * 0.3);   // behind
     limb(0, forkT, 0, W * 0.04, tw, tw * 0.62, true);                 // the trunk
+    if (tw > 3.2) { root(-1, tw * (1.15 + wn() * 0.5), tw * 0.16, tw * 0.34); root(1, tw * (1.1 + wn() * 0.5), tw * 0.2, tw * 0.34); }   // in front
     limb(forkT, 0.80, W * 0.04, -W * 0.52, tw * 0.58, tw * 0.20);     // left bough
     limb(forkT, 0.86, W * 0.04, W * 0.46, tw * 0.55, tw * 0.18);      // right bough
     limb(forkT + 0.12, 0.92, W * 0.10, W * 0.02, tw * 0.40, tw * 0.16); // the leader

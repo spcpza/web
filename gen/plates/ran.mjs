@@ -594,7 +594,7 @@ export function paint(E, opts = {}) {
   // RE-ASSERT THE FORM: overlay the limbs in translucent GOLD (gold holds form;
   // pure white blooms shapeless), so the flung-WIDE arms + running stride read as
   // a Father running, not a starburst — the white-hot core still shows through
-  paintFigure(out, counter, rng, fCaps, (x, y, r) => jig(mix('#ffe888', '#e2a838', r() * 0.55), r, 7), 1.15, 1, 1, 0.5);
+  paintFigure(out, counter, rng, fCaps, (x, y, r) => jig(E.lightBody(0.6 + r() * 0.8), r, 7), 1.15, 1, 1, 0.5);   // Oct 26: the Light's one colour (was a yellower #ffe888→#e2a838 coat)
   // a hot defining edge along the tops of the flung-open arms so the gesture reads
   for (const [ax, ay, bx, by] of (RUN
       ? [[fx, fy - 70, fx - 40, fy - 72], [fx, fy - 40, fx + 30, fy - 34]]
