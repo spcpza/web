@@ -275,7 +275,22 @@ function glowSurround(c, x, y) {
   return hexC(r2, g2, b2);
 }
 
+// ⭐ NO DEAD BLACK (Oct 26 — Fred: "to create great shadow, you cannot just use black but rather you need to use different
+// tones"). Any mark that comes out a dull dark grey keeps its darkness but gains a hue: a deep blue-violet by default
+// (the colour of shade under an open sky), or the plate's own SHADOW_TONE. Value is untouched — only chroma changes.
+let SHADOW_TONE = null;
+export function setShadowTone(c) { SHADOW_TONE = c; }
+function colourShadow(c) {
+  const [r, g, b] = hx(c); const mx = Math.max(r, g, b), mn = Math.min(r, g, b), L = (mx + mn) / 510, C = (mx - mn) / 255;
+  if (L > 0.22 || C > 0.1) return c;
+  const k = Math.min(1, (0.1 - C) / 0.1) * Math.min(1, (0.22 - L) / 0.08);   // greyer and darker → more hue
+  const t = SHADOW_TONE || '#2a2a62';
+  const [tr, tg, tb] = hx(t), tl = (Math.max(tr, tg, tb) + Math.min(tr, tg, tb)) / 510 || 0.2;
+  const sc = L / tl;                                                          // the tone scaled to THIS mark's value
+  return mix(c, hexC(tr * sc, tg * sc, tb * sc), 0.65 * k);
+}
 export function jig(c, rng, amt = 14) {
+  if (SHADOW_TONE !== false) c = colourShadow(c);
   if (COLOR_PUNCH) c = punch(c);
   if (DARKEN) c = mix(c, '#0b0820', DARKEN * (1 - Math.pow(lum(c), 0.55)));
   const [r, g, b] = hx(c);
@@ -418,6 +433,17 @@ export function setReliefLight(p) { RELIEF_LIGHT = p; }
 // a band-wide multiplier on every mark's relief (Oct 25 realism: the sky planes take ~none — ridged sky marks tile into fish scales)
 let RELIEF_K = 1;
 export function setReliefK(k) { RELIEF_K = k; }
+let FURROW_K = 1;
+export function setFurrowK(k) { FURROW_K = k; }
+let TONAL_SHADOW = false;
+export function setTonalShadow(on) { TONAL_SHADOW = !!on; }
+// ⭐ Oct 26 (Fred: "make the art style consistent also for every page"). With the realism kit on, the OLD book-wide
+// painters hand their work to the new ones, so a page that still calls them paints in the same hand as page 4:
+// groundFlowers (one-dab confetti) → realFlowers colonies; jewelBush (a jewel-palette puff) → realShrub in leaf greens.
+let REAL_KIT = false;
+export function setRealKit(on) { REAL_KIT = !!on; }
+let HAND_K = +(process.env.HAND_K || 0.35), HAND_MAXN = +(process.env.HAND_MAXN || 5), HAND_FINE = +(process.env.HAND_FINE || 0.75), HAND_RELIEF = +(process.env.HAND_RELIEF || 0.45),
+    HAND_CAP_L = +(process.env.HAND_CAP_L || 14), HAND_CAP_W = +(process.env.HAND_CAP_W || 4);   // see ONE HAND in strokes()
 // Oct 25 realism: the `wild` marks (random oversized slabs and stray hairlines) read as confetti — REALISM turns them off
 let WILD_ON = true;
 export function setWild(on) { WILD_ON = !!on; }
@@ -730,13 +756,38 @@ export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ 
   if (ECONOMY > 1 && n >= 40) { n = Math.round(n / ECONOMY); ECO = Math.sqrt(ECONOMY); }   // fewer, surer (see setEconomy)
   // `flow: 0` — a mark whose SHAPE is the drawing (a palm leaflet, a cedar plate) must not be combed into a sweep
   if (FLOW_LEN > 1 && n >= 40 && flow) { FL = FLOW_LEN; steps = Math.max(2, Math.round(steps * FLOW_STEPS)); follow = Math.min(1, follow + 0.05); }   // longer, following (see setFlow)
+  // ⭐ ONE HAND (Oct 26, Fred: "make the art style consistent also for every page"). The broad passes stacked four
+  // size multipliers — depth plane (×1.7 at the back), the page's temperament (√2.4), ground flow (×2.4 long) and
+  // ground bold (×1.45 wide) — so a back ground mark on `string` was ~5× the length of one on page 4 and the book
+  // read as two painters. With the realism kit on, the stack is pulled toward 1 (its square root) and the count is
+  // raised to keep the same coverage, so every page is laid in the same size of mark.
+  let HK = 1, HW = 1;
+  if (REAL_KIT && n >= 40) {
+    // ⚠ Fred, the same day: "make the thin/thick depend on the scene — 1 artist can do both thin and thick strokes
+    // depending on what he wants to depict." So the page's TEMPERAMENT (ECO — a gale thick, a meadow fine) is NOT
+    // squeezed: only the mechanical stack (depth plane × flow × bold) is, and the ceiling grows with the temperament.
+    const ml = BRUSH_SCALE * FL * ECO, mw = BRUSH_SCALE * (flow ? GROUND_BOLD : 1) * ECO;
+    HK = Math.pow(ml / ECO, HAND_K - 1) * HAND_FINE; HW = Math.pow(mw / ECO, HAND_K - 1) * HAND_FINE;
+    // and a CEILING: no broad mark in the book bigger than page 4's. The pass measures its own mean mark on a
+    // PRIVATE stream (the plate's rng is untouched, so the composition stays) and a slab sky is laid in finer marks.
+    const pr = mulberry32(n * 7 + 13); let sl = 0, sw = 0, k = 0;
+    for (let q = 0; q < 24; q++) { const p0 = sample(pr); if (!p0) continue; k++;
+      sl += (typeof len === 'function' ? len(p0[0], p0[1]) : len); sw += (typeof lw === 'function' ? lw(p0[0], p0[1]) : lw); }
+    if (k) { const mL = sl / k * ml * HK, mW = sw / k * mw * HW;
+      const capL = HAND_CAP_L * ECONOMY, capW = HAND_CAP_W * ECO;   // a gale may lay long, wide marks; a meadow may not
+      if (mW > capW) HW *= capW / mW; }
+    HK = Math.max(HK, 1 / Math.max(1, ml));   // ⚠ never SHORTEN below the plate's own gesture: a thin sky is still long pulled strokes (cutting length broke `risen`'s swirls into blotches)
+    HK = Math.min(1, Math.max(HK, 0.85));
+    n = Math.round(n * Math.min(HAND_MAXN, 1 / (HK * HW)));
+    relief = Math.min(relief, HAND_RELIEF);   // full relief on a broad field tiles it into scales (the "stained glass")
+  }
   const lenFn = typeof len === 'function', lwFn = typeof lw === 'function';
   for (let i = 0; i < n; i++) {
     const s = sample(rng);
     if (!s) continue;
     const aJv = typeof aJ === 'function' ? aJ(s[0], s[1]) : aJ;
-    const lenB = (lenFn ? len(s[0], s[1]) : len) * BRUSH_SCALE * ECO * FL;
-    const lwB = (lwFn ? lw(s[0], s[1]) : lw) * BRUSH_SCALE * ECO * (n >= 40 && flow ? GROUND_BOLD : 1);
+    const lenB = (lenFn ? len(s[0], s[1]) : len) * BRUSH_SCALE * ECO * FL * HK;
+    const lwB = (lwFn ? lw(s[0], s[1]) : lw) * BRUSH_SCALE * ECO * (n >= 40 && flow ? GROUND_BOLD : 1) * HW;
     let L, w;
     if (wild > 0 && rng() < wild && WILD_ON) {   // (the rng order shifts when off — the picture changes, so rebuild the plate)
       if (rng() < 0.62) { w = 0.8 + rng() * 1.4; L = lenB * (1.3 + rng() * 1.4); }   // raking hairline
@@ -873,7 +924,11 @@ export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ 
     // mark (body + impasto + relief slivers) glazes uniformly and layers over what's beneath.
     let body = '';
     if (impasto > 0 && lum(fill) > impasto) {
-      body += ribbon(pts.map(p => [p[0] + 0.5, p[1] + 1.2]), w * 1.12, mix(fill, DARKEST, 0.55), prof);
+      // ⭐ Oct 26 (Fred: "you cannot just use black but rather different tones"): the understroke was the mark mixed 55%
+      // toward near-black — a dark rim round every bright mark, the whole book over. With TONAL_SHADOW it is the SAME
+      // colour a step down in value and a little cooler: thick paint catching its own shadow, in colour.
+      const under = TONAL_SHADOW ? mix(lift(fill, -(10 + 12 * lum(fill)) * (FURROW_K < 1 ? 0.5 : 1)), '#34306e', FURROW_K < 1 ? 0.12 : 0.2) : mix(fill, DARKEST, 0.55);
+      body += ribbon(pts.map(p => [p[0] + 0.5, p[1] + 1.2]), w * 1.12, under, prof);
       counter.n++;
     }
     body += ribbon(pts, w, fill, prof, edge);
@@ -893,7 +948,7 @@ export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ 
       if (idB > 0.30) {                                    // BRISTLE STREAKS — a ridge and a furrow, off-centre; a third on the widest
         const o1 = 0.18 + idA * 0.16, o2 = -(0.14 + idB * 0.18);
         body += ribbon(side(o1, 0, np - 2), w * 0.11, lift(fill, 5 + 5 * lum(fill), 0.04), [0.2, 1, 0.8, 0.5, 0.15]);   // (first cut 7+9·lum at 0.13w went WHITE on a pale sky)
-        body += ribbon(side(o2, 1, np - 1), w * 0.11, lift(fill, -8), [0.15, 0.9, 1, 0.6, 0.2]);
+        body += ribbon(side(o2, 1, np - 1), w * 0.11, FURROW_K < 1 ? mix(fill, '#3c3a78', 0.12 * FURROW_K + 0.04) : lift(fill, -8), [0.15, 0.9, 1, 0.6, 0.2]);   // FURROW_K<1 (sky): a cool tone, not a darker line — stacked dark furrows read as stained-glass leading
         counter.n += 2;
         if (w > 5.5 && idA > 0.5) { body += ribbon(side(-(0.36 + idA * 0.1), 0, np - 3), w * 0.08, lift(fill, 3), [0.3, 1, 0.6, 0.1]); counter.n++; }
       }
@@ -2541,11 +2596,13 @@ export function pickTreeKind(rng) {
 //     shaded side;
 //   · the crown throws a shadow down the top of the trunk.
 // The lit flank is decided by the scene's light (lxDir), so every trunk in a plate agrees with its sun.
-const BARK = ['#17110d', '#261d16', '#3a2e24', '#504133', '#6a5843', '#8a7658', '#ad987a', '#c9b694'];
+// Oct 26 (Fred: "to create great shadow, you cannot just use black but rather different tones"): the dark end of the bark is
+// coloured — a deep violet-umber in the shade, warming through umber to ochre in the light — never a neutral grey-black.
+const BARK = ['#2a1e26', '#3b2a2c', '#4f3830', '#694a38', '#866244', '#a67e56', '#c49c6e', '#dcbb8a'];
 function barkCol(v, warmK, x, y, r, L, tint) {
   let c = ramp(BARK, Math.max(0, Math.min(1, v)));
-  c = mix(c, '#f2d9a6', Math.max(0, v - 0.55) * 0.55 * warmK);           // sunlight is warm
-  c = mix(c, '#25303a', Math.max(0, 0.35 - v) * 0.45);                    // shade is cool
+  c = mix(c, '#ffd79a', Math.max(0, v - 0.55) * 0.6 * warmK);            // sunlight is warm
+  c = mix(c, '#3c3e66', Math.max(0, 0.38 - v) * 0.38);                    // shade is COOL and coloured — the sky's blue bounced into it, gently
   return jig(tint ? tint(c, x, y) : c, r, 5);
 }
 // draw one tapered limb/trunk segment as a shaded cylinder. spine: [[x,y],...] root→tip; wAt(t) half-width at t∈[0,1].
@@ -2563,7 +2620,7 @@ export function barkCylinder(out, counter, rng, spine, wAt, litX, sc, L, opts = 
   // 1 · the body: an opaque silhouette in the mid-dark bark tone, so no mark ever shows grass through it
   const Ls = [], Rs = [];
   for (let i = 0; i <= 28; i++) { const t = i / 28; Ls.push(pt(t, -1)); Rs.push(pt(t, 1)); }
-  out.push(`<path d="M${Ls.map(p => R1(p[0]) + ' ' + R1(p[1])).join('L')}L${Rs.reverse().map(p => R1(p[0]) + ' ' + R1(p[1])).join('L')}Z" fill="${mix(BARK[1], BARK[2], 0.6)}"/>`); counter.n++;
+  out.push(`<path d="M${Ls.map(p => R1(p[0]) + ' ' + R1(p[1])).join('L')}L${Rs.reverse().map(p => R1(p[0]) + ' ' + R1(p[1])).join('L')}Z" fill="${mix(BARK[2], '#3c3e66', 0.15)}"/>`); counter.n++;
   let curS = 0, curT = 0, curA = 0;
   const shade = (s, t, x, y) => {
     const lit = 0.5 - 0.5 * s;                                              // 1 lit .. 0 shade
@@ -2819,7 +2876,8 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
   // REAL: a page's free jewel colours (a BLUE cedar, a violet apple) are pulled most of the way to the species' own
   // greens — leaves are green; only blossom keeps its colour (Oct 25, Fred: "no emoji looking things")
   if (REAL && crownCols && !/almond|blossom/.test(kind) && !opts.keepColour) CROWN = CROWN.map((c, i) => mix(c, S.crown[i] || S.crown[S.crown.length - 1], 0.72));
-  const BELLY = S.belly || '#07160f';
+  if (REAL) CROWN = CROWN.map((c, i) => i < 3 ? mix(c, ['#16244a', '#1c3450', '#22444c'][i], [0.5, 0.35, 0.18][i]) : c);   // the shaded leaves step down through teal to deep blue — no green-black
+  const BELLY = REAL ? mix(S.belly || '#07160f', '#232a5c', 0.7) : (S.belly || '#07160f');   // REAL: the belly of a crown is a deep blue-violet, not green-black
   const p3 = Math.pow(sc, 0.3);
   // ⭐ WHICH SIDE THE LIGHT IS ON (Sep 15, Fred: "make the trees better"). The crown-warm /
   // belly-deep rule is vertical; a tree also has a LIT FLANK and a SHADED FLANK, and that is
@@ -2841,7 +2899,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
   });
   // (38·sc, up from the old patch's 30: under a high light a tree's shadow is about as wide as its crown)
   if (opts.shadow !== 0) groundShadow(out, counter, cx, baseY + 4 * sc, 38 * sc * S.shadow, 10 * sc,
-    { dir: shadowDir * 0.85, reach: 1, op: Math.min(1.25, 0.55 + lightFn(cx, baseY) * 0.9) * (REAL ? 0.7 : 1), ...(REAL ? { tint: '#22401f', pen: '#2e5228', coreCol: '#14260f' } : {}) });   // a harder light throws a firmer shadow; REAL: a shadow on grass is deep GREEN, not a blue pool
+    { dir: shadowDir * 0.85, reach: 1, op: Math.min(1.25, 0.55 + lightFn(cx, baseY) * 0.9) * (REAL ? 0.7 : 1), ...(REAL ? { tint: '#1f4638', pen: '#2e5a3e', coreCol: '#1e3446' } : {}) });   // a shadow on sunlit grass: the grass's own green, deeper and cooler, in steps — not a pool of blue   // a harder light throws a firmer shadow; REAL: a shadow on grass is deep GREEN, not a blue pool
   // 2 · the trunk — one painter for the whole book, see paintTrunk above
   const litX = lxDir === 0 ? -1 : -lxDir;   // -1: light comes from the left
   let TOP = null;
@@ -2865,7 +2923,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
                       + (r() - 0.5) * 0.16 - 0.06);
     c = mix(c, '#f7f0a2', sun * (Math.pow(crown, 2.0) * 0.58 + Math.pow(fl, 2) * 0.16) * (0.5 + lightFn(x, y) * 0.5));   // the sun on the top of every clump, and on its lit flank
     c = mix(c, BELLY, Math.pow(1 - crown, 2.2) * 0.5 + Math.pow(1 - fl, 2) * 0.22);                              // and a real dark under it, deeper on the shaded flank
-    if (r() < 0.05) c = mix(c, '#08160c', 0.55);
+    if (r() < 0.05) c = mix(c, REAL ? '#1e2452' : '#08160c', 0.55);
     else if (r() < 0.072) c = mix(c, '#dfe6c0', 0.42 * Math.min(1, sc) * sun);
     return jig(tint(c, x, y), r, 9);
   };
@@ -3395,6 +3453,8 @@ export function fruitTree(out, counter, rng, cx, baseY, h, w, leafCols, lightFn,
 // a lush jewel bush (rounded mound of free-colour foliage, gold-lit by lightFn)
 export function jewelBush(out, counter, rng, bx, by, w, h, cols, lightFn) {
   const L = lightFn || (() => 0);
+  if (REAL_KIT) return realShrub(out, counter, rng, bx, by, w * 1.1, { lightAt: L,
+    cols: ['#1e3a20', '#2d5428', '#457434', '#6a9644', '#9cbc5c'].map((c, i) => mix(c, cols[Math.min(cols.length - 1, i)] || c, 0.18)) });
   strokes(out, counter, {
     rng, n: Math.round(w * 5.2),                                   // a MASS of leaves, not a tint
     sample: r => { const a = r() * Math.PI * 2, dd = Math.pow(r(), 0.62); return [bx + Math.cos(a) * w * dd, by - Math.abs(Math.sin(a)) * h * dd]; },
@@ -3753,6 +3813,8 @@ export function daub(out, counter, x, y, r, fill, rng) {
 // each a bright dab, warmed toward gold where the light falls. depthFn optional.
 export function groundFlowers(out, counter, rng, { x0, y0, x1, y1, n = 220, mask, lightFn, depthFn }) {
   const L = lightFn || (() => 0), D = depthFn || (() => 0.5);
+  if (REAL_KIT) return realFlowers(out, counter, rng, { colonies: Math.max(4, Math.round(n / 7)), x0, x1, y0, y1,
+    ok: mask ? (x, y) => mask(x, y) : () => true, dS: (y, x) => 0.45 + D(x == null ? (x0 + x1) / 2 : x, y) * 0.9 });
   strokes(out, counter, {
     rng, n,
     sample: rej(x0, y0, x1, y1, mask),
@@ -4118,7 +4180,7 @@ export function realFlowers(out, counter, rng, { colonies = 30, x0 = -10, x1 = 8
     for (let i = 0; i < count; i++) {
       const fx = cx + (rng() + rng() - 1) * spread, fy = cy + (rng() + rng() - 1) * spread * 0.35;
       if (!ok(fx, fy)) continue;
-      const sc = dS(fy), st = (5 + rng() * 7) * sc;
+      const sc = dS(fy, fx), st = (5 + rng() * 7) * sc;
       paintPath(out, counter, rng, [[fx, fy], [fx + (rng() - 0.5) * 3 * sc, fy - st]], (x, y, r) => jig(mix('#3d6a32', '#6c9442', r()), r, 6), { lw: 0.9 * sc, len: 3, density: 0.9, jitter: 0.2 });
       const hd = 1.6 * sc;
       for (let k = 0; k < 5; k++) {

@@ -71,8 +71,9 @@ const densityFor = name => (DENSITY_TRIM[name] || 1) * (EP24.has(name) ? EP24_BO
 // brush about half the size and three times the marks — the 1.7× back-plane brush laid big translucent slabs that
 // overlapped like cellophane. REALISM=0 node gen/build.mjs <page> rebuilds the old way.
 const REALISM = process.env.REALISM !== '0';
-engine.lockManifold(REALISM ? 0 : null);
-const SKY_FINE = 0.55, SKY_MORE = 3, SKY_TUNED = new Set(['love', 'flame']);   // these two already paint their own fine sky (engine realSky)
+engine.lockManifold(REALISM ? 0 : null); engine.setTonalShadow(REALISM); engine.setRealKit(REALISM);
+// Oct 26: sky marks 3× → 2×, measured 12–22% lighter with the tonal shadows, same look
+const SKY_FINE = +(process.env.SKY_FINE || 0.62), SKY_MORE = +(process.env.SKY_MORE || 2), SKY_TUNED = new Set(['love', 'flame']);   // these two already paint their own fine sky (engine realSky)
 // ep2/3/4 plates REDRAWN from scratch in ep1's vivid style — they carry their own
 // rich palette, so they skip the colour-punch (which is only for the old pale plates).
 const REPAINTED = new Set(['teach']);
@@ -680,7 +681,7 @@ for (const m of modules) {
   engine.setSpeciesMix(process.env.SPECIES ? JSON.parse(process.env.SPECIES) : (SPECIES_PAGE[m.name] || null));
   const fx = (m.focal && m.focal.x) || 400;
   const svg = stampSig(m.paint(engine), fx, built.length, m.sig);   // sign the work — Immanuel, hidden
-  engine.setReliefK(1); engine.setDensity(1); engine.setStrokeOpacity(0.6); engine.setStrokeRound(1); engine.setManifold(0.10); engine.setColorPunch(0); engine.setDarken(0); engine.setBrushScale(1); engine.setGlowLaw(null);   // ⚠ the glow law is per-plate; never let it leak to the next one
+  engine.setReliefK(1); engine.setFurrowK(1); engine.setDensity(1); engine.setStrokeOpacity(0.6); engine.setStrokeRound(1); engine.setManifold(0.10); engine.setColorPunch(0); engine.setDarken(0); engine.setBrushScale(1); engine.setGlowLaw(null);   // ⚠ the glow law is per-plate; never let it leak to the next one
   // ep2/3/4 render RAW (skip the heavy oil-surface tooth + grade) so their strokes
   // read soft and flowing like ep1's raw diorama planes, not a stamped brick crust.
   const rawOpt = EP24.has(m.name) ? { raw: true } : {};
@@ -746,7 +747,7 @@ for (const m of modules) {
       const _skyBand = REALISM && !SKY_TUNED.has(m.name) && m.name !== 'word' && (/^sky/.test(L.name) || (i === 0 && /^(bg|bgA)$/.test(L.name)));   // many pages keep their sky in the backmost `bg`
       engine.setBrushScale((0.4 + 1.3 * Math.pow(1 - t, 1.35)) * (_skyBand ? SKY_FINE : 1));   // ~1.7× back → ~0.4× front
       engine.setDensity(densityFor(m.name) * (_skyBand ? SKY_MORE : 1));
-      engine.setReliefK(_skyBand ? 0.15 : 1);
+      engine.setReliefK(_skyBand ? 0.15 : 1); engine.setFurrowK(_skyBand ? 0.3 : 1);
       // per-layer opacity: a plate may override with {name:'hills', op:0.92} when that
       // layer holds a SOLID thing (a castle, a rock) that must not go hazy — "different
       // opacity for different things" (Fred). Default = aerial-perspective rule.
@@ -797,7 +798,7 @@ for (const m of modules) {
     engine.setBoilFlow(0, 0);
     engine.setBoilFlash(0);
     engine.setBoilTint(null, 0);
-    engine.setDensity(1); engine.setReliefK(1);
+    engine.setDensity(1); engine.setReliefK(1); engine.setFurrowK(1);
     svgs[0] = stampSig(svgs[0], fx, built.length, m.sig);   // hide Immanuel on the opaque base so it shows on mobile too (same spot as the full)
     const out = [];
     bands.forEach((L, i) => {

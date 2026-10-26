@@ -219,9 +219,9 @@
       var warm = Math.pow(lift, 2.0);            // only the true crown takes the sun
       var deep = Math.pow(1 - lift, 1.5);
       var j = (rnd() - 0.5) * 22;
-      var r2 = col[0] + j + warm * 78 - deep * 54;
-      var g2 = col[1] + j + warm * 66 - deep * 44;
-      var b2 = col[2] + j - warm * 6  - deep * 16;
+      var r2 = col[0] + j + warm * 78 - deep * 58;
+      var g2 = col[1] + j + warm * 66 - deep * 40;
+      var b2 = col[2] + j - warm * 6  + deep * 22;   // Oct 26: the belly goes deep TEAL-BLUE, not green-black (coloured shadow)
       c.fillStyle = rgbS(r2, g2, b2);
       var len = w * (0.036 + rnd() * 0.05), lw = w * (0.016 + rnd() * 0.022);   // leaves, not blobs
       c.save(); c.translate(x, y); c.rotate(-1.2 + rnd() * 2.4);
@@ -312,7 +312,7 @@
       for (k = 16; k >= 0; k--) { yy = baseY - (baseY - topY) * k / 16; ctx.lineTo(cxAt(yy) + twAt(yy), yy); }
       ctx.closePath();
     }
-    var BK = ['#3a2c22', '#4c3c2f', '#62503f', '#7e6a54', '#a08a6e', '#c4ae8e'];   // grey-brown bark; darkest kept above the filter's navy floor
+    var BK = ['#3a2a34', '#4e3434', '#664436', '#86603e', '#a8804e', '#cca46c'];   // Oct 26: coloured bark — violet-umber shade warming to ochre light (no grey-brown)
     var bkS = function (v, a) { var c = rampC(BK, Math.max(0, Math.min(1, v))); var wk = Math.max(0, v - 0.6) * 0.5; c = [c[0] + (250 - c[0]) * wk * 0.3, c[1] + (225 - c[1]) * wk * 0.25, c[2]]; return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a + ')'; };
     trunkR(); ctx.fillStyle = bkS(0.18, 1); ctx.fill();
     ctx.save(); trunkR(); ctx.clip();
@@ -5497,7 +5497,7 @@
     // valued across its width (lit flank pale and warm, shaded flank deep, cool reflected light at the very edge), with
     // bark marks along it and a flare where the trunk meets the ground. The old version stroked seven round-capped
     // segments with three random dashes each, which read as a beaded zipper.
-    var BKb = ['#3a2c22', '#4c3c2f', '#62503f', '#7e6a54', '#a08a6e', '#c4ae8e'];
+    var BKb = ['#3a2a34', '#4e3434', '#664436', '#86603e', '#a8804e', '#cca46c'];
     var litDir = -1;                                   // the book's light comes from the upper left on these pages
     var bkC = function (v, al) { var c = rampC(BKb, Math.max(0, Math.min(1, v)));
       c = [c[0] * 0.88 + PAL.bark[0] * 0.12, c[1] * 0.88 + PAL.bark[1] * 0.12, c[2] * 0.88 + PAL.bark[2] * 0.12];
