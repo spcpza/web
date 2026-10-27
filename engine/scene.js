@@ -787,7 +787,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=485';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=486';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -1184,7 +1184,10 @@
              // and a later guess said (50,80); both were wrong in y or x, which is why no
              // value of `tie` ever met him.) His axis is (a.x, a.y - 0.45h) = (340, 131) —
              // the one point his spin does not move — so: local (165, 56).
-             hand: [32, 340], tie: [165, 56], c1: [152, 334], c2: [198, 106], amp: 4, overlap: 14 } ],
+             hand: [27, 345], tie: [165, 56], c1: [152, 334], c2: [198, 106], amp: 4, overlap: 14,
+             // Oct 27: no hand now — the cord comes out of a LIGHT (Hab 3:4) at plate (202,420) = local (27,345), so it
+             // starts at the light's heart (into 0), is born fast, and its dark-amber glow waits until it is past the light
+             into: 0, fadeIn: 0.03, glowLate: 0.16 } ],
       9: [ // gathered to the great cypress on the left, the way the garden's are to the fire
            { type: 'firefly', x: 214, y: 300, s: 0.5, phase: 0.0 },   // ⚠ one at the cypress (desktop only — the tree stands at x~186, outside the phone's 244..556)
            { type: 'firefly', x: 306, y: 348, s: 0.44, phase: 1.1 },   // the other two over the lit ridge, where a phone reader can see them
@@ -3737,6 +3740,9 @@
             // asked for — an hour of tuning a number that was being thrown away.
             draw(g, { w: spec.w, h: spec.h, seed: spec.seed, hand: spec.hand, tie: spec.tie,
                       c1: spec.c1, c2: spec.c2, amp: spec.amp, overlap: spec.overlap,
+                      into: spec.into, fadeIn: spec.fadeIn, glowLate: spec.glowLate,   // (and so do these — same trap, Oct 27)
+                      // ⚠ NOT `wave`: the spec's 15 was never passed either, so the firm cord Fred approved
+                      // ("less wiggly… God's cord") is drawTether's default 5.5. Passing it would undo that.
                       beat: (fi + 1) / NF });
           } else if (spec.type === 'sky' || spec.type === 'stars' || spec.type === 'grass') {
             draw(g, { w: spec.w, h: spec.h, n: spec.n, seed: spec.seed, cols: _pal || spec.cols, gap: spec.gap, stars: spec.stars, gust: _wind.gust, dir: spec.dir, beat: fi / NF });

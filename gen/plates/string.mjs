@@ -302,12 +302,14 @@ export function paint(E, opts = {}) {
     // (the pilgrim's own lit band reads against the gale)
   }
 
-  /* ---------------- 7. THE LIGHT'S HAND — it holds the string ---------------- */
-  // a radiant hand reaching up from below, gripping the string. The Light
+  /* ---------------- 7. THE LIGHT'S HAND — it holds the string, hidden in its own light (Hab 3:4) ---------------- */
+  // the string comes down out of the gale into a light low on the left. The Light
   // does not drift; it holds on. It glows — it IS the light of the plate.
   {
     const [hx, hy] = HAND;
-    strokes(out, counter, {   // halo of light around the grip
+    // the old halo and rays of the hand are walked on scratch (the plate's rng stays put): round a light with no hand they
+    // read as firework confetti, and heldInLight paints its own
+    strokes([], { n: 0 }, {   // halo of light around the grip
       rng, n: 110,
       sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 0.85) * 46; return [hx + Math.cos(a) * d, hy + 12 + Math.sin(a) * d * 0.9]; },
       dir: () => 0.1,
@@ -325,14 +327,12 @@ export function paint(E, opts = {}) {
     // ⚠ Oct 27 art pass: at its old size the hand read as a flame-blob. Half again as big, about the grip (so the runtime
     // cord still lands in it), and with the Light's full gold range it has knuckles and a palm.
     for (const c of hdCaps) { c.ax = hx + (c.ax - hx) * 1.5; c.ay = hy + (c.ay - hy) * 1.5; c.bx = hx + (c.bx - hx) * 1.5; c.by = hy + (c.by - hy) * 1.5; c.r *= 1.45; }
-    // …and even at that size a stack of capsules under broad marks was still a blob. A drawn cartoon fist (stripes for
-    // creases, flat gold) was the opposite failure — Fred: "the hand is ugly". The grip is now painted the way made's
-    // hand of Light is (lightGrip, below): a thumb-up kite-string hold, broad loose marks of light, three short folds,
-    // the hottest point where the cord leaves it. The old paint is still walked on a scratch array so the plate's rng,
-    // and everything painted after it, stays put.
+    // …and no hand was right: a blob, then a cartoon fist ("the hand is ugly"), then a painted fist ("kind of off").
+    // The hand is now hidden in its own light (heldInLight, below — Hab 3:4). The old paint is still walked on a
+    // scratch array so the plate's rng, and everything painted after it, stays put.
     paintFigure([], { n: 0 }, rng, hdCaps, (x, y, r) => jig(E.lightBody(fbm(x / 12, y / 12, 57) * 0.5 + (y - (hy - 12)) / 70), r, 8), 2.0);
-    lightGrip(E, out, counter, hx, hy, { k: 1.2 });
-    strokes(out, counter, {   // rays streaming off the hand
+    heldInLight(E, out, counter, hx, hy, { k: 1.1 });
+    strokes([], { n: 0 }, {   // rays streaming off the hand
       rng, n: 50,
       sample: r => { const a = r() * Math.PI * 2, d = (0.6 + 0.5 * r()) * 40; return [hx + Math.cos(a) * d, hy + 8 + Math.sin(a) * d * 0.85]; },
       dir: (x, y) => Math.atan2(y - (hy + 8), x - hx),
@@ -420,7 +420,7 @@ export function paint(E, opts = {}) {
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.
-  const ALT = 'A churning daytime sky over a low hill; a small red child is carried far up into the wind like a balloon, tied to one unbroken string that arcs down to a radiant golden hand reaching from below — the Light holding the string fast, never letting go.';
+  const ALT = 'A churning daytime sky over a low hill; a small red child is carried far up into the wind like a balloon, tied to one unbroken string that arcs down into a blaze of golden light low on the left — the Light holding the string fast, never letting go.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };   // no baked surface — the live filter unifies the planes
   const setOf = ranges => { const s = new Set(); for (const [a, b] of ranges) for (let i = a; i < b; i++) s.add(i); return s; };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
@@ -439,44 +439,33 @@ export function paint(E, opts = {}) {
   return svgWrap(ALT, out.slice(0, skyEnd).concat(skySheets, out.slice(skyEnd)).join('\n'));
 }
 
-// The Light's grip on the string. A kite-string hold seen from the thumb side: forearm rising from below-left, the fist
-// thumb-up, four curled fingers stacked down its front, the cord leaving between thumb and forefinger at (hx,hy) and its
-// loose end hanging out under the little finger. PAINTED AS HE IS PAINTED (paintLight — the Father on ran and bridge):
-// a soft glow for an edge, white on top warming to gold underneath. ⚠ string's gale brush (economy 2.4) turns a hand
-// this small into peach confetti, so the grip is painted with fine marks and the page's brush is put back after.
-function lightGrip(E, out, counter, hx, hy, { seed = 8817, k = 1 } = {}) {
-  const r0 = E.mulberry32(seed), { mix, jig, fbm } = E, eco = E.getEconomy();
+// WHERE THE STRING IS HELD — no hand, a light. Fred (Oct 27), after two hands: "can we still hide the father's hand and
+// just make the string come out of a light?" Habakkuk 3:4: "his brightness was as the light; he had horns [qeren: rays]
+// coming out of his hand: and there was THE HIDING OF HIS POWER." The hand is there and hidden in its own brightness;
+// what you see is the light, rays leaving it, and the cord coming out of its heart at (hx,hy). Painted fine (string's
+// gale brush, economy 2.4, turns a small bright thing into confetti) and the page's brush is put back after.
+function heldInLight(E, out, counter, hx, hy, { seed = 8817, k = 1 } = {}) {
+  const r0 = E.mulberry32(seed), { mix, jig, R1 } = E, eco = E.getEconomy();
   E.setEconomy(1);
-  const P = (dx, dy) => [hx + dx * k, hy + dy * k];
-  const cap = (a, b, r) => ({ ax: hx + a[0] * k, ay: hy + a[1] * k, bx: hx + b[0] * k, by: hy + b[1] * k, r: r * k });
-  const seam = (x, y, r) => jig(mix(E.LIGHT_PAL.edge, '#b8641a', r()), r, 6);
-  const arm = [cap([-44, 98], [-29, 46], 10.5), cap([-29, 46], [-23, 32], 9)];   // slimmer than the fist — a fist is wider than the wrist that holds it
-  const fist = [cap([-25, 26], [-20, 8], 10.5), cap([-17, 26], [-11, 9], 10.5)];   // back of the hand, then the palm under the fingers
-  const ridges = [[-13, 4.5, 3, 4.5, 5.6], [-15, 13, 1, 13, 5.4], [-17, 21, -2, 21, 5], [-19, 28, -6, 28, 4.3]]   // forefinger → little finger, each curled and seen end-on
-    .map(([ax, ay, bx, by, r]) => cap([ax, ay], [bx, by], r));
-  const thumb = [cap([-27, 12], [-17, -4], 6), cap([-17, -4], [-5, -6], 5)];   // rises up the back, then lies forward over the forefinger
-  // the loose end of the cord, hanging out under the little finger and lifted a little by the gale
-  E.paintPath(out, counter, r0, [P(-12, 31), P(-9, 40), P(-3, 48), P(3, 53)], (x, y, r) => jig(mix('#ffd870', '#fff4c8', r() * 0.5), r, 4), { lw: 1.5 * k, len: 2.4, density: 1, jitter: 0.15 });
-  // the glow is the fist's, not the arm's: a halo sized to the whole reach washed a third of the dark gale yellow-grey
-  E.radiantHalo(out, counter, r0, [...fist, ...ridges, ...thumb], '#ffd24f');
-  E.paintLight(out, counter, r0, [...arm, ...fist, ...ridges, ...thumb], { rays: false, halo: false });
-  // made's hand keeps only a few short folds and lets the light do the rest — front half only, a little curved, none
-  // the same length (even, full-width stripes read as a fork)
-  for (const [pts, w] of [[[[-3, 9.4], [2, 8.6], [6, 8.9]], 1.3], [[[-4, 17.4], [0, 16.8], [3.5, 17.2]], 1.2], [[[-7, 24.8], [-3, 24.4], [0, 24.8]], 1.0]])
-    E.paintPath(out, counter, r0, pts.map(([x, y]) => P(x, y)), seam, { lw: w * k, len: 2.2, density: 0.95, jitter: 0.2 });
-  // the thumb lies over the forefinger: its shadow under it, then the thumb again on top, the lit edge of the fist
-  E.paintPath(out, counter, r0, [P(-24, 16), P(-15, 2), P(-3, -0.5)], seam, { lw: 1.4 * k, len: 2.6, density: 0.9, jitter: 0.25 });
-  E.paintFigure(out, counter, r0, thumb, (x, y, r) => jig(E.lightBody(0.05 + fbm(x / 10, y / 10, 67) * 0.3), r, 6), 1.9);
-  // light leaving the fist — short rays, the length of a finger, not of an arm
-  const C = P(-10, 12);
+  const id = 'held' + counter.n, reg = `filterUnits="userSpaceOnUse" x="${R1(hx - 110 * k)}" y="${R1(hy - 110 * k)}" width="${R1(220 * k)}" height="${R1(220 * k)}"`;
+  out.push(`<defs><filter id="${id}b" ${reg}><feGaussianBlur stdDeviation="${R1(9 * k)}"/></filter>`
+    + `<radialGradient id="${id}g" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>`
+    + `<stop offset="22%" stop-color="#fff6d8" stop-opacity="0.95"/><stop offset="55%" stop-color="${E.LIGHT_PAL.aura}" stop-opacity="0.45"/>`
+    + `<stop offset="100%" stop-color="${E.LIGHT_PAL.rim}" stop-opacity="0"/></radialGradient></defs>`);
+  // the glow on the air — warm, soft, sized to the light and not the page (a big wash greys a dark gale)
+  out.push(`<ellipse cx="${R1(hx)}" cy="${R1(hy)}" rx="${R1(54 * k)}" ry="${R1(50 * k)}" fill="${E.LIGHT_PAL.aura}" opacity="0.55" filter="url(#${id}b)"/>`);
+  out.push(`<circle cx="${R1(hx)}" cy="${R1(hy)}" r="${R1(38 * k)}" fill="url(#${id}g)"/>`);
+  counter.n += 2;
+  // the rays coming out of His hand: dense near the heart, thinning and fading as they go out, white to gold
   E.strokes(out, counter, {
-    rng: r0, n: 70, sample: r => { const a = r() * Math.PI * 2, d = (22 + Math.pow(r(), 0.6) * 22) * k; return [C[0] + Math.cos(a) * d, C[1] + Math.sin(a) * d * 0.92]; },
-    dir: (x, y) => Math.atan2(y - C[1], x - C[0]), col: (x, y, r) => jig(mix('#fff4cc', '#ffe07a', r()), r, 5), len: 6, lw: 1.3, steps: 2, lenJ: 0.6, relief: 0, op: 0.5,
+    rng: r0, n: 220, sample: r => { const a = r() * Math.PI * 2, d = (6 + Math.pow(r(), 1.1) * 40) * k; return [hx + Math.cos(a) * d, hy + Math.sin(a) * d]; },
+    dir: (x, y) => Math.atan2(y - hy, x - hx), col: (x, y, r) => jig(E.ramp(['#ffffff', '#fff4cc', E.LIGHT_PAL.gold, E.LIGHT_PAL.rim], Math.min(1, Math.hypot(x - hx, y - hy) / (50 * k))), r, 5),
+    len: (x, y) => 3 + Math.hypot(x - hx, y - hy) * 0.16, lw: 1.4, steps: 2, lenJ: 0.5, relief: 0, op: 0.5, flow: 0,   // soft, and they die into the glow — long hard rays read as a sparkler
   });
-  // the hottest point on the page's light is where He holds on: the cord leaving the fist, as made's spark is the touch
+  // the white-hot heart the cord comes out of
   E.strokes(out, counter, {
-    rng: r0, n: 40, sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.6) * 7 * k; return [hx + Math.cos(a) * d, hy - 1 * k + Math.sin(a) * d]; },
-    dir: (x, y) => Math.atan2(y - hy, x - hx), col: (x, y, r) => jig(mix('#ffffff', '#fff1b8', r() * 0.6), r, 4), len: 3, lw: 1.3, steps: 2, flow: 0,
+    rng: r0, n: 70, sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.4) * 10 * k; return [hx + Math.cos(a) * d, hy + Math.sin(a) * d]; },
+    dir: (x, y) => Math.atan2(y - hy, x - hx), col: (x, y, r) => jig(mix('#ffffff', '#fff6d0', r() * 0.5), r, 3), len: 3.2, lw: 1.5, steps: 2, flow: 0,
   });
   E.setEconomy(eco);
 }

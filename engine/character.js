@@ -5699,8 +5699,11 @@
     };
     // how present the light is along its length: nothing at the hand (it is being born
     // out of the glow there), full through the body, easing off as it enters his back
+    // (FI: how far along the cord it takes to be born. Oct 27: with the hand gone and the cord coming out of a LIGHT
+    // ~30 units wide, the old 0.16 — ~57 units — left a dark gap between the light and the first of the cord on a phone)
+    var FI = S.fadeIn == null ? 0.16 : S.fadeIn;
     var endFade = function (t) {
-      var a = Math.min(1, Math.max(0, (t - 0.02) / 0.16));      // out of the hand
+      var a = Math.min(1, Math.max(0, (t - 0.02) / FI));        // out of the hand
       var b = Math.min(1, Math.max(0, (0.995 - t) / 0.05));     // into his back
       return a * a * (3 - 2 * a) * (b * b * (3 - 2 * b));
     };
@@ -5774,7 +5777,10 @@
         ctx.moveTo(pts[0][0], pts[0][1]);
         for (var i = 1; i < pts.length; i++) {
           var f = endFade(i / (pts.length - 1));
-          if (f < 0.02) { ctx.moveTo(pts[i][0], pts[i][1]); continue; }
+          // ⚠ the glow passes are a DARK amber at low alpha: over the night ground they read as glow, over anything
+          // brighter they darken it. Under a hand that never showed; coming out of a light it painted a brown worm
+          // across the light's heart. `glowLate` (a t along the cord) holds them back until it is out past the light.
+          if (f < 0.02 || (S.glowLate && i / (pts.length - 1) < S.glowLate)) { ctx.moveTo(pts[i][0], pts[i][1]); continue; }
           ctx.lineTo(pts[i][0], pts[i][1]);
         }
         ctx.stroke();
