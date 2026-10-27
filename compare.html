@@ -78,6 +78,7 @@
     <button data-shape="desktop" aria-pressed="true">Desktop</button>
     <button data-shape="phone" aria-pressed="false">Phone</button>
   </span>
+  <button id="fresh" title="Reload both books (the new one also reloads itself after every deploy)">↻</button>
   <span class="hint">← → turns both books together</span>
 </header>
 <main>
@@ -103,7 +104,9 @@
   function go(i, first) {
     i = Math.max(0, Math.min(N - 1, i)); sel.value = String(i);
     var h = i ? '#' + i : '';
-    if (first) { A.src = LIVE + h; B.src = NEW + h; }
+    // ⚠ a FRESH document on every full load (Oct 27 — Fred: "i still see the old pages on the compare site"): a tab
+    // left open across a deploy kept turning the OLD book, because changing only the #hash never reloads it.
+    if (first) { var cb = '?cb=' + Date.now(); A.src = LIVE + cb + h; B.src = NEW + cb + h; }
     else { A.src = LIVE + (h || '#0'); B.src = NEW + (h || '#0'); }
     try { history.replaceState(null, '', '#' + i); } catch (e) {}
   }
@@ -125,6 +128,18 @@
   document.querySelectorAll('[data-shape]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.shape === shape)); });
   fit();
   go(parseInt((location.hash || '#1').slice(1), 10) || 0, true);
+  // and when the preview is redeployed while this tab is open, the new book reloads itself (its engine hash or plate
+  // stamp changes); a ↻ button reloads both by hand.
+  var stamp = null;
+  function look() {
+    fetch(NEW + '?probe=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = (t.match(/scene\.min\.js\?v=[a-z0-9]+/) || [''])[0] + (t.match(/\?p=\d+/) || [''])[0];
+      if (stamp && m && m !== stamp) { go(+sel.value, true); var b = document.getElementById('fresh'); if (b) { b.textContent = '↻ updated'; setTimeout(function () { b.textContent = '↻'; }, 4000); } }
+      stamp = m || stamp;
+    }).catch(function () {});
+  }
+  look(); setInterval(look, 30000);
+  var fr = document.getElementById('fresh'); if (fr) fr.onclick = function () { go(+sel.value, true); };
 })();
 </script>
 </body>

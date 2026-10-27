@@ -4774,10 +4774,11 @@
       return;
     }
     try { F.kidWarmAhead(idx, !!F.kidWarmAll); } catch (e) { }   // the next pages' cells now; with kidWarmAll exported, NOT the bulk
-    if (idx >= 4 && F.kidWarmAll && page && !page.__castAll) {
-      page.__castAll = 1;
-      onPageArt(page, function () { try { F.kidWarmAll(planesArriving); } catch (e) { } });
-    }
+    // ⚠ NO BULK WARM-UP ANY MORE (Oct 27 speed pass — Fred: "maybe there are some old unused artifacts slowing stuff
+    // down"). Measured cold on a 4G phone: within 15 s of opening ANY page the book had fetched all 28 of his drawings
+    // (4 MB), most of them for pages the reader was nowhere near, sharing the line with this page's own drawings and
+    // the next page's prefetch. kidWarmAhead (two back, four ahead) covers every page a swipe can reach; a deep jump
+    // fetches its own cells with its planes (pageSteps). (kidWarmAll is kept in character.js, unused.)
   }
   // run `f` once this page's own planes (not its boil drawings) have landed — at once if it has none
   // or they are already in (a cached plane is complete the moment it is built). Backstop: 4 s.

@@ -1231,7 +1231,7 @@
   // here. Called the old way, with one argument, this behaves exactly as before.
   function kidWarmAhead(idx, noAll) {
     var cs = [];
-    for (var p = idx; p <= idx + 4; p++) cs = cs.concat(kidCellsFor(p));
+    for (var p = Math.max(0, idx - 2); p <= idx + 4; p++) cs = cs.concat(kidCellsFor(p));   // two back as well: a reader who lands mid-book may swipe backwards
     kidPreload(cs, true);
     kidPrepareAhead(idx);
     if (idx >= 4 && !noAll) kidWarmAll();
