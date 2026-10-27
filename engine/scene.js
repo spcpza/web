@@ -3958,6 +3958,11 @@
     var scrim = page.querySelector('.scrim');
     page.insertBefore(layer, scrim || null);
     dio = buildDiorama(page, idx, layer);   // real depth planes (opt-in pages only)
+    // ⚠ THIS PAGE'S CHILDREN ARE ASKED FOR NOW, right behind its planes (Oct 27 speed pass). Measured cold on a 4G
+    // phone, the cast came in 1–4 s after the picture on the later pages (comes 7.6 s, nonight 8.1 s) because the
+    // cells were only requested when the cast step came round, behind the critters. Normal priority: the first
+    // plane stays the one 'high' request. (kidCellsFor is pure, so this costs nothing but the fetch itself.)
+    try { if (F && F.kidWarm && F.kidCellsFor) { var _own = F.kidCellsFor(idx); if (_own && _own.length) F.kidWarm(_own); } } catch (e) { }
     // the STAGE LIGHT — first child, behind every sprite, centred on the page's
     // focal subject so the busy paint recedes around the characters.
     // NOT on ep1: this vignette muted the vibrant plates AND was the "grey overlay"
@@ -4605,6 +4610,11 @@
     var i = pages.indexOf(page);
     for (var j = i - 1; j <= i + 1; j += 2) {
       var p = pages[j], pl = p && p.__dio;
+      // ⚠ A NEIGHBOUR STILL BEING PREFETCHED COUNTS TOO (Oct 27 speed pass). Paging through on a 4G phone, road,
+      // bridge, paid, ran and gift each took 2–2.6 s to show: while the reader sat on the page before, its boil
+      // drawings and the next page's PREFETCH shared the line, and this check only saw neighbours already built.
+      var pf = p && p.__pfImgs;
+      if (pf) for (var m = 0; m < pf.length; m++) if (!pf[m].__done && !pf[m].complete) return true;
       if (!pl) continue;
       var q = p.__boilQ || [];
       for (var k = 0; k < pl.length; k++) {
@@ -4722,7 +4732,8 @@
     defs.filter(function (d) { return skip.indexOf(d.name) === -1; }).forEach(function (d, di) {
       var im = new Image();
       try { im.fetchPriority = 'low'; } catch (e) { }   // ⚠ before src, or it is already queued
-      im.onload = im.onerror = function () { im.onload = im.onerror = null; };
+      (p.__pfImgs || (p.__pfImgs = [])).push(im);        // seen by neighbourPlanesArriving: the next page's picture beats this page's boil
+      im.onload = im.onerror = function () { im.onload = im.onerror = null; im.__done = true; };
       im.src = '/plates-vg/' + base + '-' + d.name + (di === 0 ? '.jpg' : planeExt(base, d.name)) + PV;
     });
   }
