@@ -3927,8 +3927,10 @@
       // not paper: the recolour maps lightness, and a near-white target flattens his folds (see FRIEND_SKIN).
       // y is his SEAT on the stone's crown (≈250): a sitting cell is anchored at its lowest point.
       // ⭐ Oct 27 — FRED DREW THE ANGELS (cast-library/angels-sheet.jpg). The one on the stone throws both arms up:
-      // "He is not here: for he is risen" (Matt 28:6). He hovers just over the stone's crown (≈250).
-      { t:'p', x:596, y:256, h:62, facing:-1, wings:1, kid:1, own:1, cell:'angel-cheer', eye:[-0.7,0.35], mood:'joy',
+      // "He is not here: for he is risen" (Matt 28:6). ⚠ NOT ON THE STONE ANY MORE: at x 596 he was off the phone's
+      // window (≈ plate 345..455 with tilt), so most readers never met him. He hovers at the door's right shoulder
+      // instead — Mark 16:5, "a young man sitting on the right side, clothed in a long white garment".
+      { t:'p', x:440, y:262, h:62, facing:-1, wings:1, kid:1, own:1, cell:'angel-cheer', eye:[-0.7,0.35], mood:'joy',
         cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] }
     ] },
     15: { fx0: 148, actors: [
@@ -3955,17 +3957,17 @@
       // character design. Rev 21:12, "and at the gates twelve angels".
       // Oct 27: Fred's own angels — one reaching in toward the open way, one holding a star of light
       // out to you, because this page is the GIFT (Eph 2:8).
-      { t:'p', x:338, y:236, h:38, facing:1, wings:1, kid:1, own:1, cell:'angel-reach', eye:[0.4,-0.3], mood:'joy',
+      { t:'p', x:338, y:236, h:46, facing:1, wings:1, kid:1, own:1, cell:'angel-reach', eye:[0.4,-0.3], mood:'joy',
         cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] },
-      { t:'p', x:462, y:236, h:38, facing:-1, wings:1, kid:1, own:1, cell:'angel-star', eye:[-0.4,-0.3], mood:'joy',
+      { t:'p', x:462, y:236, h:46, facing:-1, wings:1, kid:1, own:1, cell:'angel-star', eye:[-0.4,-0.3], mood:'joy',
         cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] }
     ] },
     17: { fx0: 245, actors: [
       // angels keeping the great gate he is carried through (Rev 21:12), with harps
       // (Rev 14:2). Small and high, so they never compete with the Father and child.
       // Oct 27: Fred's own angels — one waving you in, one reaching toward you
-      { t:'p', x:322, y:200, h:30, facing:1, wings:1, kid:1, own:1, cell:'angel-wave', eye:[0.4,-0.2], mood:'joy', cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] },
-      { t:'p', x:480, y:200, h:30, facing:-1, wings:1, kid:1, own:1, cell:'angel-reach', eye:[-0.4,-0.2], mood:'joy', cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] },
+      { t:'p', x:322, y:206, h:42, facing:1, wings:1, kid:1, own:1, cell:'angel-wave', eye:[0.4,-0.2], mood:'joy', cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] },
+      { t:'p', x:480, y:206, h:42, facing:-1, wings:1, kid:1, own:1, cell:'angel-reach', eye:[-0.4,-0.2], mood:'joy', cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] },
       // ⚠ TRIED MAKING HIM A RUNTIME ACTOR TOO, REVERTED. Fred asked for the Father as a
       // `t:'r'` actor (the capsule-limb "Light" rig used elsewhere) so front/back could be
       // ordered like any other multi-actor page — but the rig itself was wrong for him
