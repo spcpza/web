@@ -325,11 +325,13 @@ export function paint(E, opts = {}) {
     // ⚠ Oct 27 art pass: at its old size the hand read as a flame-blob. Half again as big, about the grip (so the runtime
     // cord still lands in it), and with the Light's full gold range it has knuckles and a palm.
     for (const c of hdCaps) { c.ax = hx + (c.ax - hx) * 1.5; c.ay = hy + (c.ay - hy) * 1.5; c.bx = hx + (c.bx - hx) * 1.5; c.by = hy + (c.by - hy) * 1.5; c.r *= 1.45; }
-    // …and even at that size a stack of capsules under broad marks was still a blob. The hand is now DRAWN by its parts
-    // (E.lightHand: curled fingers, creases, knuckles, a thumb over the top), the cord leaving the fist at HAND. The old
-    // paint is still walked on a scratch array so the plate's rng, and everything painted after it, stays put.
+    // …and even at that size a stack of capsules under broad marks was still a blob. A drawn cartoon fist (stripes for
+    // creases, flat gold) was the opposite failure — Fred: "the hand is ugly". The grip is now painted the way made's
+    // hand of Light is (lightGrip, below): a thumb-up kite-string hold, broad loose marks of light, three short folds,
+    // the hottest point where the cord leaves it. The old paint is still walked on a scratch array so the plate's rng,
+    // and everything painted after it, stays put.
     paintFigure([], { n: 0 }, rng, hdCaps, (x, y, r) => jig(E.lightBody(fbm(x / 12, y / 12, 57) * 0.5 + (y - (hy - 12)) / 70), r, 8), 2.0);
-    E.lightHand(out, counter, hx - 2 * 1.5, hy + 17 * 1.5, 1.5);
+    lightGrip(E, out, counter, hx, hy, { k: 1.2 });
     strokes(out, counter, {   // rays streaming off the hand
       rng, n: 50,
       sample: r => { const a = r() * Math.PI * 2, d = (0.6 + 0.5 * r()) * 40; return [hx + Math.cos(a) * d, hy + 8 + Math.sin(a) * d * 0.85]; },
@@ -435,4 +437,46 @@ export function paint(E, opts = {}) {
   }
   // full painting (desktop): sky ground, the stacked sky-sheets, then everything else
   return svgWrap(ALT, out.slice(0, skyEnd).concat(skySheets, out.slice(skyEnd)).join('\n'));
+}
+
+// The Light's grip on the string. A kite-string hold seen from the thumb side: forearm rising from below-left, the fist
+// thumb-up, four curled fingers stacked down its front, the cord leaving between thumb and forefinger at (hx,hy) and its
+// loose end hanging out under the little finger. PAINTED AS HE IS PAINTED (paintLight — the Father on ran and bridge):
+// a soft glow for an edge, white on top warming to gold underneath. ⚠ string's gale brush (economy 2.4) turns a hand
+// this small into peach confetti, so the grip is painted with fine marks and the page's brush is put back after.
+function lightGrip(E, out, counter, hx, hy, { seed = 8817, k = 1 } = {}) {
+  const r0 = E.mulberry32(seed), { mix, jig, fbm } = E, eco = E.getEconomy();
+  E.setEconomy(1);
+  const P = (dx, dy) => [hx + dx * k, hy + dy * k];
+  const cap = (a, b, r) => ({ ax: hx + a[0] * k, ay: hy + a[1] * k, bx: hx + b[0] * k, by: hy + b[1] * k, r: r * k });
+  const seam = (x, y, r) => jig(mix(E.LIGHT_PAL.edge, '#b8641a', r()), r, 6);
+  const arm = [cap([-44, 98], [-29, 46], 10.5), cap([-29, 46], [-23, 32], 9)];   // slimmer than the fist — a fist is wider than the wrist that holds it
+  const fist = [cap([-25, 26], [-20, 8], 10.5), cap([-17, 26], [-11, 9], 10.5)];   // back of the hand, then the palm under the fingers
+  const ridges = [[-13, 4.5, 3, 4.5, 5.6], [-15, 13, 1, 13, 5.4], [-17, 21, -2, 21, 5], [-19, 28, -6, 28, 4.3]]   // forefinger → little finger, each curled and seen end-on
+    .map(([ax, ay, bx, by, r]) => cap([ax, ay], [bx, by], r));
+  const thumb = [cap([-27, 12], [-17, -4], 6), cap([-17, -4], [-5, -6], 5)];   // rises up the back, then lies forward over the forefinger
+  // the loose end of the cord, hanging out under the little finger and lifted a little by the gale
+  E.paintPath(out, counter, r0, [P(-12, 31), P(-9, 40), P(-3, 48), P(3, 53)], (x, y, r) => jig(mix('#ffd870', '#fff4c8', r() * 0.5), r, 4), { lw: 1.5 * k, len: 2.4, density: 1, jitter: 0.15 });
+  // the glow is the fist's, not the arm's: a halo sized to the whole reach washed a third of the dark gale yellow-grey
+  E.radiantHalo(out, counter, r0, [...fist, ...ridges, ...thumb], '#ffd24f');
+  E.paintLight(out, counter, r0, [...arm, ...fist, ...ridges, ...thumb], { rays: false, halo: false });
+  // made's hand keeps only a few short folds and lets the light do the rest — front half only, a little curved, none
+  // the same length (even, full-width stripes read as a fork)
+  for (const [pts, w] of [[[[-3, 9.4], [2, 8.6], [6, 8.9]], 1.3], [[[-4, 17.4], [0, 16.8], [3.5, 17.2]], 1.2], [[[-7, 24.8], [-3, 24.4], [0, 24.8]], 1.0]])
+    E.paintPath(out, counter, r0, pts.map(([x, y]) => P(x, y)), seam, { lw: w * k, len: 2.2, density: 0.95, jitter: 0.2 });
+  // the thumb lies over the forefinger: its shadow under it, then the thumb again on top, the lit edge of the fist
+  E.paintPath(out, counter, r0, [P(-24, 16), P(-15, 2), P(-3, -0.5)], seam, { lw: 1.4 * k, len: 2.6, density: 0.9, jitter: 0.25 });
+  E.paintFigure(out, counter, r0, thumb, (x, y, r) => jig(E.lightBody(0.05 + fbm(x / 10, y / 10, 67) * 0.3), r, 6), 1.9);
+  // light leaving the fist — short rays, the length of a finger, not of an arm
+  const C = P(-10, 12);
+  E.strokes(out, counter, {
+    rng: r0, n: 70, sample: r => { const a = r() * Math.PI * 2, d = (22 + Math.pow(r(), 0.6) * 22) * k; return [C[0] + Math.cos(a) * d, C[1] + Math.sin(a) * d * 0.92]; },
+    dir: (x, y) => Math.atan2(y - C[1], x - C[0]), col: (x, y, r) => jig(mix('#fff4cc', '#ffe07a', r()), r, 5), len: 6, lw: 1.3, steps: 2, lenJ: 0.6, relief: 0, op: 0.5,
+  });
+  // the hottest point on the page's light is where He holds on: the cord leaving the fist, as made's spark is the touch
+  E.strokes(out, counter, {
+    rng: r0, n: 40, sample: r => { const a = r() * Math.PI * 2, d = Math.pow(r(), 1.6) * 7 * k; return [hx + Math.cos(a) * d, hy - 1 * k + Math.sin(a) * d]; },
+    dir: (x, y) => Math.atan2(y - hy, x - hx), col: (x, y, r) => jig(mix('#ffffff', '#fff1b8', r() * 0.6), r, 4), len: 3, lw: 1.3, steps: 2, flow: 0,
+  });
+  E.setEconomy(eco);
 }

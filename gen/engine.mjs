@@ -631,6 +631,7 @@ export function setHues(n) { HUES = n | 0; }
    length and width by √k, so the coverage stays and the confidence doubles. 1 = off. */
 let ECONOMY = 1;
 export function setEconomy(k) { ECONOMY = Math.max(1, +k || 1); }
+export function getEconomy() { return ECONOMY; }   // a plate may paint one small passage fine on a thick page, then put it back
 /* ⭐ FLOW — the sure hand for skies and grounds (Sep 15, Fred: "push the skies and grounds further too").
    A mature painter's sky is a few LONG strokes that follow the air; a meadow is marks combed along
    the land. FLOW lengthens every broad pass's marks (×lenK), gives them more steps along their
@@ -1188,45 +1189,8 @@ export const LIGHT_PAL = { top: '#ffffff', gold: '#ffd45c', base: '#fff7df', rim
 // it turns, and past t = 1 down toward the warm rim. Same palette, the whole range of it.
 export function lightBody(t) { t = Math.max(0, Math.min(1.5, t)); return t <= 1 ? mix(LIGHT_PAL.top, LIGHT_PAL.gold, 0.04 + 0.86 * Math.pow(t, 1.15)) : mix(LIGHT_PAL.gold, LIGHT_PAL.rim, (t - 1) * 1.4); }
 export function lightRim(k) { return mix(LIGHT_PAL.rim, LIGHT_PAL.edge, k); }
-/* THE LIGHT'S HAND, gripping a cord that runs up out of the fist (Oct 27, string). A stack of capsules painted over
-   with broad marks read as a flame-blob at 1:1 — a hand is read by its PARTS: four curled fingers stacked round the
-   cord, the creases between them, the knuckle highlights, a thumb wrapped over the top, a forearm rising from below.
-   Light palette only: white-hot where it faces you, gold toward its edges, a soft blurred rim (light has no outline).
-   (hx,hy) = where the cord leaves the fist; k = scale; `side` = 1 fingers face right, -1 left. Own rng.            */
-export function lightHand(out, counter, hx, hy, k = 1, { side = 1, seed = 7717 } = {}) {
-  const r = mulberry32(seed), X = u => hx + side * u * k, Y = v => hy + v * k;
-  const cap = (u0, v0, u1, v1, w, fill, op = 1) => { out.push(`<path d="M${R1(X(u0))} ${R1(Y(v0))}L${R1(X(u1))} ${R1(Y(v1))}" stroke="${fill}" stroke-width="${R1(w * k)}" stroke-linecap="round" fill="none"${op < 1 ? ` opacity="${op}"` : ''}/>`); counter.n++; };
-  const crease = mix(LIGHT_PAL.edge, '#b86a1c', 0.35);
-  // the glow (userSpaceOnUse: a bbox-relative filter region clips a blurred stroke into a box)
-  const fid = 'lhand' + counter.n, gx = Math.min(X(-40), X(40)), gw = 80 * k;
-  out.push(`<defs><filter id="${fid}" filterUnits="userSpaceOnUse" x="${R1(gx)}" y="${R1(Y(-45))}" width="${R1(gw)}" height="${R1(130 * k)}"><feGaussianBlur stdDeviation="${R1(2.8 * k)}"/></filter></defs><g filter="url(#${fid})" opacity="0.85">`);
-  cap(-5, 50, -3, 14, 22, LIGHT_PAL.rim); cap(-4, 6, 4, 2, 34, LIGHT_PAL.rim);
-  out.push('</g>');
-  // forearm rising from below to a narrower wrist — gold, whiter along its lit flank
-  cap(-6, 50, -4, 16, 15, lightBody(0.85)); cap(-8, 48, -6, 18, 7, lightBody(0.4), 0.9); cap(-9, 44, -7.5, 22, 2.6, '#fffdf4', 0.7);
-  // the back of the hand, behind the fingers
-  cap(-7, 9, -5, -9, 21, lightBody(0.8)); cap(-10, 6, -9, -6, 9, lightBody(0.4), 0.9);
-  // four fingers curled round the cord, stacked; each a roll whose tip bulges out on the facing side
-  const fingers = [[-10.5, 6.2, 13], [-3.5, 6.6, 15], [3.5, 6.4, 14.5], [10, 5.6, 12]];
-  for (const [v, w, len] of fingers) {
-    cap(-4, v, len - 3, v + 0.6, w, lightBody(0.5 + r() * 0.12));
-    cap(len - 3.2, v + 0.6, len - 3.6, v + 1.6, w * 0.98, lightBody(0.78));                          // the fingertip, rounder and warmer
-    cap(-3, v + w * 0.52, len - 2.5, v + w * 0.55 + 0.8, 1.6, crease, 0.9);                          // the crease under it
-    cap(-1, v - w * 0.22, len - 7, v - w * 0.2, 1.7, '#fffef4', 0.9);                                // knuckle light
-  }
-  // the thumb wrapped over the top, pinning the cord
-  cap(-14, -4, -7, -15, 8, lightBody(0.72)); cap(-7, -15, 7, -15.5, 7.5, lightBody(0.5)); cap(7, -15.5, 9.5, -14, 7, lightBody(0.78));
-  cap(-6, -17.6, 6, -18, 1.8, '#fffef4', 0.9); cap(-6, -11.6, 8, -12, 1.6, crease, 0.9); cap(-14.5, -1, -8.5, -11, 1.4, crease, 0.6);
-  // fine paint over it all, kept inside the silhouette — the plate's material, not a vector cut-out
-  for (let i = 0; i < 80; i++) {
-    const u = -13 + r() * 25, v = -18 + r() * 66;
-    if (v > 15 && (u < -12 || u > 3)) continue; if (v <= 15 && u > 10) continue;
-    const a = (v > 15 ? -1.5 : 0) + (r() - 0.5) * 0.5, L = (1.6 + r() * 2.4) * k;
-    out.push(ribbon([[X(u), Y(v)], [X(u) + Math.cos(a) * L * side, Y(v) + Math.sin(a) * L]], 0.6 * k, jig(lightBody(0.15 + r() * 0.8), r, 6), [0.5, 1, 0.3])); counter.n++;
-  }
-}
 
-export function paintLight(out, counter, rng, caps) {
+export function paintLight(out, counter, rng, caps, { rays = true, halo = true } = {}) {   // rays/halo false for a small part of Him (a hand): both reach twice the size of what they ring
   if (globalThis.__CAP_LIGHT && caps && caps.length) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     for (const c of caps) { x0 = Math.min(x0, c.ax, c.bx); x1 = Math.max(x1, c.ax, c.bx); y0 = Math.min(y0, c.ay, c.by); y1 = Math.max(y1, c.ay, c.by); }
@@ -1257,7 +1221,7 @@ export function paintLight(out, counter, rng, caps) {
   underpaintCapsules(out, counter, caps.map(c => ({ ...c, r: c.r + 2.2 })), '#d88a26');
   out.push('</g>');
   // (2) the yellow-white radiant aura (the radiance around Him)
-  radiantHalo(out, counter, rng, caps, '#ffd24f');
+  if (halo) radiantHalo(out, counter, rng, caps, '#ffd24f');
   // (3) a luminous warm-white base
   underpaintCapsules(out, counter, caps, '#fff7df');
   // (4) the body, with FORM: brilliant white along the top of every limb, warming to gold
@@ -1272,7 +1236,7 @@ export function paintLight(out, counter, rng, caps) {
   let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
   for (const c of caps) { minx = Math.min(minx, c.ax - c.r, c.bx - c.r); maxx = Math.max(maxx, c.ax + c.r, c.bx + c.r); miny = Math.min(miny, c.ay - c.r, c.by - c.r); maxy = Math.max(maxy, c.ay + c.r, c.by + c.r); }
   const Lx = (minx + maxx) / 2, Ly = (miny + maxy) / 2, rad = Math.max(maxx - minx, maxy - miny) * 0.5;
-  strokes(out, counter, {
+  if (rays) strokes(out, counter, {
     rng, n: Math.round(80 + rad),
     sample: r => { const a = r() * Math.PI * 2, d = rad * 0.72 + Math.pow(r(), 0.6) * rad * 1.5; return [Lx + Math.cos(a) * d, Ly + Math.sin(a) * d * 0.92]; },
     dir: (x, y) => Math.atan2(y - Ly, x - Lx),
