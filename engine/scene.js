@@ -787,7 +787,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=481';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=482';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -799,7 +799,9 @@
     t.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAGGbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAAAAAAAOcGl0bQAAAAAAAQAAACxpbG9jAAAAAEQAAAIAAQAAAAEAAAHCAAAAFwACAAAAAQAAAa4AAAAUAAAAQmlpbmYAAAAAAAIAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAABppbmZlAgAAAAACAABhdjAxQWxwaGEAAAAAGmlyZWYAAAAAAAAADmF1eGwAAgABAAEAAADDaXBycAAAAJ1pcGNvAAAAFGlzcGUAAAAAAAAAAQAAAAEAAAAQcGl4aQAAAAADCAgIAAAADGF2MUOBAAwAAAAAE2NvbHJuY2x4AAEADQAGgAAAAA5waXhpAAAAAAEIAAAADGF2MUOBABwAAAAAOGF1eEMAAAAAdXJuOm1wZWc6bXBlZ0I6Y2ljcDpzeXN0ZW1zOmF1eGlsaWFyeTphbHBoYQAAAAAeaXBtYQAAAAAAAAACAAEEAQKDBAACBAEFhgcAAAAzbWRhdBIACgQYAAYVMgoYACihAAIhHctgEgAKBRgABgQgMgwYAAooooQAALATS9g='; } catch (e) { } })();
   // ⚠ Sep 26: AVIF OFF — Fred: "we want the quality to still be top notch!". The full-quality webp is served;
   // the .avif files and the probe stay so this can be revisited only with his yes.
-  function planeExt(base, name) { return '.webp'; }
+  // ⭐ Oct 27: AVIF ON (preview) — Fred, after the side-by-side at 3× zoom: "ok try avif on preview". Same pixels
+  // (1600×1000), ~45% of the bytes. The cover's sharp mote shells (word s*, fg) stay webp: AVIF softens specks.
+  function planeExt(base, name) { return AVIF_OK && !(base === 'word' && /^(s\d|fg)$/.test(name)) ? '.avif' : '.webp'; }
   var FREEZE = { 4: 1 };   // cry — the trial "static movie scene"
 
 

@@ -18,7 +18,7 @@ from PIL import Image
 bad = []
 for d in ('plates-vg', 'cast'):
     for f in os.listdir(os.path.join(sys.argv[1], d)):
-        if f.lower().endswith(('.jpg', '.webp', '.png')):
+        if f.lower().endswith(('.jpg', '.webp', '.png', '.avif')):
             try: Image.open(os.path.join(sys.argv[1], d, f)).load()
             except Exception as e: bad.append(f)
 if bad: print('BROKEN IMAGES, not deploying:', bad[:20]); sys.exit(1)

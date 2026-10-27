@@ -111,8 +111,10 @@ function toWebp(pngPath) {
       // webp with no visible change, and the cover is what every first-time reader downloads. The
       // engine asks for .avif only when the browser can decode it (AVIF_OK in engine/scene.js) and
       // falls back to this .webp otherwise. The sharp mote shells (s*, fg) stay webp: AVIF softens specks.
-      if (false && /\/word-n\d/.test(pngPath)) {   // Sep 26: AVIF off (quality first) — see planeExt in scene.js
-        try { execFileSync(py, ['-c', 'import sys;from PIL import Image;Image.open(sys.argv[1]).convert("RGBA").save(sys.argv[2],"AVIF",quality=60,speed=4)', pngPath, out.replace(/\.webp$/, '.avif')], { stdio: 'pipe' }); }
+      // ⭐ Oct 27: every plane gets its AVIF twin (q70) from the same PNG — Fred: "ok try avif on preview". Never skip it:
+      // a rebuilt plane with a stale .avif beside it would show the OLD art to every AVIF browser.
+      if (!/\/word-(s\d|fg)/.test(pngPath)) {
+        try { execFileSync(py, ['-c', 'import sys;from PIL import Image;Image.open(sys.argv[1]).convert("RGBA").save(sys.argv[2],"AVIF",quality=70,speed=6)', pngPath, out.replace(/\.webp$/, '.avif')], { stdio: 'pipe' }); }
         catch (e) { console.warn(`  !!! AVIF CONVERSION FAILED for ${pngPath} — delete its stale .avif or the cover shows the OLD sheet`); }
       }
       return true;
