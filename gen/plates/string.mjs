@@ -378,13 +378,11 @@ export function paint(E, opts = {}) {
     paintPath(out, counter, RS, [[ex, ey], P(face * 6.5, -8.5)], (x, y, r) => jig('#3a2f44', r, 4), { lw: 1.4 * s, len: 2, density: 1, jitter: 0.2 });
     const [ix, iy] = P(face * 13.2, -2.8); out.push(`<circle cx="${R1(ix)}" cy="${R1(iy)}" r="${R1(0.55 * s)}" fill="#f2e6c8"/>`); counter.n++;   // a catch-light in the eye
   };
-  //      x    y    size  tumble face
-  sheep(478, 150, 2.0,  0.55,  1);   // ahead of the child, flung round the wheel
-  sheep(560, 292, 2.4, -0.45, -1);   // nearest, belly up to the gale
-  sheep(172, 262, 1.7,  1.25,  1);   // west of the eye, rolling
-  sheep(400, 340, 1.9,  2.45, -1);   // under the eye, upside down
-  sheep(662, 182, 1.45, -1.05,  1);  // far out on the rim
-  sheep(96, 358, 1.5, -2.1,  -1);    // last off the hill, just lifting
+  // ⚠ Oct 27 — Fred: "make the sheep animate as if it is also thrown around in the wind… smoothly looping". A painted
+  // plane can only move all six together, so the sheep are no longer painted here: gen/build-held-sheep.mjs paints
+  // each one with this same painter and engine/scene.js FLOCK[8] tumbles them, each on its own orbit and spin.
+  // (The painter above is kept as the reference for that script.)
+  void sheep;
   birdRanges.push([_sheep, out.length]);
 
   /* ---------------- LIFE: MOTHS TO THE LIGHT ----------------

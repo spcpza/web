@@ -60,7 +60,8 @@ export const focal = { x: 400, y: 300 };
 // the child himself, so the name "God with us" is hidden in light coming off the child.
 export const sig = { x: 350, y: 184, h: 17, stroke: '#ffeec6', op: 0.3 };
 export const layers = [
-  { name: 'sky', opaque: true },  // dawn sky lit from below, clouds, birds (backmost)
+  { name: 'sky', opaque: true },  // dawn sky lit from below, birds (backmost)
+  { name: 'cloud' },              // the five clouds lit from beneath — their own plane so they can SWAY (Oct 27)
   { name: 'mid' },                // the land, the grove, the flowers waking to colour
   { name: 'fg' },                 // near grass + the motes hanging in his light
 ];
@@ -194,6 +195,7 @@ export function paint(E, opts = {}) {
   // the whole sky, which cancels the whole point — a band has no underside.
   // ⚠ AND THEY MUST STAY UP. Two of them sat at y 172/192 — within thirty units of the
   // treeline — so the grey underside of the weather came down and sat on the grove.
+  const _cloud0 = out.length;   // Oct 27 (Fred: "make born's cloud also sway. make sure it loops neatly") — own plane
   const CLOUDS = [[150, 66, 168, 30], [478, 42, 178, 26], [726, 92, 138, 26],
                   [292, 132, 128, 21], [618, 142, 116, 19]];
   for (const [cx, cy, rx, ry] of CLOUDS) {
@@ -219,6 +221,7 @@ export function paint(E, opts = {}) {
     });
   }
 
+  const _cloud1 = out.length;
   // birds — "Behold the fowls of the air" (Matt 6:26). Lit underneath, like everything else.
   for (const [bx, by, bs] of [[168, 108, 1.0], [206, 92, 0.8], [612, 74, 0.9], [648, 96, 0.7], [396, 62, 0.75]]) {
     const w = 9 * bs;
@@ -657,7 +660,8 @@ export function paint(E, opts = {}) {
   const ALT = 'A child stands in a wide rolling meadow at dawn, and the light of the whole picture comes from inside him: his chest blazes gold, every tree throws its shadow away from him, and the clouds overhead are lit along their undersides. Nearest him the world is fully awake — deep green grass, trees in white and rose blossom, colonies of jewel-coloured wildflowers — and the further out the land runs the cooler and quieter it stays, the old world still waking to colour. Motes of seed-down hang glowing in the air around him, and one orange and violet butterfly, the sign of the new creature, floats beside his lifted hand. Hidden faint in the field are the Greek Γʹ·Γʹ (John 3:3) and the words ΚΑΙΝΗ ΚΤΙΣΙΣ, "new creature" (2 Corinthians 5:17).';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
-  if (LAYER === 'sky') return svgWrap(ALT, out.slice(0, skyEnd).join('\n'), RAW);   // dawn lit from below (opaque backmost)
+  if (LAYER === 'sky') return svgWrap(ALT, out.slice(0, _cloud0).concat(out.slice(_cloud1, skyEnd)).join('\n'), RAW);   // dawn lit from below + birds (opaque backmost)
+  if (LAYER === 'cloud') return svgWrap(ALT, out.slice(_cloud0, _cloud1).join('\n'), RAW);   // the clouds — they sway (scene.js CLOUD_DRIFT)
   if (LAYER === 'mid') return svgWrap(ALT, out.slice(skyEnd, midEnd).join('\n'), RAW);   // the land he is making new
   if (LAYER === 'fg') return svgWrap(ALT, pick(fgRanges), RAW);                     // near grass + the motes in his light
   return svgWrap(ALT, out.join('\n'));   // full painting (desktop)

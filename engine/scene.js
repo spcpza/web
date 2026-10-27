@@ -56,6 +56,19 @@
   // {x,y}=plate centre, r=half-width (plate units, NOT fit.s — see the note
   // below on why), src=cast filename, aspect=height/width of that source
   // image, rot=optional degrees.
+  // ⭐ FLOCK — sheep caught in the whirlwind on `string` (Isa 53:6 "all we like sheep have gone astray"). Plate units:
+  // x,y centre, s size (the plate's own sheep scale), k which drawing, r/a the orbit pivot's distance and angle,
+  // op/od orbit period and turn (negative = with the wheel), tp/td tumble, gp/gx/gy the gust, ph phase 0..1.
+  var FLOCK = {
+    8: [
+      { x: 478, y: 150, s: 2.0,  k: 'a', r: 16, a: 2.6, op: 11, od: -360, tp: 7.5,  td: 360,  gp: 6.5, gx: 18, gy: -6, ph: 0.10 },
+      { x: 560, y: 292, s: 2.4,  k: 'b', r: 20, a: 3.6, op: 13, od: -360, tp: 9.0,  td: -360, gp: 8.0, gx: 22, gy: -9, ph: 0.55 },
+      { x: 172, y: 262, s: 1.7,  k: 'a', r: 14, a: 0.4, op: 9.5, od: -360, tp: 6.0, td: 360,  gp: 5.5, gx: 14, gy: -10, ph: 0.30 },
+      { x: 400, y: 340, s: 1.9,  k: 'b', r: 18, a: 5.0, op: 12, od: -360, tp: 8.0,  td: 360,  gp: 7.2, gx: 20, gy: -5, ph: 0.80 },
+      { x: 662, y: 182, s: 1.45, k: 'a', r: 12, a: 1.9, op: 10, od: -360, tp: 5.5,  td: -360, gp: 6.0, gx: 12, gy: -7, ph: 0.45 },
+      { x: 96,  y: 358, s: 1.5,  k: 'b', r: 12, a: 4.2, op: 8.5, od: -360, tp: 6.5, td: 360,  gp: 5.0, gx: 16, gy: -12, ph: 0.65 },
+    ],
+  };
   var HELD = {
     // ⚠ THE LIGHT'S ARMS, DRAWN OVER THE CHILD. He is painted into the plate and the
     // child is a sprite composited after it, so the Light can never reach in front of him
@@ -302,6 +315,18 @@
     // keyframes walk the same 18-step rhythm over them (rest ×5 · blink · rest ×3 · six wave tips · rest ×3).
     + '@keyframes scSheet{' + [0,0,0,0,0,1,0,0,0,2,3,4,5,6,7,0,0,0].map(function (m, i) { return (i * 100 / 18).toFixed(3) + '%{background-position-x:calc(var(--fw) * -' + m + ')}'; }).join('') + '100%{background-position-x:0}}'
     + '.sc-sway.poke,.sc-nod.poke{animation:scPoke .6s cubic-bezier(.3,1.4,.4,1) 1!important;}'
+    // ⭐ THE FLOCK IN THE WHIRLWIND (Oct 27, string). Three motions, each its own seamless loop: a gust that pushes the
+    // sheep out and lets it back (ease, alternate), an ORBIT round a pivot beside it (linear full turn) and its own
+    // TUMBLE (linear full turn). Different periods per sheep, so the flock never moves in step.
+    + '.sc-flock{position:absolute;pointer-events:none;will-change:transform;}'
+    + '.sc-flock>i{position:absolute;inset:0;display:block;transform-origin:var(--ox,50%) var(--oy,50%);}'
+    + '.sc-flock>i>img{position:absolute;inset:0;width:100%;height:100%;display:block;}'
+    + '.on .sc-flock{animation:scFlockGust var(--gp,7s) ease-in-out infinite alternate;}'
+    + '.on .sc-flock>i{animation:scFlockOrbit var(--op,9s) linear infinite;}'
+    + '.on .sc-flock>i>img{animation:scFlockSpin var(--tp,6s) linear infinite;}'
+    + '@keyframes scFlockGust{from{translate:0 0}to{translate:var(--gx,20px) var(--gy,-8px)}}'
+    + '@keyframes scFlockOrbit{from{rotate:0deg}to{rotate:var(--od,-360deg)}}'
+    + '@keyframes scFlockSpin{from{rotate:0deg}to{rotate:var(--td,360deg)}}'
     + '@keyframes scPoke{0%{transform:rotate(0)}25%{transform:rotate(7deg)}55%{transform:rotate(-5deg)}80%{transform:rotate(2deg)}100%{transform:rotate(0)}}'
     + '.sc-glow.flare{animation:scFlare .7s ease-out 1!important;}'
     + '@keyframes scFlare{0%{transform:scale(1);opacity:.85}35%{transform:scale(1.5);opacity:1}100%{transform:scale(1);opacity:.85}}'
@@ -528,8 +553,9 @@
     // ⚠ It animates the `translate` PROPERTY, not `transform`: camApply writes transform on
     // every plane each frame for the tilt, and an animation on the same property wins the
     // cascade and would kill the parallax. `translate` composes with it instead.
-    + '@keyframes dioCloud{0%{translate:0 0}50%{translate:var(--cd,26px) 0}100%{translate:0 0}}'
-    + '.dio-cloud{animation:dioCloud var(--cs,90s) ease-in-out infinite;}'
+    // the sway rides ON TOP of the page-turn travel (.sc-dio img translate/scale) instead of replacing it
+    + '@keyframes dioCloud{0%{translate:calc(var(--sp,0px) * var(--pk,0.5)) 0}50%{translate:calc(var(--sp,0px) * var(--pk,0.5) + var(--cd,26px)) var(--cdy,0px)}100%{translate:calc(var(--sp,0px) * var(--pk,0.5)) 0}}'
+    + '.sc-dio img.dio-cloud{animation:dioCloud var(--cs,90s) ease-in-out infinite;scale:calc((1 + var(--spz,0) * var(--pk,0.5)) * var(--cz,1));}'
     // ⚠ THE THREE-HAND SHIMMER — Fred's own design, and it is better than the carousel I
     // kept building: "i want all 3 to be visible... a 50%, b 50%, c 100%; then a 50%, b
     // 100%, c 50%; then a 100%, b 50%, c 50%." A carousel SWAPS one drawing for another and
@@ -761,7 +787,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=480';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=481';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -1418,7 +1444,7 @@
     // It is alive because of its fire, its trees, its creatures, the light running up its
     // road. Objects that belong to the scene. That is what a page gets from here.
     // The storms keep theirs: on those the whole air is meant to be violent.
-    var BOIL = { 8: 2, 22: 2, 23: 2, 24: 2, 25: 2, 26: 2, 27: 2, 28: 2, 29: 2, 30: 2, 31: 2, 15: 2, 16: 6, 17: 6, 18: 6, 19: 6, 20: 6, 21: 6 };   // 29 `candle` · 30 `comes` · 31 `nonight`: the last three pages come alive — see BOIL_PLANES for which ONE plane moves on each and why   // 21 `bread`: the day-sky wheel, six drawings   // 20 `seeds`: the sun-vortex sheet turns, six drawings   // 19 `born`: the meadow, six drawings — the land alive where his light has reached   // 15 `ran` · 16 `gift` · 17 `twoways`: the SKY breathes on six (see BOIL_PLANES — never the plane with the palace in it)   // 15 `ran`: the Father's run cycle · 16 `gift`: the sky breathes on six · 17 `twoways`: sky AND the meadow's trees, six drawings
+    var BOIL = { 8: 2, 22: 2, 23: 2, 24: 2, 25: 2, 26: 2, 27: 2, 28: 2, 29: 2, 30: 2, 31: 2, 15: 2, 16: 6, 17: 6, 18: 6, 19: 1, 20: 6, 21: 6 };   // ⚠ 19 born → 1 (Oct 27): its clouds SWAY on their own plane now (CLOUD_DRIFT[19]); the sky field stays still behind them   // 29 `candle` · 30 `comes` · 31 `nonight`: the last three pages come alive — see BOIL_PLANES for which ONE plane moves on each and why   // 21 `bread`: the day-sky wheel, six drawings   // 20 `seeds`: the sun-vortex sheet turns, six drawings   // 19 `born`: the meadow, six drawings — the land alive where his light has reached   // 15 `ran` · 16 `gift` · 17 `twoways`: the SKY breathes on six (see BOIL_PLANES — never the plane with the palace in it)   // 15 `ran`: the Father's run cycle · 16 `gift`: the sky breathes on six · 17 `twoways`: sky AND the meadow's trees, six drawings
     // ⚠ EXCEPT A GLIMMER, WHICH IS NOT A BOIL. "make several art work to show the light
     // is glimmering." Twinkle changes only BRIGHTNESS — every mark holds its exact
     // position — so its two drawings cannot slide against each other and it is immune to
@@ -1437,7 +1463,8 @@
     BOIL[1] = 2;                       // two drawings = a breath, not a carousel
     BOIL[2] = 2;                       // flame: the dawn sky, and the great trees bending
     BOIL[3] = 2;                       // made: the deep field, slowest breath in the book
-    BOIL[4] = 6;                       // love: the Sower's sky, actually turning
+    // love: NO boil now. Fred, Oct 27: "check the clouds on love, rather than making it blink, make it sway.
+    // clouds sway. loop it neatly" — the six glimmer drawings of the banks read as blinking; they SWAY (CLOUD_DRIFT[4]).
     // ⚠ `lost` breathes, and slowly. Fred: "we can animate the background and the
     // character". The air on a dead plain does not gust — it only stirs — so this is the
     // longest leg in the book after `made`, and it is the ground and sky BEHIND him, so
@@ -1489,7 +1516,7 @@
     // above. I set the lists for 2 and 3 but the BOIL lines never landed — two python
     // replaces that matched nothing and said nothing — so both pages have been serving a
     // still painting while I reported a breath. Assert your edits.
-    var BOIL_GLIMMER = { 1: ['bg'], 2: ['sky', 'near'], 3: ['bg'], 4: ['sky1'], 7: ['bg'], 10: ['sky1', 'mid'], 11: ['sky1'], 12: ['drops'] };   // 11: the cross is three stacked hands now (TRI), not a carousel   // ⚠ only the DROPS use frames now — the light is three stacked hands (TRI)   // ⚠ NOT the sky: measured, a field that dark cannot show motion (0.06%)   // and the cross itself: light, drawn moving   // 10 = road: the two swirl sheets (six drawn frames) and the wheat   // (5 `turning` gave its breath up: that page's motion is his walk)
+    var BOIL_GLIMMER = { 1: ['bg'], 2: ['sky', 'near'], 3: ['bg'], 7: ['bg'], 10: ['sky1', 'mid'], 11: ['sky1'], 12: ['drops'] };   // 11: the cross is three stacked hands now (TRI), not a carousel   // ⚠ only the DROPS use frames now — the light is three stacked hands (TRI)   // ⚠ NOT the sky: measured, a field that dark cannot show motion (0.06%)   // and the cross itself: light, drawn moving   // 10 = road: the two swirl sheets (six drawn frames) and the wheat   // (5 `turning` gave its breath up: that page's motion is his walk)
     // ⚠ THE COVERS BREATHE ONLY IN THEIR PAINT. The galaxy plate is 31,102 verse-motes
     // at data-true positions — every mote is a real verse in a real place — plus the
     // Word itself. Displacing those, even by a hair, is not a brushstroke wobbling; it
@@ -1762,6 +1789,12 @@
     //   hands' clouds move by being DRAWN in different places instead — small steps, so the
     // dissolve between them reads as travel rather than as a fade (see the plate).
     var CLOUD_DRIFT = { 2: { sky1: [34, 96], sky2: [-26, 132] },
+                        // ⭐ SWAY (Oct 27, Fred: "clouds sway. loop it neatly"): a short eased swing out and back — the
+                        // keyframes return to 0, so the loop has no seam. [px, s, easing, dy px, scale]: the plane is
+                        // enlarged a hair (2.5%) so a cloud that runs off the frame never shows the plane's own cut edge
+                        // (the hands lesson above). The banks and the veil in front swing at different periods.
+                        4: { sky1: [14, 19, null, -3, 1.025], sky2: [-10, 13, null, 2, 1.025] },
+                        19: { cloud: [13, 17, null, -2.5, 1.025] },
                         7: { air: [66, 46, 'linear'] },
                         // ⚠ looking: WIGGLE, NOT TRAVEL. Fred, later: "redraw the cloud to be
                         // static and just wiggle it slowly instead of going left and right" — right;
@@ -2088,6 +2121,8 @@
           // ends of its travel — measured on `lost`: 0.02% of the sky changing across six
           // whole seconds. Weather moves at one speed. `linear` is that speed.
           if (_cl[2]) im.style.animationTimingFunction = _cl[2];
+          if (_cl[3]) im.style.setProperty('--cdy', _cl[3] + 'px');
+          if (_cl[4]) im.style.setProperty('--cz', _cl[4]);
           im.style.setProperty('--cs', _cl[1] + 's');
         }
         var _pn = (BOIL_PLANE_N[idx] || {})[d.name];
@@ -4058,6 +4093,22 @@
       layer.appendChild(hImg);
     });
     });
+    (FLOCK[idx] || []).forEach(function (f) { st(function () {
+      var Wp = 44 * f.s * fit.s, el = document.createElement('div'), ring = document.createElement('i'), im = document.createElement('img');
+      el.className = 'sc sc-flock'; im.alt = ''; im.decoding = 'async';
+      im.src = (window.__castBase || '/cast/') + 'sheep-' + f.k + '.webp?v=1';
+      el.style.left = (fit.x(f.x) - Wp / 2) + 'px'; el.style.top = (fit.y(f.y) - Wp / 2) + 'px';
+      el.style.width = el.style.height = Wp + 'px';
+      // the pivot it orbits sits f.r plate units off its centre, at angle f.a — so it swings round a point in the wind
+      ring.style.setProperty('--ox', (50 + Math.cos(f.a) * f.r / 44 / f.s * 100).toFixed(1) + '%');
+      ring.style.setProperty('--oy', (50 + Math.sin(f.a) * f.r / 44 / f.s * 100).toFixed(1) + '%');
+      el.style.setProperty('--gp', f.gp + 's'); el.style.setProperty('--gx', (f.gx * fit.s).toFixed(1) + 'px'); el.style.setProperty('--gy', (f.gy * fit.s).toFixed(1) + 'px');
+      ring.style.setProperty('--op', f.op + 's'); ring.style.setProperty('--od', (f.od || -360) + 'deg');
+      im.style.setProperty('--tp', f.tp + 's'); im.style.setProperty('--td', (f.td || 360) + 'deg');
+      el.style.animationDelay = (-f.ph * f.gp).toFixed(2) + 's'; ring.style.animationDelay = (-f.ph * f.op).toFixed(2) + 's'; im.style.animationDelay = (-f.ph * 1.7 * f.tp).toFixed(2) + 's';
+      if (f.rot) im.style.transform = 'rotate(' + f.rot + 'deg)';
+      ring.appendChild(im); el.appendChild(ring); layer.appendChild(el);
+    }); });
     var _wk = WALK[idx];
     if (_wk && !REDUCED) st(function () {
       try { layer.appendChild(buildWalk(_wk, fit, idx)); startPrints(page, _wk, fit, layer); }

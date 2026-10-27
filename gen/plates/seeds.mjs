@@ -276,9 +276,27 @@ export function paint(E, opts = {}) {
     col: (x, y, r) => fieldCol(x, y, r, 0.02),
     len: (x, y) => 15 * dS(y), lw: (x, y) => 3.6 * dS(y), steps: 3, lenJ: 0.5, impasto: 0.45, relief: 0.3,
   });
-  strokes(out, counter, {                                     // blades standing out of it
+  // ⭐ Oct 27 — Fred: "seeds also need to be refined. the grass area is kind of ilegible. just looks like a plain grass
+  // field." The rows were there in the colour, but this blade pass stood green grass on the FURROWS too and buried
+  // them. Now: blades only on the ridges, and the furrows get their own pass of turned earth — lit on the bank that
+  // faces the sun, shaded on the other — so the field reads, like a bulb field, as stripes running to the light.
+  const furOf = (x, y) => { const rw = rowAt(x, y); return rw ? Math.pow(Math.abs(Math.cos(rw.across * Math.PI)), 1.35) : 0; };
+  strokes(out, counter, {                                     // the furrows — turned earth between the rows
+    rng, n: 3000,
+    sample: rej(-10, 300, 810, 512, (x, y) => y > horizon(x) + 2 && furOf(x, y) > 0.4),
+    dir: rowDir,
+    col: (x, y, r) => {
+      const rw = rowAt(x, y), side = rw ? (rw.across < 0.5 ? 1 : 0) : 0.5;   // the bank facing the sun, the bank away
+      let c = ramp(['#4a301c', '#644226', '#7e5832', '#9c7444', '#bb935c'], 0.2 + side * 0.45 + depth(y) * 0.2 + fbm(x / 9, y / 6, 53) * 0.25 + (r() - 0.5) * 0.12);
+      c = mix(c, '#fff0c0', light(x, y) * 0.3);
+      c = mix(c, '#cadfd2', Math.max(0, Math.min(1, 1 - (y - 254) / 74)) * 0.5);   // the far furrows go to air, like the rest
+      return jig(c, r, 8);
+    },
+    len: (x, y) => 9 * dS(y), lw: (x, y) => 2.6 * dS(y), steps: 2, lenJ: 0.5, impasto: 0.4, relief: 0.35, flow: 0,
+  });
+  strokes(out, counter, {                                     // blades standing out of it — on the ridges only
     rng, n: 2600,
-    sample: rej(-10, 312, 810, 512, (x, y) => y > horizon(x) + 3),
+    sample: rej(-10, 312, 810, 512, (x, y) => y > horizon(x) + 3 && furOf(x, y) < 0.34),
     dir: (x, y) => -Math.PI / 2 + (fbm(x / 11, y / 9, 101) - 0.5) * 1.05,
     col: (x, y, r) => fieldCol(x, y, r, 0.2),
     len: (x, y) => 8 * dS(y), lw: (x, y) => 1.1 * dS(y), steps: 2, lenJ: 0.8, impasto: 0.6,
@@ -339,7 +357,7 @@ export function paint(E, opts = {}) {
   // only get richer by getting busier. Each ROW is now its own kind — round heads, a spike
   // of small blooms, drooping bells, a flat umbel of tiny stars — so detail comes from
   // variety instead of from more speckle, and the rows read as rows even before the colour.
-  const plant = (x, y, st, sc, pr, pal, inFlower, spec) => {
+  const plant = (x, y, st, sc, pr, pal, inFlower, spec, reach = 1e9) => {   // reach: half the ridge's width here — a leaf never crosses the furrow (Oct 27)
     const a = Math.atan2(SUN.y - y, SUN.x - x);               // everything leans to the light
     const up = -Math.PI / 2, sa = up + (a - up) * 0.3 + (pr() - 0.5) * 0.18;
     const hgt = (15 + st * 34) * sc;
@@ -351,7 +369,7 @@ export function paint(E, opts = {}) {
     for (let l = 0; l < leaves; l++) {
       const t = 0.25 + (l / leaves) * 0.6, sgn = l % 2 ? 1 : -1;
       const bx = x + (tip[0] - x) * t, by = y + (tip[1] - y) * t;
-      const ll = (4 + st * 8) * sc;
+      const ll = Math.min((4 + st * 8) * sc, reach);
       paintPath(out, counter, pr, [[bx, by], [bx + sgn * ll * 0.7, by - ll * 0.34], [bx + sgn * ll, by + ll * 0.1]],
         (px, py, r) => jig(mix('#4a7c2c', '#9ac24a', r()), r, 9),
         { lw: (1.4 + st * 1.2) * sc, len: 3, density: 1, jitter: 0.3 });
@@ -420,7 +438,7 @@ export function paint(E, opts = {}) {
     // horizon (pow 1.45) because a far plant covers a fraction of the ground a near one
     // does, so evenness on screen needs many more of them up there.
     const pRng = mulberry32(seed ^ 0x5bd1e995);
-    for (let k = 0; k < 4200; k++) {
+    for (let k = 0; k < 2600; k++) {   // ⚠ 4200 roofed the furrows over (Oct 27) — the rows must show earth between them
       const py = VP.y + Math.pow(pRng(), 1.45) * (514 - VP.y);
       const sx = -34 + pRng() * 868;
       if (py < horizon(sx) + 5 || py > 514) continue;
@@ -437,10 +455,14 @@ export function paint(E, opts = {}) {
       // organic rather than a clean line of blossom ruled across the field.
       const st = Math.max(0, Math.min(1, Math.pow(depth(py), 0.72) + (pRng() - 0.5) * 0.16));
       const seg = Math.floor(((py - VP.y) / (BOT - VP.y)) * 3.2);   // a stretch of one row = one flower
-      const pal = PETALS[Math.abs(rw.i * 73 + seg * 29) % PETALS.length];
-      const inFlower = pRng() < 0.16 + st * 0.46;
-      plant(px + (pRng() - 0.5) * 6, py, st, (0.52 + dS(py) * 0.9) * (0.78 + pRng() * 0.44),
-            pRng, pal, inFlower, Math.abs(rw.i * 17 + 3) % 4);
+      // ⭐ ONE COLOUR TO A ROW (Oct 27): a stretch-by-stretch palette scattered the colour into confetti. A planted row is
+      // one kind, so it flowers one colour all the way back — the stripes ARE the rows, read at a glance.
+      void seg;
+      const pal = PETALS[Math.abs(rw.i * 5 + 2) % PETALS.length];
+      const inFlower = pRng() < (st > 0.5 ? 0.9 : 0.1 + st * 0.6);
+      const reach = ROWW * (py - VP.y) / (BOT - VP.y) * 0.24;   // a quarter of the row's width each side of the crown
+      plant(px + (pRng() - 0.5) * reach * 0.4, py, st, (0.52 + dS(py) * 0.9) * (0.78 + pRng() * 0.44),
+            pRng, pal, inFlower, Math.abs(rw.i * 17 + 3) % 4, reach);
     }
   }
 
@@ -622,39 +644,47 @@ export function paint(E, opts = {}) {
      two legs, standing on a patch of lit earth that separates it from the furrow.
      (The 78 confetti poppies that used to sit over all this are gone: the rows carry the
      colour now, and evenly-scattered dots average to grey — the book's own warning.) */
+  // ⚠ Oct 27 — the "child's bird" above (round body, bright eye) is exactly the emoji look Fred has asked the book to
+  // lose ("no emoji looking things… slight realism"). A HOUSE SPARROW, painted: a streaked warm-brown back, a pale
+  // wing bar, grey-buff breast, grey crown and chestnut nape, black bib, a short dark conical beak — feathers laid
+  // along the body in small marks, lit from the sun's side. Still big enough to name. (Old: attic/seeds-pre-rows.mjs.)
   const gleaner = (bx, by, sc, peck) => {
-    const dk = (r) => jig(ramp(['#2b3350', '#3b4668', '#4d5a80'], r() * 0.9), r, 8);
-    // lit earth under it, so the dark bird never sits on a dark furrow
-    strokes(out, counter, {
-      rng, n: 26,
-      sample: r => [bx + (r() + r() - 1) * 16 * sc, by + 1.5 * sc + (r() - 0.5) * 5 * sc],
-      dir: () => 0.1,
-      col: (x, y, r) => jig(ramp(['#a98a52', '#c4a468', '#dcc088'], r()), r, 8),
-      len: 7 * sc, lw: 2.6 * sc, steps: 2, relief: 0, op: 0.85,
+    const P = (u, v) => [bx + u * sc, by + v * sc];
+    strokes(out, counter, {                                    // a little lit earth under it, so it never sinks into a furrow
+      rng, n: 22, sample: r => P((r() + r() - 1) * 15, 1 + (r() - 0.5) * 4), dir: () => 0.1,
+      col: (x, y, r) => jig(ramp(['#9c7c4c', '#b8975e', '#d2b47c'], r()), r, 8), len: 6 * sc, lw: 2.2 * sc, steps: 2, relief: 0, op: 0.8,
     });
-    const bodyY = by - 7 * sc;
-    E.daub(out, counter, bx, bodyY, 7.4 * sc, dk(rng), rng);            // body
-    for (let i = 0; i < 22; i++) {                                       // filled out with feathers
-      const aa = rng() * Math.PI * 2, dd = Math.pow(rng(), 0.6);
-      E.daub(out, counter, bx + Math.cos(aa) * 9 * sc * dd, bodyY + Math.sin(aa) * 6.4 * sc * dd,
-             2.6 * sc, dk(rng), rng);
-    }
-    paintPath(out, counter, rng,                                          // tail
-      [[bx + 7 * sc, bodyY - 1 * sc], [bx + 14 * sc, bodyY - 3.4 * sc]],
-      (x, y, r) => dk(r), { lw: 3.2 * sc, len: 3, density: 1, jitter: 0.3 });
-    const hx = peck ? bx - 10 * sc : bx - 7.5 * sc;
-    const hy = peck ? by - 2.2 * sc : bodyY - 9 * sc;
-    paintPath(out, counter, rng, [[bx - 4 * sc, bodyY - 2 * sc], [hx, hy]],   // neck
-      (x, y, r) => dk(r), { lw: 3.4 * sc, len: 2.6, density: 1, jitter: 0.2 });
-    E.daub(out, counter, hx, hy, 4.0 * sc, dk(rng), rng);                 // head
-    paintPath(out, counter, rng,                                          // beak
-      [[hx - 1 * sc, hy + (peck ? 1.6 : 0.2) * sc], [hx - 5.4 * sc, hy + (peck ? 4.2 : 1.0) * sc]],
-      (x, y, r) => jig('#e0a83a', r, 9), { lw: 1.5 * sc, len: 2, density: 1, jitter: 0.15 });
-    out.push(`<circle cx="${R1(hx - 1.2 * sc)}" cy="${R1(hy - 1.2 * sc)}" r="${R1(1.15 * sc)}" fill="#fff3d0"/>`); counter.n++;
-    out.push(`<circle cx="${R1(hx - 1.4 * sc)}" cy="${R1(hy - 1.3 * sc)}" r="${R1(0.55 * sc)}" fill="#20243a"/>`); counter.n++;
-    for (const lx of [-1.6, 2.4]) paintPath(out, counter, rng,            // legs
-      [[bx + lx * sc, bodyY + 5 * sc], [bx + (lx - 0.7) * sc, by + 1.4 * sc]],
-      (x, y, r) => jig('#c08a34', r, 7), { lw: 1.0 * sc, len: 2, density: 1, jitter: 0.15 });
+    const B = { x: 0, y: -8, rx: 9, ry: 5.6, t: -0.22 };       // body, tail end raised
+    const Hd = peck ? { x: -10.5, y: -4.2, r: 4.4 } : { x: -8.2, y: -14.2, r: 4.6 };
+    const inB = (u, v) => { const c = Math.cos(B.t), s2 = Math.sin(B.t), du = u - B.x, dv = v - B.y, a2 = du * c + dv * s2, b2 = -du * s2 + dv * c; return (a2 / B.rx) ** 2 + (b2 / B.ry) ** 2 < 1; };
+    const inH = (u, v) => Math.hypot(u - Hd.x, v - Hd.y) < Hd.r;
+    const inT = (u, v) => u > 5 && u < 16.5 && v > -13.5 + (u - 5) * -0.05 && v < -8.2 - (u - 5) * 0.28 && v > -9.5 - (u - 5) * 0.5;
+    for (const lx of [-1.8, 2.2]) paintPath(out, counter, rng, [P(lx, -3), P(lx - 0.6, 0.6)],   // legs
+      (x, y, r) => jig('#9c7660', r, 6), { lw: 0.9 * sc, len: 2, density: 1, jitter: 0.12 });
+    const feather = (inside, colAt, n, len) => strokes(out, counter, {
+      rng, n, sample: r => { for (let t = 0; t < 30; t++) { const u = -16 + r() * 34, v = -20 + r() * 22; if (inside(u, v)) return P(u, v); } return null; },
+      dir: () => B.t + Math.PI + (rng() - 0.5) * 0.5, col: (x, y, r) => colAt((x - bx) / sc, (y - by) / sc, r),
+      len: len * sc, lw: 1.5 * sc, steps: 2, lenJ: 0.4, relief: 0.15, flow: 0,
+    });
+    feather(inT, (u, v, r) => jig(mix('#5a3c26', '#7a5434', r()), r, 6), 18, 3.2);                     // tail
+    feather(inB, (u, v, r) => {                                                                         // body: streaked back, buff breast
+      const top = (v - (B.y - B.ry)) / (2 * B.ry);                                                       // 0 top → 1 belly
+      if (top > 0.52) return jig(mix(mix('#b5ad9c', '#d8cfbc', r()), '#fff0c8', 0.18 * (1 - top)), r, 5);
+      if (r() < 0.26) return jig('#3a2618', r, 5);                                                       // the dark streaks of the mantle
+      if (top > 0.38 && top < 0.46 && u > -3 && u < 4) return jig('#ebe1c8', r, 4);                      // the pale wing bar
+      return jig(mix(mix('#8a5a34', '#b27c48', r()), '#ffe6b0', (0.5 - top) * 0.35), r, 6);
+    }, Math.round(120 * sc), 2.4);
+    feather(inH, (u, v, r) => {                                                                         // head
+      const dy = (v - (Hd.y - Hd.r)) / (2 * Hd.r), dx = (u - Hd.x) / Hd.r;
+      if (dy < 0.4 && dx > -0.3) return jig(mix('#73757e', '#8e9098', r()), r, 5);                      // grey crown
+      if (dx > 0.3) return jig(mix('#8a4e2c', '#a8643a', r()), r, 5);                                   // chestnut nape
+      if (dy > 0.72 && dx < 0.2) return jig('#2a2420', r, 4);                                           // the black bib
+      return jig(mix('#cfc8b8', '#e2dccd', r()), r, 4);                                                 // pale cheek
+    }, Math.round(46 * sc), 1.8);
+    const bk = peck ? [[Hd.x - Hd.r * 0.8, Hd.y + 1.2], [Hd.x - Hd.r - 2.8, Hd.y + 3.6]] : [[Hd.x - Hd.r * 0.85, Hd.y + 0.6], [Hd.x - Hd.r - 2.6, Hd.y + 1.2]];
+    out.push(E.ribbon(bk.map(([u, v]) => P(u, v)), 1.9 * sc, '#3a3030', [1, 0.15])); counter.n++;      // short conical beak
+    const [ex, ey] = P(Hd.x - Hd.r * 0.35, Hd.y - Hd.r * 0.22);
+    out.push(`<circle cx="${R1(ex)}" cy="${R1(ey)}" r="${R1(0.75 * sc)}" fill="#141018"/>`); counter.n++;   // a small dark eye
   };
   gleaner(432, 452, 1.5, true);    // head down in the open row, a few steps behind the sower
   gleaner(506, 428, 1.2, false);   // one alert, watching him

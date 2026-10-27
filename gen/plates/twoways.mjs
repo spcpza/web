@@ -1114,21 +1114,29 @@ export function paint(E, opts = {}) {
   {
     // SWALLOWS — four dark wheeling forms in the bright glow: curved back-swept
     // wings (Munch: living = curved), deep forked tail, one white throat-fleck.
-    const swCol = (x, y, r) => jig(mix('#222c46', '#38425e', r() * 0.5), r, 6);
-    const swallow = (bx, by, s, tilt) => {
+    // ⚠ Oct 27 — Fred: "fix the birds near the angels. draw it properly, that chickenscratch bird was just for
+    // concept." The old ones were six jittered paintPath dashes each. A barn swallow, drawn: two long scimitar
+    // wings (tapering ribbons, a lit leading edge), a steel-blue back, cream belly, rust throat and the deep forked
+    // tail with its two streamers — smooth bodies of paint, not scratches. (Old: attic/twoways-pre-swallows.mjs.)
+    const swallow = (bx, by, s, tilt, beat = 0, dir = 1) => {   // dir -1: mirrored, flying the other way (never turned upside down)
       const ca = Math.cos(tilt), sa = Math.sin(tilt);
-      const P = (px, py) => [bx + (px * ca - py * sa) * s, by + (px * sa + py * ca) * s];
-      paintPath(out, counter, rng, [P(-11, -1.5), P(-7, -5.5), P(-2.5, -1.5), P(0, 0.5)], swCol, { lw: 1.9 * s, len: 3, density: 0.95, jitter: 0.35 });
-      paintPath(out, counter, rng, [P(0, 0.5), P(2.5, -1.5), P(7, -5.5), P(11, -1.5)], swCol, { lw: 1.9 * s, len: 3, density: 0.95, jitter: 0.35 });
-      paintPath(out, counter, rng, [P(-2, 0.5), P(2.5, 1.6)], swCol, { lw: 2.4 * s, len: 2.5, density: 1, jitter: 0.25 });    // body
-      paintPath(out, counter, rng, [P(2.5, 1.6), P(7.5, 4.4)], swCol, { lw: 1.1 * s, len: 2.2, density: 0.9, jitter: 0.3 }); // forked tail
-      paintPath(out, counter, rng, [P(2.5, 1.6), P(8, 0.8)], swCol, { lw: 1.1 * s, len: 2.2, density: 0.9, jitter: 0.3 });
-      paintPath(out, counter, rng, [P(-1.6, 1.4), P(0.6, 1.7)], (x, y, r) => jig('#f6ede0', r, 5), { lw: 1.2 * s, len: 1.6, density: 1, jitter: 0.2 }); // throat
+      const P = (px, py) => { px *= dir; return [bx + (px * ca - py * sa) * s, by + (px * sa + py * ca) * s]; };
+      const up = 1 - beat * 0.35, dn = 1 + beat * 0.2;   // a wingbeat: the near wing lifts, the far one sweeps
+      const wing = (sg, k) => {
+        out.push(E.ribbon([P(-1, sg * 0.4), P(2, sg * 6 * k), P(5.5, sg * 10.5 * k), P(9.5, sg * 13 * k)], 3.6 * s, sg < 0 ? '#2a3456' : '#1f2742', [1, 0.92, 0.5, 0.06])); counter.n++;
+        out.push(E.ribbon([P(-1.6, sg * 1.0), P(1.6, sg * 6.6 * k), P(5.0, sg * 11.0 * k), P(9.0, sg * 13.5 * k)], 1.1 * s, sg < 0 ? '#5c6c9c' : '#3c4870', [0.4, 1, 0.7, 0.1])); counter.n++;   // the leading edge catches the light
+      };
+      wing(1, dn);                                                                                    // far wing first
+      for (const sg of [-1, 1]) { out.push(E.ribbon([P(4, sg * 0.4), P(9, sg * 2.6), P(14, sg * 4.4)], 1.3 * s, '#1c2338', [1, 0.45, 0.04])); counter.n++; }   // the forked tail
+      out.push(E.ribbon([P(-6.2, 0), P(-2, 0.2), P(4.5, 0.3)], 3.0 * s, '#232b48', [0.55, 1, 0.4])); counter.n++;   // body — slim, a swallow is all wing
+      out.push(E.ribbon([P(-3, 1.1), P(0.5, 1.3), P(3.5, 1.0)], 1.7 * s, '#efe4cc', [0.5, 1, 0.3])); counter.n++;    // cream belly
+      out.push(`<circle cx="${R1(P(-5.4, 0.7)[0])}" cy="${R1(P(-5.4, 0.7)[1])}" r="${R1(0.85 * s)}" fill="#a8432c"/>`); counter.n++;   // rust throat
+      wing(-1, up);                                                                                   // near wing over the body
     };
-    swallow(330, 198, 1.05, -0.38);   // banking up the left of the roof
-    swallow(488, 213, 0.9, 0.42);     // sweeping down the right
-    swallow(366, 156, 0.95, 0.12);    // crossing high above the peak, left
-    swallow(452, 170, 0.8, -0.2);     // trailing above, right
+    swallow(330, 198, 1.05, -0.38, 0.6);   // banking up the left of the roof
+    swallow(488, 213, 0.9, -0.42, 0.2, -1);   // sweeping down the right, the other way
+    swallow(366, 156, 0.95, 0.12, -0.4);   // crossing high above the peak, left
+    swallow(452, 170, 0.8, 0.2, 0.8, -1);   // trailing above, right
 
     // CLIMBING ROSES — warm reds/pinks, dark-on-gold; garlands up the two wall
     // edges + posies at the doorpost feet. Clear of the door opening, both

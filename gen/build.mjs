@@ -782,7 +782,7 @@ for (const m of modules) {
       // ⭐ FLOW by plane kind (Sep 15): skies sweep, grounds comb, everything else keeps its hand
       {
         const nm = L.name;
-        const skyish = /^(sky\d?|air|n\d)$/.test(nm) || (nm === 'bg' && SKY_BG.has(m.name));
+        const skyish = /^(sky\d?|air|n\d|cloud)$/.test(nm) || (nm === 'bg' && SKY_BG.has(m.name));
         const groundish = /^(ground|land|mid|hills|far|near|front|field|grass|meadow)$/.test(nm) || (nm === 'bg' && !SKY_BG.has(m.name));
         // Fred, on the first pilot: "lighten on the sky and go more ham on the ground"
         engine.setFlow(skyish ? 1.2 : groundish ? 1.9 : 1, skyish ? 1.35 : groundish ? 2.4 : 1);
