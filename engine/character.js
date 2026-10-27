@@ -1145,7 +1145,7 @@
           var acts = (CAST1[k] && CAST1[k].actors) || [], set = [];
           for (var i = 0; i < acts.length; i++) {
             var a = acts[i];
-            if (a.t !== 'p' || a.wings) continue;
+            if (a.t !== 'p' || (a.wings && !a.kid)) continue;   // a winged friend (a.kid) is drawn from his cells too
             var c = kidCell(a);
             if (c && set.indexOf(c) < 0) set.push(c);
           }
@@ -2366,6 +2366,69 @@
     'breaking': 1,   // drawn offering to the viewer's right; facing:-1 mirrors it
     'running': 1, 'teddy': 1, 'treat': 1, 'cheering': 1, 'joy': 1, 'teary': 1, 'reading': 1,
   };
+
+  // ── AN ANGEL IS ONE OF HIS FRIENDS, WINGED ─────────────────────────────────
+  //  Oct 27, Fred: the teddy-bear angels (the old procedural pilgrim in white, its hood reading
+  //  as ears) were the only friendly figures not from his hand, and the book must stay kid
+  //  friendly — "Fear not" is an angel's first word (Matt 28:5, Luke 2:10), so he has to look
+  //  like someone a child would never fear. So an angel is now one of Fred's drawn friends in
+  //  a white hoodie (raiment white as snow, Matt 28:3) with the WINGS FROM FRED'S OWN
+  //  REFERENCE SPRITE (rounded petal lobes, cream at the root to gold at the tips) behind him
+  //  and a soft ring of light above. `layer` 'back' = wings (before him), 'front' = halo.
+  //  Geometry is read off the cell he is drawn with, so the wings sit at HIS shoulders.
+  function drawAngelKit(ctx, p, anim, layer) {
+    anim = anim || {};
+    var im = kidImage(kidCell(p));
+    var asp = (im && im.naturalWidth) ? im.naturalWidth / im.naturalHeight : 0.7;
+    var h = p.h, w = h * asp;
+    var x = p.x + (anim.swayX || 0), y = p.y + (anim.bobY || 0);
+    var sh = p.angelShoulder || 0.52, crown = p.angelCrown || 1.0;   // shoulder height and head-top, as fractions of h up from his feet
+    ctx.save();
+    if (layer === 'back') {
+      var wl = h * (p.wingLen || 0.5);
+      var lobe = function (lx, ly, len, wid, ang, c0, c1) {
+        var lg = ctx.createLinearGradient(lx, ly, lx + Math.cos(ang) * len, ly + Math.sin(ang) * len);
+        lg.addColorStop(0, c0); lg.addColorStop(1, c1);
+        ctx.save(); ctx.translate(lx, ly); ctx.rotate(ang);
+        ctx.fillStyle = lg;
+        ctx.beginPath(); ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(len * 0.42, -wid, len, -wid * 0.28);   // the upper curve of the feather
+        ctx.quadraticCurveTo(len * 0.66, wid * 0.5, 0, wid * 0.34);  // and its rounder underside
+        ctx.closePath(); ctx.fill();
+        // a soft shadow line under each lobe, so the feathers overlap instead of melting into one shape
+        ctx.strokeStyle = 'rgba(176,132,70,0.35)'; ctx.lineWidth = Math.max(0.8, h * 0.012);
+        ctx.beginPath(); ctx.moveTo(len * 0.08, wid * 0.3); ctx.quadraticCurveTo(len * 0.66, wid * 0.46, len * 0.97, -wid * 0.2); ctx.stroke();
+        ctx.restore();
+      };
+      // the wings breathe — a slow lift on the beat, the same for both, never a flap
+      var lift = (anim.wingLift || 0);
+      for (var wg = -1; wg <= 1; wg += 2) {
+        var rx = x + wg * w * 0.2, ry = y - h * sh;
+        ctx.save();
+        if (wg < 0) { ctx.translate(rx * 2, 0); ctx.scale(-1, 1); }
+        for (var lb = 3; lb >= 0; lb--) {
+          var ang = -0.16 - lb * 0.30 - lift * 0.12;
+          lobe(rx, ry + lb * h * 0.014, wl * (1 - lb * 0.17), wl * (0.30 - lb * 0.035), ang,
+               '#fffdf4', lb === 0 ? '#f6c86a' : lb === 1 ? '#f8d488' : '#fce6b4');
+        }
+        lobe(rx - wl * 0.06, ry + h * 0.05, wl * 0.34, wl * 0.13, -0.05, '#fffef8', '#f3bd7a');   // the alula
+        ctx.restore();
+      }
+    } else {
+      // the halo: a ring of LIGHT, not a hoop of metal — gold is the Light's own colour, so the ring
+      // is white-hot with only a warm bloom round it, floating just clear of his hair
+      var hx = x + (p.haloDx || 0) * h, hy = y - h * crown - h * 0.07, rx2 = w * 0.2, ry2 = rx2 * 0.3;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = 'rgba(255,230,160,0.9)'; ctx.shadowBlur = Math.max(4, h * 0.16);
+      ctx.strokeStyle = 'rgba(255,238,178,0.75)'; ctx.lineWidth = Math.max(1.6, h * 0.05);
+      ctx.beginPath(); ctx.ellipse(hx, hy, rx2, ry2, 0, 0, 6.2832); ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(255,253,240,0.95)'; ctx.lineWidth = Math.max(0.9, h * 0.022);
+      ctx.beginPath(); ctx.ellipse(hx, hy, rx2, ry2, 0, 0, 6.2832); ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+  }
 
   function drawKid(ctx, p, anim) {
     anim = anim || {};
@@ -3912,8 +3975,14 @@
          Plate geometry: the stone is centred (596,326), 67×76, so its crown is at y≈250. */
       // ⚠ y is 36 BELOW the stone's crown: a winged figure has no boots, so its robe hem rides ~0.78h above
       // its ground line (measured off the render — at y:258 he hovered over the hilltop). `perch` stops the hover bob.
-      { t:'p', x:596, y:294, h:46, facing:-1, wings:1, perch:1, eye:[-0.7,0.35], mood:'joy', aura:16,
-        cols:["#fffdf2","#f2e6c2","#cdb98c"], maskCols:["#fffef8","#f6efdc","#d8cbaa"] }
+      // ⭐ Oct 27 PILOT (Fred: "try option 2, pilot the tomb angel"): one of Fred's own friends, winged — his
+      // `sit-laugh` drawing SAT on the stone (Matt 28:2 "sat upon it"), laughing because "He is not here: for he
+      // is risen", in a white hoodie (28:3 "raiment white as snow") with golden hair. The hood is a soft white,
+      // not paper: the recolour maps lightness, and a near-white target flattens his folds (see FRIEND_SKIN).
+      // y is his SEAT on the stone's crown (≈250): a sitting cell is anchored at its lowest point.
+      { t:'p', x:596, y:266, h:50, facing:-1, wings:1, kid:1, cell:'sit-laugh', perch:1, eye:[-0.7,0.35], mood:'joy',
+        cols:["#ebe5d8","#f2e6c2","#cdb98c"], hair:'#efcb93', skin:'#f0d0b6', eyeCol:'#6fa8e8',
+        angelShoulder: 0.64, angelCrown: 1.0, wingLen: 0.6 }
     ] },
     15: { fx0: 148, actors: [
       { t:'p', x:177, y:464, h:54, facing:1, eye:[1,-0.6], mood:'joy', stride:0.7, lift:0.5, wind:-0.3, armR:[192, 424] }   // ⚠ 'weary' -> 'joy': he could not walk the last step, but he can SEE Him coming
@@ -6473,7 +6542,7 @@
 
   window.__charFactory = {
     drawPilgrim: drawPilgrim, drawRadiant: drawRadiant, drawHooded: drawHooded,
-    drawKid: drawKid, kidPreload: kidPreload, kidCell: kidCell, kidPalFor: kidPalFor,
+    drawKid: drawKid, drawAngelKit: drawAngelKit, kidPreload: kidPreload, kidCell: kidCell, kidPalFor: kidPalFor,
     drawKidBuilt: drawKidBuilt, drawKidRig: drawKidRig, drawKidMesh: drawKidMesh, onMeshReady: onMeshReady, meshReady: meshReady, onRigReady: onRigReady, rigReady: rigReady,
     kidReady: kidReady, onKidReady: onKidReady, kidCellsFor: kidCellsFor, kidWarm: kidPreload, kidWarmAhead: kidWarmAhead, kidWarmAll: kidWarmAll,
     drawTree: drawTree, drawBush: drawBush, drawCrown: drawCrown,
@@ -6698,8 +6767,10 @@
         }
         if (isR) drawRadiant(ctx, A.p, anim);
         else {
-          if (!A.p.wings) A.p.kidPal = kidPalFor(A.p, (A.p.x || 0) + (A.p.h || 0));
-          if (A.p.wings || !drawKid(ctx, A.p, anim)) drawPilgrim(ctx, A.p, anim);
+          if (!A.p.wings || A.p.kid) A.p.kidPal = kidPalFor(A.p, (A.p.x || 0) + (A.p.h || 0));
+          if (A.p.wings && A.p.kid && kidReady([kidCell(A.p)])) {   // an angel: one of his friends, winged (drawAngelKit)
+            drawAngelKit(ctx, A.p, anim, 'back'); drawKid(ctx, A.p, anim); drawAngelKit(ctx, A.p, anim, 'front');
+          } else if (A.p.wings || !drawKid(ctx, A.p, anim)) drawPilgrim(ctx, A.p, anim);
         }
       }
       unify(V, +k);

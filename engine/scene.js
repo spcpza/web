@@ -2703,6 +2703,16 @@
       p.kidPal = F.kidPalFor ? F.kidPalFor(a, (a.x || 0) + (a.h || 0)) : null;
       if (F.drawKid(g, p, anim)) { a.__isCell = 1; carrierHands(g, a, box); return; }
     }
+    // ⚠ Oct 27: an angel flagged `kid` is one of his friends, winged — Fred's drawing in a white
+    // hoodie, his reference wings behind, a ring of light above (F.drawAngelKit). Until the cell
+    // decodes the old winged pilgrim covers, as for everyone else.
+    if (!isR && F.drawKid && F.drawAngelKit && a.wings && a.kid && F.kidReady([F.kidCell(a)])) {   // ready first, or the fallback would draw a second pair of wings
+      p.kidPal = F.kidPalFor ? F.kidPalFor(a, (a.x || 0) + (a.h || 0)) : null;
+      var _wa = { swayX: anim.swayX, bobY: anim.bobY, wingLift: anim.wingLift };
+      F.drawAngelKit(g, p, _wa, 'back');
+      F.drawKid(g, p, anim); F.drawAngelKit(g, p, _wa, 'front');
+      a.__isCell = 1; return;
+    }
     a.__isCell = 0;
     (isR ? F.drawRadiant : F.drawPilgrim)(g, p, anim);
   }
