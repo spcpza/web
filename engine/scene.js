@@ -2998,7 +2998,7 @@
     // character. It is a race, which is why it looked intermittent. Angels keep their
     // own painter (they have wings and his sheets have none), so they are the only
     // actors that must NOT wait.
-    var isHim = a.t === 'p' && !a.wings;
+    var isHim = a.t === 'p' && (!a.wings || a.kid);   // Oct 27: a winged friend (a.kid) IS drawn from his sheet now, so it waits too
     // ⚠ AND THIS ACTOR WAITS FOR ITS OWN CELL, not for the whole cast. One page's figure
     // has no business being gated on the drawings of thirty other pages.
     var _ac = (F && F.kidCell) ? [F.kidCell(a)] : null;
