@@ -2699,19 +2699,9 @@
     // pilgrim draws in that case, so a page can never come up with nobody in it.
     // the protagonist plain; the friends the same character in their own colours. Angels
     // keep their own painter — they have wings, and his sheet has none.
-    if (!isR && F.drawKid && !a.wings) {
+    if (!isR && F.drawKid && (!a.wings || a.kid)) {   // Oct 27: Fred's angels (a.kid) are cells from his angel sheet
       p.kidPal = F.kidPalFor ? F.kidPalFor(a, (a.x || 0) + (a.h || 0)) : null;
       if (F.drawKid(g, p, anim)) { a.__isCell = 1; carrierHands(g, a, box); return; }
-    }
-    // ⚠ Oct 27: an angel flagged `kid` is one of his friends, winged — Fred's drawing in a white
-    // hoodie, his reference wings behind, a ring of light above (F.drawAngelKit). Until the cell
-    // decodes the old winged pilgrim covers, as for everyone else.
-    if (!isR && F.drawKid && F.drawAngelKit && a.wings && a.kid && F.kidReady([F.kidCell(a)])) {   // ready first, or the fallback would draw a second pair of wings
-      p.kidPal = F.kidPalFor ? F.kidPalFor(a, (a.x || 0) + (a.h || 0)) : null;
-      var _wa = { swayX: anim.swayX, bobY: anim.bobY, wingLift: anim.wingLift };
-      F.drawAngelKit(g, p, _wa, 'back');
-      F.drawKid(g, p, anim); F.drawAngelKit(g, p, _wa, 'front');
-      a.__isCell = 1; return;
     }
     a.__isCell = 0;
     (isR ? F.drawRadiant : F.drawPilgrim)(g, p, anim);
@@ -2998,7 +2988,7 @@
     // character. It is a race, which is why it looked intermittent. Angels keep their
     // own painter (they have wings and his sheets have none), so they are the only
     // actors that must NOT wait.
-    var isHim = a.t === 'p' && (!a.wings || a.kid);   // Oct 27: a winged friend (a.kid) IS drawn from his sheet now, so it waits too
+    var isHim = a.t === 'p' && (!a.wings || a.kid);   // Oct 27: Fred's angels (a.kid) are drawn from his sheet, so they wait too
     // ⚠ AND THIS ACTOR WAITS FOR ITS OWN CELL, not for the whole cast. One page's figure
     // has no business being gated on the drawings of thirty other pages.
     var _ac = (F && F.kidCell) ? [F.kidCell(a)] : null;
