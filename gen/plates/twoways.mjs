@@ -833,7 +833,8 @@ export function paint(E, opts = {}) {
   // Father's house — the home (the destination) must read clearly.
   for (const [bx, by, s] of [[180, 58, 1], [216, 72, 0.85], [252, 54, 0.9], [560, 78, 0.85], [598, 64, 0.74], [120, 86, 0.8], [700, 70, 0.62]]) {
     // (Sep 14: a three-point V with a heavy brush read as black ticks — a gull-wing, finer)
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx - 3 * s, by - 1.6 * s], [bx, by + 0.4 * s], [bx + 3 * s, by - 1.6 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#46506a', r, 6), { lw: 1.0 * s, len: 3, density: 0.9, jitter: 0.3 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx - 3 * s, by - 1.6 * s], [bx, by + 0.4 * s], [bx + 3 * s, by - 1.6 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#46506a', r, 6), { lw: 1.0 * s, len: 3, density: 0.9, jitter: 0.3 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#46506a', tilt: (bx % 5 - 2) * 0.05 }); }
   }
   const cyp = (cx, cby, ch, w) => strokes(out, counter, { rng, n: Math.round(w * ch / 12), sample: r => { const v = Math.pow(r(), 0.85); const wr = w * Math.sin(Math.PI * Math.min(1, v * 1.15)) + 0.7; return [cx + (r() + r() - 1) * wr, cby - v * ch]; }, dir: (x, y) => -Math.PI / 2 + (fbm(x / 8, y / 8, 247) - 0.5) * 0.6, col: (x, y, r) => jig(ramp(['#26283a', '#34364e', '#42445e'], fbm(x / 10, y / 10, 251) + r() * 0.3), r, 7), len: 9, lw: 2.2, steps: 3, follow: 0.95, lenJ: 0.5 });
   cyp(96, 246, 44, 6); cyp(726, 250, 46, 7);

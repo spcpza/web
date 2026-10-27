@@ -216,7 +216,8 @@ export function paint(E, opts = {}) {
 
   /* ---------------- BACKGROUND LIFE (Matt 6:26; Isa 55:12) ---------------- */
   for (const [bx, by, s] of [[300, 130, 1], [340, 144, 0.85], [560, 112, 0.8]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#26304e', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#26304e', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#26304e', tilt: (bx % 5 - 2) * 0.05 }); }
   }
   const bush04 = (bx, by, w, h) => strokes(out, counter, { rng, n: Math.round(w * 1.5), sample: r => { const a = r() * Math.PI * 2, dd = Math.pow(r(), 0.7); return [bx + Math.cos(a) * w * dd, by - Math.abs(Math.sin(a)) * h * dd]; }, dir: (x, y) => -Math.PI / 2 + 0.3 + (fbm(x / 10, y / 10, 259) - 0.5) * 1.0, col: (x, y, r) => jig(ramp(['#1c3026', '#284432', '#365840'], fbm(x / 12, y / 12, 261) + r() * 0.25), r, 8), len: 6, lw: 2, steps: 2, lenJ: 0.5 });
   bush04(450, 460, 14, 10); bush04(620, 468, 13, 9); bush04(330, 476, 12, 8);
@@ -321,8 +322,14 @@ export function paint(E, opts = {}) {
       { ax: hx + 9, ay: hy + 1, bx: hx + 6, by: hy - 10, r: 2.8 },  // finger
       { ax: hx - 6, ay: hy + 2, bx: hx - 13, by: hy - 5, r: 3 },    // thumb pinning the string
     ];
-    underpaintCapsules(out, counter, hdCaps, E.LIGHT_PAL.edge);
-    paintFigure(out, counter, rng, hdCaps, (x, y, r) => jig(E.lightBody(fbm(x / 12, y / 12, 57) * 0.5 + (y - (hy - 12)) / 70), r, 8), 2.0);
+    // ⚠ Oct 27 art pass: at its old size the hand read as a flame-blob. Half again as big, about the grip (so the runtime
+    // cord still lands in it), and with the Light's full gold range it has knuckles and a palm.
+    for (const c of hdCaps) { c.ax = hx + (c.ax - hx) * 1.5; c.ay = hy + (c.ay - hy) * 1.5; c.bx = hx + (c.bx - hx) * 1.5; c.by = hy + (c.by - hy) * 1.5; c.r *= 1.45; }
+    // …and even at that size a stack of capsules under broad marks was still a blob. The hand is now DRAWN by its parts
+    // (E.lightHand: curled fingers, creases, knuckles, a thumb over the top), the cord leaving the fist at HAND. The old
+    // paint is still walked on a scratch array so the plate's rng, and everything painted after it, stays put.
+    paintFigure([], { n: 0 }, rng, hdCaps, (x, y, r) => jig(E.lightBody(fbm(x / 12, y / 12, 57) * 0.5 + (y - (hy - 12)) / 70), r, 8), 2.0);
+    E.lightHand(out, counter, hx - 2 * 1.5, hy + 17 * 1.5, 1.5);
     strokes(out, counter, {   // rays streaming off the hand
       rng, n: 50,
       sample: r => { const a = r() * Math.PI * 2, d = (0.6 + 0.5 * r()) * 40; return [hx + Math.cos(a) * d, hy + 8 + Math.sin(a) * d * 0.85]; },
@@ -393,11 +400,13 @@ export function paint(E, opts = {}) {
     const a = Math.atan2(HAND[1] - my, HAND[0] - mx);   // headed for the hand
     for (const w of [-1, 1]) {   // two swept-back curved wings (living = curved)
       const wx = mx + Math.cos(a + w * 2.0) * 5.5 * s, wy = my + Math.sin(a + w * 2.0) * 4.2 * s;
-      paintPath(out, counter, rng,
+      paintPath([], { n: 0 }, rng,   // (walked on a scratch array — keeps the plate's rng where it was)
         [[mx + Math.cos(a) * 1.5 * s, my + Math.sin(a) * 1.5 * s], [(mx + wx) / 2 + Math.cos(a) * 2.2 * s, (my + wy) / 2 + Math.sin(a) * 2.2 * s], [wx, wy]],
         (x, y, r) => jig(mix(GOLD_PALE, '#efe6c0', r() * 0.6), r, 7), { lw: 1.7 * s, len: 3, density: 1.15, jitter: 0.45 });
     }
-    out.push(`<circle cx="${R1(mx)}" cy="${R1(my)}" r="${(1.2 * s).toFixed(1)}" fill="#e8c060"/>`); counter.n++;
+    // Oct 27 art pass: two bent dashes and a dot read as a "Y" at 1:1. A real moth, cream and dusty brown, lit by the
+    // hand it is flying to, its head turned toward it.
+    E.realButterfly(out, counter, E.mulberry32(mx * 31 + my), mx, my, 0.5 * s, { cols: ['#f1e4bc', '#8a7050', '#fff8e2'], open: 0.75, tilt: a + Math.PI / 2 });
   };
   moth(148, 364, 1.3);
   moth(186, 334, 1.5);

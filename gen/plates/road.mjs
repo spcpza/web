@@ -448,8 +448,8 @@ export function paint(E, opts = {}) {
      (Isa 53:6 / Luke 15). The road home runs through a living country. */
   // a small flock of birds riding the swirl sky
   for (const [bx, by, s] of [[210, 86, 1], [244, 98, 0.85], [276, 82, 0.92], [250, 114, 0.72], [302, 96, 0.8]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]],
-      (x, y, r) => jig('#2a3052', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#2a3052', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#2a3052', tilt: (bx % 5 - 2) * 0.05 }); }
   }
   // cypress trees on the near hills — dark green flames, dusk-gold rim
   const cypress = (cx, cby, ch, w) => {

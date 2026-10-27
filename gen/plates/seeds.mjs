@@ -189,7 +189,8 @@ export function paint(E, opts = {}) {
   // sky↔field boundary (never a ruled line) and slides against the sky on the pan.
   distantHills(out, counter, rng, { topFn: ridge(horizon, { amp: 26, freq: 190, bumps: 0.5, seed: 121 }), horizonFn: horizon, cols: ['#5f8e5a', '#73a258', '#8fb858'], depth: 34, lightFn: light, seed: 121 });
   for (const [bx, by, s] of [[300, 58, 1], [338, 72, 0.85], [378, 54, 0.9], [620, 78, 0.78]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#34364a', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#34364a', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#34364a', tilt: (bx % 5 - 2) * 0.05 }); }
   }
   farRanges.push([_far, out.length]);   // ← distant hills + birds (FAR plane)
 

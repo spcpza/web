@@ -92,8 +92,9 @@ export function paint(E, opts = {}) {
   // first morning's gentle turn (paint on paint), own rng per sheet.
   const _cloudBody = [], _cloudEdge = [];
   E.realClouds(_cloudBody, _cloudEdge, { n: 0 }, mulberry32(seed + 1009), {
-    banks: [{ x: 110, y: 214, w: 220, h: 58 }, { x: 640, y: 206, w: 240, h: 64 }, { x: 760, y: 120, w: 110, h: 40 },
-            { x: 520, y: 80, w: 130, h: 34 }, { x: 160, y: 96, w: 120, h: 36 }],
+    // ⚠ Oct 27 art pass: the two smallest high banks (760,120 · 520,80) were too small to be clouds — at 1:1 they were
+    // rows of scalloped little bumps, golden 'C's beside the trees. The big banks carry the sky.
+    banks: [{ x: 110, y: 214, w: 220, h: 58 }, { x: 640, y: 206, w: 240, h: 64 }, { x: 160, y: 96, w: 120, h: 36 }],
     sun: lightC, sunAt: (x, y) => rise(x, y) * 1.4,
     cols: ['#a48fb0', '#c2a8bc', '#dcc2c6', '#f0dcd2', '#fbefe2', '#fff8ee'], warm: '#ffd796' });
   const skySheets = SKY_SHEETS.map((e, k) => {
@@ -109,7 +110,15 @@ export function paint(E, opts = {}) {
          soft lilac seas sit in the lit part. Own rng; top sheet, beside the stars. */
       const MN = { x: 268, y: 46, r: 16 };   // ⚠ r 12.5 read as a grey smudge on the plate — a day moon is small but CLEAR
       const sd = Math.atan2(lightC.y - MN.y, lightC.x - MN.x);                 // toward the sun
-      const lit = (x, y) => ((x - MN.x) * Math.cos(sd) + (y - MN.y) * Math.sin(sd)) / MN.r;   // -1 far limb .. +1 sun limb
+      // ⚠ Oct 27 art pass: a STRAIGHT cut across the disc made it a flat white blob. A real terminator is a curve
+      // (an ellipse across a sphere), and in a day sky the dark limb still faintly shows — so the gibbous lit part is
+      // bounded by that curve, and the whole disc is laid in first as a breath of paler sky.
+      const lit = (x, y) => { const u = ((x - MN.x) * Math.cos(sd) + (y - MN.y) * Math.sin(sd)) / MN.r, v = (-(x - MN.x) * Math.sin(sd) + (y - MN.y) * Math.cos(sd)) / MN.r;
+        return u + 0.42 * Math.sqrt(Math.max(0, 1 - v * v)) - 0.14; };   // > -0.28 inside the lit part, as the marks below expect
+      strokes(sh, c2, { rng: mulberry32(seed ^ 0x1017), n: 140,
+        sample: r => { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * MN.r * 0.98; return [MN.x + Math.cos(a) * d, MN.y + Math.sin(a) * d]; },
+        dir: (x, y) => Math.atan2(y - MN.y, x - MN.x) + Math.PI / 2, col: (x, y, r) => jig('#b6c6e6', r, 3),
+        len: 3.2, lw: 2, steps: 2, relief: 0, impasto: 0, flow: 0, op: 0.35 });
       strokes(sh, c2, {
         rng: mulberry32(seed ^ 0x1016), n: 360,
         sample: r => { for (let t = 0; t < 30; t++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * MN.r; const x = MN.x + Math.cos(a) * d, y = MN.y + Math.sin(a) * d; if (lit(x, y) > -0.28 + (r() - 0.5) * 0.12) return [x, y]; } return null; },

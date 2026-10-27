@@ -638,7 +638,8 @@ export function paint(E, opts = {}) {
   // the field, so they parallax on their own as the view turns (Matt 6:26)
   const _birds = out.length;
   for (const [bx, by, s] of [[180, 60, 1], [214, 74, 0.85], [250, 56, 0.9], [292, 70, 0.78], [330, 50, 0.7], [560, 80, 0.85], [598, 66, 0.75], [636, 86, 0.7], [120, 88, 0.8], [700, 72, 0.62]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#36405a', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#36405a', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#36405a', tilt: (bx % 5 - 2) * 0.05 }); }
   }
   birdRanges.push([_birds, out.length]);   // ← the birds drift in their own air
 
@@ -801,9 +802,11 @@ export function paint(E, opts = {}) {
     paintPath(out, counter, rng, [[bx, by - 3 * s], [bx + 0.6 * s, by], [bx, by + 3.5 * s]],
       (x, y, r) => jig(body, r, 5), { lw: 1.1 * s, len: 2.5, density: 1, jitter: 0.2 });
   };
-  butterfly(268, 424, 1.6, '#e84a66', '#401830');  // coral-crimson, big + near — hovering over the pale road between Him and you
-  butterfly(230, 384, 1.25, '#8f5ce0', '#301a4a'); // violet, higher on His line — risen further, on the green wheat
-  butterfly(394, 320, 0.95, '#3d86d8', '#182a4a'); // bold blue, small + far — above the gold-lit wheat behind His shoulder (blue pops on gold)
+  // ⚠ Oct 27 art pass: the four-dash butterflies read as red and violet bows on the road — drawn by E.realButterfly now.
+  void butterfly;
+  E.realButterfly(out, counter, rng, 268, 424, 0.95, { cols: ['#e8563c', '#3a1418', '#ffe2b8'], open: 0.9, tilt: -0.25 });   // a red admiral-warm one, near, over the road
+  E.realButterfly(out, counter, rng, 230, 384, 0.75, { cols: ['#9a6ae0', '#2a1838', '#f2e2ff'], open: 0.6, tilt: 0.35 });    // violet, higher on His line, turning
+  E.realButterfly(out, counter, rng, 394, 320, 0.55, { cols: ['#3d86d8', '#14223a', '#e6f2ff'], open: 0.8, tilt: -0.1 });    // blue, small + far, on the gold
 
   // CHILD: three steps in at the near end, walking toward the house  [FG layer]
   const _fgC = out.length;

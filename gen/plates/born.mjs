@@ -570,18 +570,11 @@ export function paint(E, opts = {}) {
       out.push(`<path d="M${R1(bx)} ${R1(by)}Q${R1(bx + cxx * s * 0.6)} ${R1(by + cyy * s * 0.6)} ${R1(bx + ex * s * 0.62)} ${R1(by + ey * s * 0.62)}Z" fill="${col2}" opacity="0.8"/>`);
       counter.n++;
     };
-    const HOT = mix('#ff9a3c', '#fff0c0', gC(bx, by) * 0.5);
-    const VIO = mix('#8f5fd0', '#e6cdf6', gC(bx, by) * 0.35);
-    wing(-2, -12, -11, -9, -14, -15, HOT, '#ffd98a');        // upper left
-    wing(2, -12, 11, -9, 14, -15, HOT, '#ffd98a');           // upper right
-    wing(-2, 2, -8, 6, -12, 3, VIO, '#d9b8f2');              // lower left
-    wing(2, 2, 8, 6, 12, 3, VIO, '#d9b8f2');                 // lower right
-    paintPath(out, counter, rng, [[bx, by - 5 * s], [bx, by + 6 * s]],
-      (x, y, r) => jig('#2b1c34', r, 5), { lw: 1.5 * s, len: 2, density: 1, jitter: 0.1 });
-    for (const d of [-1, 1]) paintPath(out, counter, rng,
-      [[bx, by - 5 * s], [bx + d * 4 * s, by - 10 * s]],
-      (x, y, r) => jig('#3a2742', r, 4), { lw: 0.7 * s, len: 2, density: 1, jitter: 0.1 });
-  }
+    // ⚠ Oct 27 art pass: four flat petal-wings read as a "Y" at page size. Drawn by E.realButterfly — a brimstone-warm
+    // gold, lit by him, turned a little toward his hand.
+    void wing;
+    E.realButterfly(out, counter, rng, bx, by, s * 0.85, { cols: [mix('#f4b23c', '#fff0c0', gC(bx, by) * 0.35), '#4a2c18', '#fff6d8'], open: 0.75, tilt: -0.3 });
+  }   // (antennae are realButterfly's own now)
 
   /* ---------------- EGGS ----------------
      Γʹ·Γʹ — John 3:3 in Koine numerals ("Except a man be born again…"), the egg this

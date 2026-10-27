@@ -551,7 +551,8 @@ export function paint(E, opts = {}) {
 
   /* ====================== 9.5 BACKGROUND LIFE (Matt 6:26; Isa 55:12) ====================== */
   for (const [bx, by, s] of [[440, 86, 1], [478, 100, 0.85], [412, 112, 0.8], [510, 92, 0.74]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#1a2c52', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#1a2c52', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#1a2c52', tilt: (bx % 5 - 2) * 0.05 }); }
   }
 
   /* ====================== 10. THE FIGURE — you, hiding in the dark ====================== */

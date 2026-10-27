@@ -466,7 +466,8 @@ export function paint(E, opts = {}) {
 
   /* ---------------- BACKGROUND LIFE — birds in the gale (Matt 6:26) ---------------- */
   for (const [bx, by, s] of [[180, 92, 0.9], [240, 70, 0.8], [150, 120, 0.7]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 3 * s], [bx, by - 1 * s], [bx + 5 * s, by + 4 * s]], (x, y, r) => jig('#3a4452', r, 6), { lw: 1.5 * s, len: 3.2, density: 0.9, jitter: 0.7 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 3 * s], [bx, by - 1 * s], [bx + 5 * s, by + 4 * s]], (x, y, r) => jig('#3a4452', r, 6), { lw: 1.5 * s, len: 3.2, density: 0.9, jitter: 0.7 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#3a4452', tilt: (by % 7 - 3) * 0.12 }); }
   }
 
   /* ---------------- 9. THE TREE — bowed, not broken ---------------- */

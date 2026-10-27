@@ -1183,8 +1183,49 @@ export function lightEdge(out, counter, cx, cy, rx, ry = rx, opts = {}) {
 // Every part of Him — a whole figure (paintLight), the great arm on made/turning, the hand on string — takes
 // its paint from here: brilliant white on top, warming to gold underneath, a warm orange-gold rim. Never brown.
 export const LIGHT_PAL = { top: '#ffffff', gold: '#ffd45c', base: '#fff7df', rim: '#f0b040', edge: '#d88a26', aura: '#ffd24f' };
-export function lightBody(t) { return mix(LIGHT_PAL.top, LIGHT_PAL.gold, 0.06 + 0.34 * Math.max(0, Math.min(1.4, t))); }
+// ⚠ Oct 27: the first ramp (white → only 40% toward gold) left Him FLAT — the running Father on `ran` a white
+// gingerbread outline, the arms on made/turning chalk smears. Light has FORM: white where it faces you, full gold as
+// it turns, and past t = 1 down toward the warm rim. Same palette, the whole range of it.
+export function lightBody(t) { t = Math.max(0, Math.min(1.5, t)); return t <= 1 ? mix(LIGHT_PAL.top, LIGHT_PAL.gold, 0.04 + 0.86 * Math.pow(t, 1.15)) : mix(LIGHT_PAL.gold, LIGHT_PAL.rim, (t - 1) * 1.4); }
 export function lightRim(k) { return mix(LIGHT_PAL.rim, LIGHT_PAL.edge, k); }
+/* THE LIGHT'S HAND, gripping a cord that runs up out of the fist (Oct 27, string). A stack of capsules painted over
+   with broad marks read as a flame-blob at 1:1 — a hand is read by its PARTS: four curled fingers stacked round the
+   cord, the creases between them, the knuckle highlights, a thumb wrapped over the top, a forearm rising from below.
+   Light palette only: white-hot where it faces you, gold toward its edges, a soft blurred rim (light has no outline).
+   (hx,hy) = where the cord leaves the fist; k = scale; `side` = 1 fingers face right, -1 left. Own rng.            */
+export function lightHand(out, counter, hx, hy, k = 1, { side = 1, seed = 7717 } = {}) {
+  const r = mulberry32(seed), X = u => hx + side * u * k, Y = v => hy + v * k;
+  const cap = (u0, v0, u1, v1, w, fill, op = 1) => { out.push(`<path d="M${R1(X(u0))} ${R1(Y(v0))}L${R1(X(u1))} ${R1(Y(v1))}" stroke="${fill}" stroke-width="${R1(w * k)}" stroke-linecap="round" fill="none"${op < 1 ? ` opacity="${op}"` : ''}/>`); counter.n++; };
+  const crease = mix(LIGHT_PAL.edge, '#b86a1c', 0.35);
+  // the glow (userSpaceOnUse: a bbox-relative filter region clips a blurred stroke into a box)
+  const fid = 'lhand' + counter.n, gx = Math.min(X(-40), X(40)), gw = 80 * k;
+  out.push(`<defs><filter id="${fid}" filterUnits="userSpaceOnUse" x="${R1(gx)}" y="${R1(Y(-45))}" width="${R1(gw)}" height="${R1(130 * k)}"><feGaussianBlur stdDeviation="${R1(2.8 * k)}"/></filter></defs><g filter="url(#${fid})" opacity="0.85">`);
+  cap(-5, 50, -3, 14, 22, LIGHT_PAL.rim); cap(-4, 6, 4, 2, 34, LIGHT_PAL.rim);
+  out.push('</g>');
+  // forearm rising from below to a narrower wrist — gold, whiter along its lit flank
+  cap(-6, 50, -4, 16, 15, lightBody(0.85)); cap(-8, 48, -6, 18, 7, lightBody(0.4), 0.9); cap(-9, 44, -7.5, 22, 2.6, '#fffdf4', 0.7);
+  // the back of the hand, behind the fingers
+  cap(-7, 9, -5, -9, 21, lightBody(0.8)); cap(-10, 6, -9, -6, 9, lightBody(0.4), 0.9);
+  // four fingers curled round the cord, stacked; each a roll whose tip bulges out on the facing side
+  const fingers = [[-10.5, 6.2, 13], [-3.5, 6.6, 15], [3.5, 6.4, 14.5], [10, 5.6, 12]];
+  for (const [v, w, len] of fingers) {
+    cap(-4, v, len - 3, v + 0.6, w, lightBody(0.5 + r() * 0.12));
+    cap(len - 3.2, v + 0.6, len - 3.6, v + 1.6, w * 0.98, lightBody(0.78));                          // the fingertip, rounder and warmer
+    cap(-3, v + w * 0.52, len - 2.5, v + w * 0.55 + 0.8, 1.6, crease, 0.9);                          // the crease under it
+    cap(-1, v - w * 0.22, len - 7, v - w * 0.2, 1.7, '#fffef4', 0.9);                                // knuckle light
+  }
+  // the thumb wrapped over the top, pinning the cord
+  cap(-14, -4, -7, -15, 8, lightBody(0.72)); cap(-7, -15, 7, -15.5, 7.5, lightBody(0.5)); cap(7, -15.5, 9.5, -14, 7, lightBody(0.78));
+  cap(-6, -17.6, 6, -18, 1.8, '#fffef4', 0.9); cap(-6, -11.6, 8, -12, 1.6, crease, 0.9); cap(-14.5, -1, -8.5, -11, 1.4, crease, 0.6);
+  // fine paint over it all, kept inside the silhouette — the plate's material, not a vector cut-out
+  for (let i = 0; i < 80; i++) {
+    const u = -13 + r() * 25, v = -18 + r() * 66;
+    if (v > 15 && (u < -12 || u > 3)) continue; if (v <= 15 && u > 10) continue;
+    const a = (v > 15 ? -1.5 : 0) + (r() - 0.5) * 0.5, L = (1.6 + r() * 2.4) * k;
+    out.push(ribbon([[X(u), Y(v)], [X(u) + Math.cos(a) * L * side, Y(v) + Math.sin(a) * L]], 0.6 * k, jig(lightBody(0.15 + r() * 0.8), r, 6), [0.5, 1, 0.3])); counter.n++;
+  }
+}
+
 export function paintLight(out, counter, rng, caps) {
   if (globalThis.__CAP_LIGHT && caps && caps.length) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -1203,11 +1244,18 @@ export function paintLight(out, counter, rng, caps) {
   const _b = { minx: 1e9, miny: 1e9, maxx: -1e9, maxy: -1e9 };
   for (const c of caps) { _b.minx = Math.min(_b.minx, c.ax - c.r, c.bx - c.r); _b.maxx = Math.max(_b.maxx, c.ax + c.r, c.bx + c.r); _b.miny = Math.min(_b.miny, c.ay - c.r, c.by - c.r); _b.maxy = Math.max(_b.maxy, c.ay + c.r, c.by + c.r); }
   // (1) the warm rim — deep orange-gold, wide and soft: the glow that defines His edge
-  underpaintCapsules(out, counter, caps.map(c => ({ ...c, r: c.r + 7 })), '#d88a26');
-  for (const c of caps) {
-    out.push(`<path d="M${R1(c.ax)} ${R1(c.ay)}L${R1(c.bx)} ${R1(c.by)}" stroke="#f0b040" stroke-width="${R1(c.r * 2 + 9)}" stroke-linecap="round" fill="none" opacity="0.45"/>`);
-    counter.n++;
-  }
+  /* Oct 27 (Fred: "look at the details!") — at 1:1 the rim was still a cookie-cutter band: one solid capsule r+7 plus a
+     second stroke, both hard-edged, the same width all round. Light has no edge. The rim is now BLURRED — a wide
+     soft glow that dies into the ground, and a narrow, barely softened warm line inside it that keeps the gesture. */
+  const fid = 'lrim' + counter.n;
+  const fr = `filterUnits="userSpaceOnUse" x="${R1(_b.minx - 40)}" y="${R1(_b.miny - 40)}" width="${R1(_b.maxx - _b.minx + 80)}" height="${R1(_b.maxy - _b.miny + 80)}"`;   // (a bbox-relative region clips a blurred stroke)
+  out.push(`<defs><filter id="${fid}" ${fr}><feGaussianBlur stdDeviation="3.4"/></filter>`
+    + `<filter id="${fid}n" ${fr}><feGaussianBlur stdDeviation="1.1"/></filter></defs>`);
+  out.push(`<g filter="url(#${fid})" opacity="0.8">`);
+  for (const c of caps) { out.push(`<path d="M${R1(c.ax)} ${R1(c.ay)}L${R1(c.bx)} ${R1(c.by)}" stroke="#f0a838" stroke-width="${R1(c.r * 2 + 13)}" stroke-linecap="round" fill="none"/>`); counter.n++; }
+  out.push('</g>', `<g filter="url(#${fid}n)" opacity="0.9">`);
+  underpaintCapsules(out, counter, caps.map(c => ({ ...c, r: c.r + 2.2 })), '#d88a26');
+  out.push('</g>');
   // (2) the yellow-white radiant aura (the radiance around Him)
   radiantHalo(out, counter, rng, caps, '#ffd24f');
   // (3) a luminous warm-white base
@@ -1216,7 +1264,7 @@ export function paintLight(out, counter, rng, caps) {
   // toward the underside — full of light, and round
   paintFigure(out, counter, rng, caps, (x, y, r) => {
     const t = Math.max(0, Math.min(1, (y - _b.miny) / Math.max(1, _b.maxy - _b.miny)));
-    return jig(mix('#ffffff', '#ffd45c', 0.06 + 0.34 * t + r() * 0.22), r, 8);
+    return jig(lightBody(t * 0.95 + r() * 0.22), r, 8);   // white on top, warming to full gold underneath — form, not a cut-out
   }, 2.0);
   // (5) RAYS of light streaming OUT — He EMITS bright light. Drawn LAST, on top of
   // the contrast border, radiating from the body outward (short near the body,
@@ -2951,7 +2999,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
                       + (r() - 0.5) * 0.16 - 0.06);
     c = mix(c, '#f7f0a2', sun * (Math.pow(crown, 2.0) * 0.58 + Math.pow(fl, 2) * 0.16) * (0.5 + lightFn(x, y) * 0.5));   // the sun on the top of every clump, and on its lit flank
     c = mix(c, BELLY, Math.pow(1 - crown, 2.2) * 0.5 + Math.pow(1 - fl, 2) * 0.22);                              // and a real dark under it, deeper on the shaded flank
-    if (r() < 0.05) c = mix(c, REAL ? '#1e2452' : '#08160c', 0.55);
+    if (r() < 0.05 && (!REAL || (crown < 0.45 && fl < 0.6))) c = mix(c, REAL ? '#1e2452' : '#08160c', 0.55);   // Oct 27: deep flecks only INSIDE the foliage — at the ragged edge against the sky they read as gnats
     else if (r() < 0.072) c = mix(c, '#dfe6c0', 0.42 * Math.min(1, sc) * sun);
     return jig(tint(c, x, y), r, 9);
   };
@@ -3020,14 +3068,19 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
         lobes.sort((p, q) => q.y - p.y);                       // low clumps first; the lit top ones lap over them
         lobes.forEach((L, i) => L.k = Math.round(i / Math.max(1, lobes.length - 1) * (NL - 1)));
       }
+      // ⚠ Oct 27: the leaf passes below sampled lobes[0..NL-1] only — with REAL's many sorted clumps that was just the
+      // LOWEST few, so the upper and outer clumps got nothing but their dark under-shade marks: specks round every crown.
       const inLobe = (x, y) => { let best = -1, bd = 9; for (const L of lobes) { const d = Math.hypot((x - L.x) / L.rx, (y - L.y) / L.ry); if (d < bd) { bd = d; best = L.k; } } return [best, bd]; };
       const crownAt = (x, y) => { const [k] = inLobe(x, y); const L = lobes[Math.max(0, k)];
         return Math.max(0, Math.min(1, (L.y - y) / (L.ry * 1.1) * 0.5 + 0.5)) * (0.86 + 0.14 * (L.k / Math.max(1, NL - 1))); };
+      // Oct 27: the cap was 3600 marks — every big near crown (garden, road, twoways, born, nonight…) hit it, and once the
+      // REAL clumps spread the leaves over the whole crown it read as a swarm against the sky. 7200 binds only the very
+      // largest; CROWN_LOG=1 prints each crown that would still hit it.
       strokes(out, counter, {
         // ⚠ DENSITY IS WHAT MAKES A CANOPY A MASS; a leaf is the SAME SIZE on any tree (count
         // grows with area, mark size barely with height); bunches, dark hollows, sky chinks.
-        rng: tr, n: Math.min(3600, Math.round(rr * rr * 2.5 * S.dens)),
-        sample: r => { const L = lobes[Math.min(NL - 1, (r() * NL) | 0)]; const a = r() * Math.PI * 2, d = Math.pow(r(), 0.5) * (r() < 0.05 ? 1.12 : 1);
+        rng: tr, n: (process.env.CROWN_LOG && rr * rr * 2.5 * S.dens > 3600 && console.error('CROWNCAP', Math.round(rr), Math.round(rr * rr * 2.5 * S.dens)), Math.min(+process.env.CROWN_CAP || 7200, Math.round(rr * rr * 2.5 * S.dens * (+process.env.CROWN_DENS || 1)))),
+        sample: r => { const L = lobes[(r() * lobes.length) | 0]; const a = r() * Math.PI * 2, d = Math.pow(r(), 0.5) * (r() < 0.05 ? 1.12 : 1);
                        return [L.x + Math.cos(a) * L.rx * d, L.y + Math.sin(a) * L.ry * d]; },
         dir: (x, y) => { const [k] = inLobe(x, y); const L = lobes[Math.max(0, k)]; return Math.atan2((y - L.y) / L.ry, (x - L.x) / L.rx) + Math.PI / 2 + (tr() - 0.5) * 1.15; },
         col: (x, y, r) => leafCol(crownAt(x, y), x, y, r, rr * 0.28 + 3, flankAt(x, cx0, rr * S.rx)),
@@ -3049,7 +3102,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
       // EDGE LEAVES — the silhouette is leaves against the sky, not a cut dome
       strokes(out, counter, {
         rng: tr, n: Math.max(10, Math.round(rr * 0.9)),
-        sample: r => { const L = lobes[Math.min(NL - 1, (r() * NL) | 0)]; const a = r() * Math.PI * 2, d = 1.0 + r() * 0.16; return [L.x + Math.cos(a) * L.rx * d, L.y + Math.sin(a) * L.ry * d]; },
+        sample: r => { const L = lobes[(r() * lobes.length) | 0]; const a = r() * Math.PI * 2, d = 1.0 + r() * 0.16; return [L.x + Math.cos(a) * L.rx * d, L.y + Math.sin(a) * L.ry * d]; },
         dir: (x, y) => { const [k] = inLobe(x, y); const L = lobes[Math.max(0, k)]; return Math.atan2((y - L.y) / L.ry, (x - L.x) / L.rx) + (tr() - 0.5) * 0.9; },
         col: (x, y, r) => { const [k] = inLobe(x, y); const L = lobes[Math.max(0, k)]; const up = Math.max(0, Math.min(1, (L.y - y) / (L.ry * 1.1) * 0.5 + 0.5)); return jig(tint(ramp(CROWN, 0.35 + up * 0.5 + lightFn(x, y) * 0.15), x, y), r, 8); },
         len: 2.8 * p3 * S.mark[0], lw: 1.2 * p3 * S.mark[1], steps: 1, lenJ: 0.9, impasto: 0.5, op: 0.9,
@@ -3058,7 +3111,7 @@ export function paintTree(out, counter, rng, cx, baseY, h, opts = {}) {
       strokes(out, counter, {
         rng: tr, n: Math.min(760, Math.round(rr * rr * 0.38 * S.dens)),
         sample: r => {
-          const L = lobes[Math.min(NL - 1, (r() * NL) | 0)];
+          const L = lobes[(r() * lobes.length) | 0];
           const a = r() * Math.PI * 2, d = 0.42 + Math.pow(r(), 0.6) * 0.7;
           const px = L.x + Math.cos(a) * L.rx * d, py = L.y + Math.sin(a) * L.ry * d;
           const up = (L.y - py) / (L.ry * 1.1) * 0.5 + 0.5;
@@ -4201,23 +4254,76 @@ export function realClouds(bodyOut, edgeOut, counter, rng, { banks, sun, sunAt =
 export const REAL_FLOWERS = [['#f6f2e6', '#e9e2cf', '#f4d24a'], ['#f5d04a', '#e8b833', '#a8641e'], ['#c9b4e8', '#ad96d8', '#f2e28a'],
                              ['#e0566a', '#c63f55', '#3a2420'], ['#f0a8c4', '#e48eb0', '#fbe9a8']];
 export function realFlowers(out, counter, rng, { colonies = 30, x0 = -10, x1 = 810, y0, y1, ok = () => true, dS = () => 1, kinds = REAL_FLOWERS }) {
+  // ⭐ Oct 27 (Fred: "do another art pass, look at the details!"): at 1:1 every flower here was the same flat icon —
+  // five equal ellipses and a dot, one size, lit from nowhere — and a meadow of them read as stickers. Now each head is
+  // PAINTED: tapered petal strokes lit on the side toward the light and a step darker (cooler, never black) on the other,
+  // its own size, its own tilt, some seen nearly side-on, a few still in bud, and every white kind a many-petalled daisy.
+  const LIT = -2.3;                                                          // the book's light: upper left
   for (let c = 0; c < colonies; c++) {
     const cx = x0 + rng() * (x1 - x0), cy = y0 + rng() * (y1 - y0);
     if (!ok(cx, cy)) continue;
     const K = kinds[(rng() * kinds.length) | 0], spread = 14 + rng() * 40, count = 5 + ((rng() * 10) | 0);
+    const daisy = K[0] === '#f6f2e6';
     for (let i = 0; i < count; i++) {
       const fx = cx + (rng() + rng() - 1) * spread, fy = cy + (rng() + rng() - 1) * spread * 0.35;
       if (!ok(fx, fy)) continue;
-      const sc = dS(fy, fx), st = (5 + rng() * 7) * sc;
-      paintPath(out, counter, rng, [[fx, fy], [fx + (rng() - 0.5) * 3 * sc, fy - st]], (x, y, r) => jig(mix('#3d6a32', '#6c9442', r()), r, 6), { lw: 0.9 * sc, len: 3, density: 0.9, jitter: 0.2 });
-      const hd = 1.6 * sc;
-      for (let k = 0; k < 5; k++) {
-        const a = k * 1.256 + rng() * 0.4, px = fx + Math.cos(a) * hd, py = fy - st + Math.sin(a) * hd * 0.6;
-        out.push(ribbon([[fx, fy - st], [(fx + px) / 2, (fy - st + py) / 2], [px, py]], 1.5 * sc, K[(rng() * 2) | 0], [0.5, 1, 0.6])); counter.n++;
+      const sc = dS(fy, fx) * (0.75 + rng() * 0.55), st = (5 + rng() * 7) * sc, lean = (rng() - 0.5) * 3.4 * sc;
+      const hx = fx + lean, hy = fy - st;
+      // the stem: ONE tapered ribbon (a paintPath of short marks stacked into blocks at the foreground's size)
+      out.push(ribbon([[fx, fy], [fx + lean * 0.4, fy - st * 0.55], [hx, hy]], 0.36 * sc, jig(mix('#355f2c', '#6c9442', rng()), rng, 6), [1, 0.85, 0.55])); counter.n++;
+      if (rng() < 0.6) { const ly = fy - st * (0.25 + rng() * 0.3), sd = rng() < 0.5 ? -1 : 1;   // a leaf on the stem
+        out.push(ribbon([[fx + lean * 0.2, ly], [fx + lean * 0.2 + sd * 2.2 * sc, ly - 1.2 * sc], [fx + lean * 0.2 + sd * 4 * sc, ly - 0.4 * sc]], 0.75 * sc, jig(mix('#3f6e30', '#77a248', rng()), rng, 6), [0.3, 1, 0.1])); counter.n++; }
+      if (rng() < 0.12) {                                                    // still in bud
+        out.push(ribbon([[hx, hy + 1.2 * sc], [hx, hy - 1.6 * sc]], 0.9 * sc, jig(mix(K[1], '#5f8a3a', 0.35), rng, 6), [0.6, 1, 0.3])); counter.n++; continue;
       }
-      out.push(`<circle cx="${R1(fx)}" cy="${R1(fy - st)}" r="${R1(0.8 * sc)}" fill="${K[2]}"/>`); counter.n++;
+      // (1.5/1.75 painted heads the size of a child's fist on flame's near bank)
+      const hd = (daisy ? 1.05 : 1.2) * sc * (0.85 + rng() * 0.4), squash = 0.42 + rng() * 0.58, tilt = (rng() - 0.5) * 0.7;
+      const np = daisy ? 11 + ((rng() * 4) | 0) : 5 + (rng() < 0.3 ? 1 : 0);
+      const ca = Math.cos(tilt), sa = Math.sin(tilt), P = (u, v) => [hx + (u * ca - v * squash * sa), hy + (u * sa + v * squash * ca)];
+      const order = [];
+      for (let k = 0; k < np; k++) order.push(k * 6.2832 / np + rng() * 0.35);
+      order.sort((p1, p2) => Math.sin(p1) - Math.sin(p2));                   // far petals first, near ones over them
+      for (const ang of order) {
+        const L = hd * (daisy ? 1.9 : 1.55) * (0.85 + rng() * 0.3), lit = Math.cos(ang - LIT);
+        let col = K[rng() < 0.7 ? 0 : 1];
+        col = lit > 0 ? lift(col, lit * 16) : mix(lift(col, lit * 18), '#5a4a8a', -lit * 0.12);   // lit side lighter, the far side a cooler step down
+        // ⚠ a petal pointing at the viewer is FORESHORTENED: its width must shrink with its seen length, or the ribbon is
+        // wider than it is long and its caps fold into a crescent (the pink "C"s on flame, Oct 27)
+        const tip = P(Math.cos(ang) * L, Math.sin(ang) * L), seen = Math.hypot(tip[0] - hx, tip[1] - hy);
+        out.push(ribbon([P(0, 0), P(Math.cos(ang) * L * 0.55, Math.sin(ang) * L * 0.55), tip],
+          Math.min((daisy ? 0.75 : 1.25) * hd, seen * 0.75 + 0.15), jig(col, rng, 5), [0.35, 1, 0.55])); counter.n++;
+      }
+      const [ccx, ccy] = P(0, 0);                                           // the eye — a few dabs, darker below
+      out.push(`<circle cx="${R1(ccx)}" cy="${R1(ccy)}" r="${R1(hd * (daisy ? 0.55 : 0.42))}" fill="${jig(K[2], rng, 6)}"/>`); counter.n++;
+      out.push(`<circle cx="${R1(ccx + 0.2 * hd)}" cy="${R1(ccy + 0.18 * hd)}" r="${R1(hd * 0.22)}" fill="${jig(lift(K[2], -22), rng, 5)}" opacity="0.7"/>`); counter.n++;
     }
   }
+}
+
+// ⭐ A BUTTERFLY, drawn (Oct 27 art pass). The plates' own were four bent dashes or four flat petals — a "Y" or a bow
+// at 1:1. A real one: rounded-triangular forewings and rounded hindwings, a dark margin with pale spots in it, a darker
+// wing root, a slender body with antennae; `open` foreshortens it (1 = flat open, 0.4 = turned away), `tilt` banks it.
+export function realButterfly(out, counter, rng, bx, by, s, { cols = ['#e8962c', '#3a2418', '#fff2c8'], open = 0.85, tilt = 0 } = {}) {
+  const [base, dark, pale] = cols, ca = Math.cos(tilt), sa = Math.sin(tilt);
+  const P = (u, v) => [bx + (u * ca - v * sa) * s, by + (u * sa + v * ca) * s];
+  const path = pts => 'M' + pts.map(([u, v]) => P(u, v).map(R1).join(' ')).join('L') + 'Z';
+  for (const sd of [-1, 1]) {
+    const k = sd < 0 ? open : open * 0.82;                                   // the far wing a little more foreshortened
+    const fore = [[0, -0.6], [sd * 2.5 * k, -8.5], [sd * 9.5 * k, -10.6], [sd * 11 * k, -6.2], [sd * 6 * k, -1.2], [sd * 1, 0]];
+    const hind = [[0, 0.4], [sd * 6.5 * k, 1.8], [sd * 8.2 * k, 6.2], [sd * 4.2 * k, 8.6], [sd * 1.4 * k, 5.2]];
+    out.push(`<path d="${path(hind)}" fill="${jig(lift(base, -6), rng, 6)}"/>`);
+    out.push(`<path d="${path(fore)}" fill="${jig(base, rng, 6)}"/>`);
+    out.push(`<path d="${path(fore)}" fill="none" stroke="${dark}" stroke-width="${R1(1.3 * s)}" stroke-linejoin="round" opacity="0.9"/>`);   // the dark margin
+    out.push(`<path d="${path(hind)}" fill="none" stroke="${dark}" stroke-width="${R1(1.1 * s)}" stroke-linejoin="round" opacity="0.85"/>`);
+    out.push(`<path d="${path([[0, -0.4], [sd * 2 * k, -5], [sd * 3.6 * k, -1.4], [0, 0.6], [sd * 3 * k, 4], [sd * 1 * k, 3]])}" fill="${dark}" opacity="0.35"/>`);   // the darker wing root
+    for (const [u, v] of [[8.6, -8.6], [9.8, -6.4], [6.4, 5.8]]) {          // pale spots in the margin
+      const [px, py] = P(sd * u * k, v); out.push(`<circle cx="${R1(px)}" cy="${R1(py)}" r="${R1(0.65 * s)}" fill="${pale}" opacity="0.9"/>`);
+    }
+    counter.n += 8;
+  }
+  out.push(ribbon([P(0, -2.4), P(0.1, 1.2), P(0, 5.2)], 1.3 * s, dark, [0.9, 1, 0.4]));                       // body
+  for (const sd of [-1, 1]) out.push(ribbon([P(0, -2.4), P(sd * 1.4, -5.6), P(sd * 2.4, -7.4)], 0.35 * s, dark, [1, 0.8, 0.6]));   // antennae
+  counter.n += 3;
 }
 
 // a shrub: a few overlapping clumps, crown lit warm, belly deep, rooted (nothing below the ground line)
@@ -4229,6 +4335,22 @@ export function realShrub(out, counter, rng, bx, by, bw, { lightAt = () => 0.5, 
     dir: (x, y) => Math.atan2(y - cy, x - cx) + Math.PI / 2 + (rng() - 0.5) * 0.6,
     col: (x, y, r) => { const up = Math.max(0, Math.min(1, (cy - y) / cr * 0.5 + 0.5)); let c = ramp(cols, up * 0.85 + r() * 0.15); c = mix(c, '#efe2a0', up * up * 0.3 * (0.5 + lightAt(x, y))); return jig(c, r, 7); },
     len: 2.6 * scale, lw: 1.6 * scale, steps: 2, lenJ: 0.6, impasto: 0.5, relief: 0.25 });
+}
+
+// a bird in the open sky, seen from below as it soars (Matt 6:26): FILLED wings with an arm-bend at the wrist and a
+// swept tip, a small body and a fanned tail, a pale lit leading edge. Replaces the three-stroke "V" (Oct 27, Fred:
+// "look at the details") — each bird takes its own pose from rng, so a flock is never one stamp repeated.
+export function skyBird(out, counter, rng, bx, by, s, { col = '#2d3048', tilt = 0, lit = 0.28 } = {}) {
+  const up = 0.9 + rng() * 1.4, droop = 0.6 + rng() * 1.6, span = 5.6 + rng() * 1.2, P = (x, y) => `${R1(bx + x * s)} ${R1(by + y * s)}`;
+  const wing = d => `M${P(d * 0.4, -0.15)} Q${P(d * 1.6, -up - 0.3)} ${P(d * 2.9, -up)} Q${P(d * (span - 1.2), -up * 0.55)} ${P(d * span, droop)}` +
+    ` Q${P(d * (span - 1.9), droop * 0.35)} ${P(d * 2.6, -up * 0.2 + 0.35)} Q${P(d * 1.4, 0.55)} ${P(d * 0.4, 0.55)}Z`;
+  const edge = d => `M${P(d * 0.5, -0.1)} Q${P(d * 1.6, -up - 0.25)} ${P(d * 2.9, -up + 0.05)} Q${P(d * (span - 1.3), -up * 0.5)} ${P(d * (span - 0.4), droop * 0.6)}`;
+  out.push(`<g transform="rotate(${R1(tilt * 57)} ${R1(bx)} ${R1(by)})">` +
+    `<path d="${wing(-1)} ${wing(1)}" fill="${col}"/>` +
+    `<path d="M${P(-0.55, 0.9)} L${P(0, 2.3)} L${P(0.55, 0.9)}Z" fill="${col}"/>` +
+    `<ellipse cx="${R1(bx)}" cy="${R1(by + 0.35 * s)}" rx="${R1(0.62 * s)}" ry="${R1(1.05 * s)}" fill="${col}"/>` +
+    `<path d="${edge(-1)} ${edge(1)}" fill="none" stroke="${mix(col, '#f4ecd8', lit)}" stroke-width="${R1(0.34 * s)}" stroke-linecap="round" opacity="0.8"/></g>`);
+  counter.n += 4;
 }
 
 // seabirds / swallows: two swept wings and a body, small and dark (or pale over dark water)

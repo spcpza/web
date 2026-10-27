@@ -612,20 +612,28 @@
     var flap = (B.flapAmt != null ? B.flapAmt : Math.sin(t * 5.2 + (B.phase || 0) * 7) * 4.6) * B.s;
     var base = B.col || '#3a5a8a';
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    // a tiny body + two wings that beat: high flap → raised (^), low/negative → down (v)
-    function wing(dy, lw, col) {
-      ctx.strokeStyle = col; ctx.lineWidth = lw;
+    // ⭐ Oct 27 (Fred, on twoways: "that chickenscratch bird was just for concept"; "look at the details!"). Three
+    // stroked arcs read as a tick mark, not a bird. Now a BIRD: a tapered body, two FILLED wings — a curved leading
+    // edge out to a pointed tip and a softer trailing edge back to the body — and a short tail, the near wing lit along
+    // its leading edge. Same two flap poses (flapAmt), same size, so every sky in the book keeps its flock.
+    function wingShape(sd, col) {
+      var tipX = x + sd * span, tipY = y - flap * 0.85;
+      ctx.fillStyle = col;
       ctx.beginPath();
-      ctx.moveTo(x - span, y - flap * 0.35 + dy);
-      ctx.quadraticCurveTo(x - span * 0.34, y - flap + dy, x, y + dy);
-      ctx.quadraticCurveTo(x + span * 0.34, y - flap + dy, x + span, y - flap * 0.35 + dy);
-      ctx.stroke();
+      ctx.moveTo(x + sd * span * 0.08, y - 0.6 * B.s);
+      ctx.quadraticCurveTo(x + sd * span * 0.45, y - flap * 0.9 - 1.6 * B.s, tipX, tipY);                 // leading edge, out to the tip
+      ctx.quadraticCurveTo(x + sd * span * 0.5, y - flap * 0.35 + 1.4 * B.s, x + sd * span * 0.1, y + 1.0 * B.s);   // trailing edge, back to the body
+      ctx.closePath(); ctx.fill();
+      return [tipX, tipY];
     }
-    // form-shadow: a darker underwing sits just beneath, and a pale edge catches
-    // the light on top — so the bird reads as a little body, not a flat silhouette.
-    wing(1.1 * B.s, 2.3 * B.s, mixHex(base, '#0a1024', 0.5));
-    wing(0, 1.9 * B.s, base);
-    wing(-0.7 * B.s, 1.0 * B.s, mixHex(base, '#ffffff', 0.4));
+    var dark = mixHex(base, '#0a1024', 0.35);
+    wingShape(1, dark);                                              // the far wing, a step darker
+    ctx.fillStyle = base;                                            // body + tail
+    ctx.beginPath(); ctx.ellipse(x, y + 0.2 * B.s, 2.6 * B.s, 1.15 * B.s, 0.08, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + 2 * B.s, y + 0.2 * B.s); ctx.lineTo(x + 4.6 * B.s, y - 0.6 * B.s); ctx.lineTo(x + 4.2 * B.s, y + 0.6 * B.s); ctx.lineTo(x + 4.8 * B.s, y + 1.3 * B.s); ctx.closePath(); ctx.fill();
+    var tip = wingShape(-1, base);                                   // the near wing
+    ctx.strokeStyle = mixHex(base, '#ffffff', 0.38); ctx.lineWidth = Math.max(0.5, 0.55 * B.s); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x - span * 0.1, y - 0.7 * B.s); ctx.quadraticCurveTo(x - span * 0.45, y - flap * 0.9 - 1.5 * B.s, tip[0] + span * 0.08, tip[1] + 0.2 * B.s); ctx.stroke();   // the lit leading edge
   }
 
   // A LITTLE SHEEP — woolly, cel-shaded to match the book; grazes the meadow
@@ -5146,7 +5154,30 @@
       var tall = H * scale * (0.52 + 0.48 * life) * (0.78 + ((i * 37 % 11) / 11) * 0.38);
       var lean = Math.sin((beat * 0.8 + ph) * 6.2832) * W * 0.055 + side * W * 0.18;
       var halfW = W * (0.17 + 0.15 * life) * (0.65 + ((i * 53 % 7) / 7) * 0.75);
-      var nMark = Math.max(5, Math.round(tall * 0.11));
+      // ⭐ THE TONGUE'S SHAPE (Oct 27 art pass — Fred: "look at the details!"). At 1:1 a fire made only of round-capped
+      // marks was a stack of orange PILLS in columns. A flame has a body: it swells just above the wood and licks to a
+      // point, and it is hotter inside — so each tongue is laid first as three nested teardrops (red-orange skin, orange
+      // flesh, white-gold core) whose edges waver with the flicker; the marks then only texture it.
+      var flame = function (wk, hk, t0, t1, a2) {
+        var N = 12, Lp = [], Rp = [];
+        for (var q = 0; q <= N; q++) {
+          var tq = q / N, sx2 = root + lean * tq * tq + Math.sin(tq * 7 + beat * 12.566 + i) * W * 0.035 * tq;
+          var wq = halfW * wk * Math.pow(1 - tq, 0.9) * (0.7 + 0.55 * Math.sin(Math.PI * Math.min(1, tq * 1.7 + 0.12)));
+          var wob = Math.sin(tq * 9 + beat * 18.85 + i * 2.3) * W * 0.02 * tq;
+          Lp.push([sx2 - wq + wob, y - tall * hk * tq]); Rp.push([sx2 + wq + wob, y - tall * hk * tq]);
+        }
+        var gr = ctx.createLinearGradient(0, y, 0, y - tall * hk);
+        gr.addColorStop(0, pick(t0, a2, wn)); gr.addColorStop(0.55, pick((t0 + t1) / 2, a2 * 0.9, wn)); gr.addColorStop(1, pick(t1, a2 * 0.35, wn));
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(Lp[0][0], Lp[0][1]);
+        for (var q2 = 1; q2 <= N; q2++) ctx.lineTo(Lp[q2][0], Lp[q2][1]);
+        for (var q3 = N; q3 >= 0; q3--) ctx.lineTo(Rp[q3][0], Rp[q3][1]);
+        ctx.closePath(); ctx.fill();
+      };
+      var lifeA = 0.55 + life * 0.45;
+      flame(1.0, 1.0, 0.34, 0.52, 0.62 * lifeA * OP_FLAME);    // the skin — red-orange, thinning to nothing at the tip
+      flame(0.66, 0.82, 0.18, 0.40, 0.72 * lifeA * OP_FLAME);  // the flesh — orange-gold
+      flame(0.34, 0.50, 0.02, 0.16, 0.85 * lifeA);             // the core — white-hot, low in the flame
+      var nMark = Math.max(4, Math.round(tall * 0.06));
       for (var m = 0; m < nMark; m++) {
         var t2 = Math.pow(rn(), 0.72);
         var spineX = root + lean * t2 * t2, spineY = y - tall * t2;
@@ -5158,9 +5189,14 @@
         // flame rides the HOT half of the ramp only (0 .. 0.55)
         var col = pick(0.12 + (t2 * 0.72 + Math.abs(off / Math.max(1, wAt)) * 0.34) * 0.52,
                        (0.62 + rn() * 0.33) * (0.5 + life * 0.5) * OP_FLAME);
-        mark(mx, my, -up, L2, Math.max(2.2, W * 0.105) * (0.65 + rn() * 0.6), col);
+        mark(mx, my, -up, L2 * 1.2, Math.max(1.1, W * 0.045) * (0.65 + rn() * 0.6), col);   // thin strands over the body (they were the whole fire, as fat pills)
       }
     };
+    // ---- 0. THE GLOW the fire throws round itself, before anything else
+    var GR = W * 0.92;   // ⚠ inside the sprite box (2W wide): a glow that reaches the box edge is cut off there in a straight line
+    var glw = ctx.createRadialGradient(x, y - H * 0.18, W * 0.1, x, y - H * 0.18, GR);
+    glw.addColorStop(0, 'rgba(255,196,96,0.32)'); glw.addColorStop(0.45, 'rgba(255,140,50,0.12)'); glw.addColorStop(1, 'rgba(255,120,40,0)');
+    ctx.fillStyle = glw; ctx.beginPath(); ctx.ellipse(x, y - H * 0.18, GR, GR * 0.9, 0, 0, 6.2832); ctx.fill();
 
     // ---- 1. THE BED: the hot heart the whole thing stands in
     var nb = Math.round(W * 0.30);

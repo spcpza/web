@@ -338,7 +338,8 @@ export function paint(E, opts = {}) {
 
   /* ---------------- BACKGROUND LIFE (Matt 6:26; Isa 55:12; Ps 23 — the flock home) ---------------- */
   for (const [bx, by, s] of [[140, 72, 1], [178, 86, 0.85], [110, 96, 0.8], [206, 70, 0.75]]) {
-    paintPath(out, counter, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#2a2f4e', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6 * s, by + 2.6 * s], [bx, by - 1.8 * s], [bx + 6 * s, by + 2.6 * s]], (x, y, r) => jig('#2a2f4e', r, 6), { lw: 1.5 * s, len: 3.4, density: 0.9, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, s, { col: '#2a2f4e', tilt: (bx % 5 - 2) * 0.05 }); }
   }
   // ragged FRINGE along each plateau lip (skip the chasm) so the sky↔rim seam
   // reads organic, not a ruled line (MID — it belongs to the rims it edges)
@@ -394,7 +395,8 @@ export function paint(E, opts = {}) {
     E.inscriptionText(out, E.greekRef(14, 6), { x: sx, y: sy - 1, h: 13, body: '#1c2238', edge: '#a4a8c0', op: 0.85, edgeOp: 0.6 });
   }
   for (const [bx, by] of [[150, 78], [182, 92], [168, 110]]) // three birds homeward
-    paintPath(out, counter, rng, [[bx - 6, by + 2], [bx, by - 2], [bx + 6, by + 2]], (x, y, r) => jig('#2a3260', r, 6), { lw: 1.4, len: 3.5, density: 1, jitter: 0.5 });
+    { paintPath([], { n: 0 }, rng, [[bx - 6, by + 2], [bx, by - 2], [bx + 6, by + 2]], (x, y, r) => jig('#2a3260', r, 6), { lw: 1.4, len: 3.5, density: 1, jitter: 0.5 });   // (Oct 27) the bird is PAINTED by E.skyBird — the old V is still walked on a scratch array so the plate's rng, and everything painted after it, stays put
+      E.skyBird(out, counter, E.mulberry32(bx * 131 + by * 7), bx, by, 1, { col: '#2a3260', tilt: (bx % 5 - 2) * 0.05 }); }
 
   /* ---------------- SWALLOWS BELOW THE DECK (Ps 84:3 "yea, the swallow a
      nest for herself… even thine altars"; Matt 6:26) — cliff-nesters wheeling
