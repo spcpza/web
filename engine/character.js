@@ -5192,6 +5192,8 @@
         ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(Lp[0][0], Lp[0][1]);
         for (var q2 = 1; q2 <= N; q2++) ctx.lineTo(Lp[q2][0], Lp[q2][1]);
         for (var q3 = N; q3 >= 0; q3--) ctx.lineTo(Rp[q3][0], Rp[q3][1]);
+        // the root is ROUND and sunk into the bed (Oct 28) — closing straight across ruled every tongue off on one line
+        ctx.quadraticCurveTo((Lp[0][0] + Rp[0][0]) / 2, y + (Rp[0][0] - Lp[0][0]) * 0.32, Lp[0][0], Lp[0][1]);
         ctx.closePath(); ctx.fill();
       };
       var lifeA = 0.55 + life * 0.45;
@@ -5241,6 +5243,28 @@
 
     function paintLog(g) {
       var ca = Math.cos(g.ang), sa = Math.sin(g.ang);
+      // ⭐ THE BODY FIRST (Oct 28). Two dozen thin marks spread across a 12-unit log read as a BUNDLE OF STICKS — black
+      // twigs on garden, red sticks on family. A log is one solid cylinder: coal-red along the top where the fire has it,
+      // char through the middle, ash-black underneath, a little thicker at the butt. The marks below only texture it.
+      var hl = g.ll / 2, ht = g.th / 2;
+      ctx.save(); ctx.translate(g.lx, g.ly); ctx.rotate(g.ang);
+      var bg = ctx.createLinearGradient(0, -ht, 0, ht);
+      bg.addColorStop(0, pick(0.62, 1, wn)); bg.addColorStop(0.3, pick(0.78, 1, wn));
+      bg.addColorStop(0.7, pick(0.92, 1, wn)); bg.addColorStop(1, pick(0.99, 1, wn));
+      ctx.fillStyle = bg; ctx.beginPath();
+      ctx.moveTo(-hl, -ht * 0.86); ctx.lineTo(hl, -ht);
+      ctx.ellipse(hl, 0, ht * 0.42, ht, 0, -Math.PI / 2, Math.PI / 2);
+      ctx.lineTo(-hl, ht * 0.86);
+      ctx.ellipse(-hl, 0, ht * 0.36, ht * 0.86, 0, Math.PI / 2, Math.PI * 1.5);
+      ctx.closePath(); ctx.fill();
+      // char splits along the grain — the checked skin of burnt wood, with the coal showing in a few of them
+      for (var k2 = 0; k2 < 5; k2++) {
+        var cy2 = (wn() - 0.5) * g.th * 0.6, cx2 = (wn() - 0.5) * g.ll * 0.7, cl = g.ll * (0.12 + wn() * 0.18);
+        ctx.strokeStyle = k2 < 2 ? pick(0.40 + wn() * 0.12, 0.85, wn) : 'rgba(14,10,10,0.75)';
+        ctx.lineWidth = Math.max(0.7, g.th * 0.07); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(cx2 - cl / 2, cy2); ctx.lineTo(cx2 + cl / 2, cy2 + (wn() - 0.5) * g.th * 0.12); ctx.stroke();
+      }
+      ctx.restore();
       var nL = Math.max(16, Math.round(g.ll * 0.46));
       for (var q = 0; q < nL; q++) {
         var tq = wn() - 0.5;
@@ -5268,17 +5292,20 @@
         mark(hx, hy, g.ang, hl, g.th * (0.10 + rn() * 0.15),
              pick(rn() * 0.22, 0.62 + rn() * 0.34));       // white/gold/orange: the hot end
       }
-      // the CUT END — pale inner wood, the one part not yet burnt. Stable (wn).
+      // the CUT END (Oct 28) — an end you can read as wood: a char rim (the bark), a glowing ring just inside it where
+      // the fire is eating in, darker heartwood, and the growth rings. It was 8 orange scribbles = a red smear. Stable (wn).
       var ex2 = g.lx + ca * g.ll / 2, ey2 = g.ly + sa * g.ll / 2;
-      for (var c2 = 0; c2 < 8; c2++) {
-        var ang2 = wn() * 6.2832, dd3 = Math.sqrt(wn());
-        ctx.strokeStyle = pick(0.44 + wn() * 0.14, 0.9, wn);
-        ctx.lineWidth = g.th * 0.16;
-        ctx.beginPath();
-        ctx.moveTo(ex2 + Math.cos(ang2) * g.th * 0.26 * dd3, ey2 + Math.sin(ang2) * g.th * 0.44 * dd3);
-        ctx.lineTo(ex2 - Math.cos(ang2) * g.th * 0.20 * dd3, ey2 - Math.sin(ang2) * g.th * 0.34 * dd3);
-        ctx.stroke();
-      }
+      ctx.save(); ctx.translate(ex2, ey2); ctx.rotate(g.ang);
+      var er = ht * 0.42, eh = ht;
+      ctx.fillStyle = pick(0.93, 1, wn); ctx.beginPath(); ctx.ellipse(0, 0, er, eh, 0, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = pick(0.40 + wn() * 0.1, 0.9, wn); ctx.beginPath(); ctx.ellipse(0.2, 0, er * 0.84, eh * 0.84, 0, 0, 6.2832); ctx.fill();
+      var wv = (wn() - 0.5) * 24;                                    // the unburnt heart is WOOD — tan, warmed by the fire beside it
+      ctx.fillStyle = 'rgb(' + (168 + wv | 0) + ',' + (112 + wv | 0) + ',' + (66 + wv * 0.6 | 0) + ')';
+      ctx.beginPath(); ctx.ellipse(0.3, 0, er * 0.68, eh * 0.68, 0, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = 'rgba(96,58,34,0.7)'; ctx.lineWidth = Math.max(0.5, g.th * 0.035);
+      ctx.beginPath(); ctx.ellipse(0.3, 0, er * 0.34, eh * 0.34, 0, 0, 6.2832); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0.3, 0); ctx.lineTo(er * 0.5, -eh * 0.42); ctx.stroke();      // the heart check
+      ctx.restore();
     }
 
     // ---- 4. FLAME IN FRONT OF THE WOOD — lower, licking up over the bark. The

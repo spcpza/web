@@ -388,26 +388,44 @@ export function paint(E, opts = {}) {
      no path); they simply live in the meadow, near enough the picnic to feel
      like the same afternoon. Bold simple silhouettes, curved lines (Munch). */
   {
-    const sparrow = (px, py, s, pose) => {
-      const X = dx => R1(px + dx * s), Y = dy => R1(py + dy * s);
-      const DK = '#3a2812';
-      if (pose === 'peck') {
-        out.push(`<path d="M${X(14)} ${Y(-14)} L${X(4.5)} ${Y(-11.5)} L${X(12.5)} ${Y(-7)} Z" fill="${DK}" opacity="0.95"/>`); counter.n++;
-        out.push(`<ellipse cx="${X(-0.5)}" cy="${Y(-8.5)}" rx="${R1(8.2 * s)}" ry="${R1(5.4 * s)}" transform="rotate(-14 ${X(-0.5)} ${Y(-8.5)})" fill="${DK}" opacity="0.96"/>`); counter.n++;
-        out.push(`<circle cx="${X(-8.5)}" cy="${Y(-6)}" r="${R1(4.4 * s)}" fill="${DK}" opacity="0.96"/>`); counter.n++;
-        out.push(`<path d="M${X(-10.5)} ${Y(-5.5)} L${X(-16.5)} ${Y(-1)} L${X(-9)} ${Y(-3)} Z" fill="#5a4020" opacity="0.95"/>`); counter.n++;
-        out.push(`<path d="M${X(4)} ${Y(-5)} Q${X(-1.5)} ${Y(-3.6)} ${X(-6)} ${Y(-4.6)}" stroke="#c8955a" stroke-width="${R1(1.8 * s)}" fill="none" opacity="0.8" stroke-linecap="round"/>`); counter.n++;
-        out.push(`<circle cx="${X(-8.8)}" cy="${Y(-7.4)}" r="${R1(1.05 * s)}" fill="#f6e8c0" opacity="0.95"/>`); counter.n++;
-      } else {
-        out.push(`<path d="M${X(-14.5)} ${Y(-11.5)} L${X(-4.5)} ${Y(-9.5)} L${X(-12.5)} ${Y(-5)} Z" fill="${DK}" opacity="0.95"/>`); counter.n++;
-        out.push(`<ellipse cx="${X(0.5)}" cy="${Y(-7.5)}" rx="${R1(8 * s)}" ry="${R1(5.2 * s)}" transform="rotate(10 ${X(0.5)} ${Y(-7.5)})" fill="${DK}" opacity="0.96"/>`); counter.n++;
-        out.push(`<circle cx="${X(7.5)}" cy="${Y(-13.5)}" r="${R1(4.6 * s)}" fill="${DK}" opacity="0.96"/>`); counter.n++;
-        out.push(`<path d="M${X(11)} ${Y(-15)} L${X(16.5)} ${Y(-13)} L${X(11)} ${Y(-11.5)} Z" fill="#5a4020" opacity="0.95"/>`); counter.n++;
-        out.push(`<path d="M${X(7)} ${Y(-9)} Q${X(7.5)} ${Y(-6)} ${X(2.5)} ${Y(-4.4)}" stroke="#c8955a" stroke-width="${R1(1.8 * s)}" fill="none" opacity="0.8" stroke-linecap="round"/>`); counter.n++;
-        out.push(`<circle cx="${X(8.6)}" cy="${Y(-14.4)}" r="${R1(1.05 * s)}" fill="#f6e8c0" opacity="0.95"/>`); counter.n++;
-      }
-      out.push(`<path d="M${X(-1)} ${Y(-4)} L${X(-1.8)} ${Y(0)} M${X(4)} ${Y(-4.4)} L${X(4.8)} ${Y(0)}" stroke="#2e1f10" stroke-width="${R1(Math.max(0.9, 1.1 * s))}" fill="none" opacity="0.9" stroke-linecap="round"/>`); counter.n++;
+    /* ⚠ Oct 28: these were flat dark-brown SVG cut-outs (ellipse + circle + a pale-dot eye) — next to the lilies and
+       the realism pass they read as BUGS in the grass. A house sparrow, painted: streaked warm-brown back, buff
+       breast, grey crown, chestnut nape, a white wing bar, dark cone beak and bib, an eye that holds the light, pink-
+       brown legs. Drawn facing +x in its own 1-unit frame (ground at y=0) and placed by transform, so one drawing
+       serves every bird and both facings. No rng is taken from the plate. */
+    const sparrow = (px, py, s, pose, f = pose === 'peck' ? -1 : 1) => {
+      const id = 'spw' + counter.n, tilt = pose === 'peck' ? 40 : -8;
+      const g = [];
+      g.push(`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c5530"/><stop offset="0.48" stop-color="#9a7448"/><stop offset="0.62" stop-color="#cdbfa4"/><stop offset="1" stop-color="#e6dcc8"/></linearGradient>`
+        + `<radialGradient id="${id}h" cx="45%" cy="30%" r="70%"><stop offset="0" stop-color="#a39c90"/><stop offset="0.55" stop-color="#7d776c"/><stop offset="1" stop-color="#5e584f"/></radialGradient></defs>`);
+      g.push(`<ellipse cx="0.5" cy="0.2" rx="10" ry="1.7" fill="#2c4a16" opacity="0.32"/>`);                           // its shadow in the grass
+      g.push(`<path d="M-1 -3.4 L-1.7 0 M-1.7 0 l-1.6 0.3 M-1.7 0 l1.2 0.4 M2.2 -3.4 L2.9 0 M2.9 0 l-1.4 0.3 M2.9 0 l1.4 0.3" stroke="#8c6450" stroke-width="0.7" fill="none" stroke-linecap="round"/>`);
+      g.push(`<g transform="rotate(${tilt} 1 -6)">`);
+      g.push(`<path d="M-6 -9.2 L-15.5 -12.6 L-14.6 -9.6 L-15.2 -8.6 L-6 -6.6 Z" fill="#4a3320"/>`);                      // tail
+      g.push(`<path d="M-6.2 -8.6 L-14.6 -11.2" stroke="#6e4c2c" stroke-width="0.6" opacity="0.8"/>`);
+      g.push(`<ellipse cx="0" cy="-8" rx="8.6" ry="5.8" fill="url(#${id}b)"/>`);                                       // body: back lit warm, breast pale
+      g.push(`<path d="M-7 -10.5 Q-1 -14.4 6 -11.8" stroke="#c49a64" stroke-width="1.1" fill="none" opacity="0.55" stroke-linecap="round"/>`);   // light along the back
+      g.push(`<path d="M-7.6 -8.4 Q-2 -12.6 5.2 -10.4 Q2.4 -6.4 -4.4 -5.6 Q-8 -6.2 -7.6 -8.4 Z" fill="#8a5a2e"/>`);  // the folded wing
+      for (const [x0, y0, x1, y1] of [[-5.6, -10.6, -3.4, -8.6], [-3.4, -11.4, -1.2, -9.2], [-1.2, -11.6, 1, -9.6], [1, -11.4, 3, -9.8]])
+        g.push(`<path d="M${x0} ${y0} L${x1} ${y1}" stroke="#2e1c0e" stroke-width="0.85" stroke-linecap="round" opacity="0.85"/>`);   // dark centres of the back feathers
+      g.push(`<path d="M-5.8 -7.4 Q-1.4 -9.4 3.6 -8.6" stroke="#f2ead8" stroke-width="0.8" fill="none" stroke-linecap="round"/>`);   // the white wing bar
+      g.push(`<path d="M-7.2 -6.6 Q-6 -5 -3.6 -5.2 M-5.4 -6.4 Q-4.4 -5 -2.4 -5.4" stroke="#3a2614" stroke-width="0.6" fill="none" opacity="0.8"/>`);   // primaries
+      g.push(`<path d="M3.6 -13.8 Q5.4 -9.8 4.6 -7.6 Q7 -9.4 7.6 -12 Z" fill="#8c4c20"/>`);                             // chestnut nape
+      g.push(`<circle cx="7.4" cy="-13.4" r="4.3" fill="url(#${id}h)"/>`);                                            // grey crown
+      g.push(`<path d="M5.2 -12.2 Q7.6 -10 10.6 -11.6 Q9.6 -9.4 7 -9.6 Q5.4 -10.4 5.2 -12.2 Z" fill="#e2dacb"/>`);      // pale cheek
+      g.push(`<path d="M9.8 -11.4 Q9.6 -8.6 7.4 -7.2 Q6.8 -8.8 8 -10 Z" fill="#241810"/>`);                             // the black bib
+      g.push(`<path d="M10.6 -14.4 L14.4 -13 L10.6 -11.8 Z" fill="#2e2620"/><path d="M10.8 -14 L13.4 -13.1" stroke="#7a6c60" stroke-width="0.35"/>`);   // cone beak, lit edge
+      g.push(`<circle cx="8.9" cy="-14" r="1.05" fill="#120a06"/><circle cx="9.2" cy="-14.35" r="0.38" fill="#fffaf0"/>`);   // the eye, holding the light
+      g.push(`</g>`);
+      out.push(`<g transform="translate(${R1(px)} ${R1(py)}) scale(${R1(f * s * 0.95)} ${R1(s * 0.95)})">${g.join('')}</g>`); counter.n++;
     };
+    // the seed He scatters for them — a few pale grains in the grass at the pecking birds' beaks
+    const seedR = mulberry32((seed ^ 0x5eed) >>> 0);
+    for (const [sx, sy] of [[232, 487], [654, 430]])
+      for (let i = 0; i < 7; i++) {
+        const gx = sx + (seedR() - 0.5) * 14, gy = sy + (seedR() - 0.5) * 3;
+        out.push(`<ellipse cx="${R1(gx)}" cy="${R1(gy)}" rx="0.9" ry="0.55" fill="#f1e2b4" opacity="0.9"/>`); counter.n++;
+      }
     // ⭐ "Consider the lilies of the field, how they grow… even Solomon in all his glory was not
     // arrayed like one of these" (Matt 6:28-29). These were three flat white petals on a stroke.
     // They are the engine's paintLily now (Sep 21) — six tepals in a nodding trumpet, a gold

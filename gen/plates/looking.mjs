@@ -700,17 +700,21 @@ export function paint(E, opts = {}) {
     col: (x, y, r) => jig(mix('#f3dca6', '#e8c47a', r() * 0.5), r, 4),
     len: 14, lw: 5, steps: 3, follow: 0.97, lenJ: 0.5, impasto: 0, relief: 0, op: 0.12,
   });
+  // ⚠ Oct 28: the mirror used to WIDEN as it came down (0.55→0.9 PW) with even density to a cut-off at +96 —
+  // on the page it read as a gold BOX standing under the pool, flat-bottomed. A reflection of a cone that is
+  // wide at the ground is wide at the pool and TAPERS away from it, and it thins out into the wet, never stops.
+  const MIR = 104;
   strokes(out, counter, {   // the REFLECTION — the cone upside down in the wet ground, fading downward
     rng, n: 900,
-    sample: r => { const u = (r() + r() - 1) * 0.8; const t = Math.pow(r(), 0.8); return [CX + u * PW * (0.55 + 0.35 * t), PY + PH * 0.3 + t * 96]; },
+    sample: r => { const t = Math.pow(r(), 1.9); const u = (r() + r() + r() - 1.5) * 0.62; return [CX + u * PW * (0.95 - 0.62 * t), PY + PH * 0.3 + t * MIR]; },
     dir: () => -Math.PI / 2 + (rng() - 0.5) * 0.08,
-    col: (x, y, r) => jig(mix('#f7e6bd', '#d9b56e', r() * 0.6), r, 4),
-    len: (x, y) => 10 + free(x, y, 951) * 24, lw: (x, y) => 1.4 + free(x, y, 953) * 2.2, steps: 2, lenJ: 0.4, impasto: 0, relief: 0,
+    col: (x, y, r) => { const t = Math.min(1, Math.max(0, (y - PY - PH * 0.3) / MIR)); return jig(mix(mix('#f7e6bd', '#d9b56e', r() * 0.6), '#6a5c86', t * 0.75), r, 4); },
+    len: (x, y) => (10 + free(x, y, 951) * 24) * (1 - 0.5 * Math.min(1, Math.max(0, (y - PY) / MIR))), lw: (x, y) => 1.4 + free(x, y, 953) * 2.2, steps: 2, lenJ: 0.4, impasto: 0, relief: 0,
     op: 0.16,
   });
   strokes(out, counter, {   // and a brighter core to the mirror, just under the pool
     rng, n: 260,
-    sample: r => { const u = (r() + r() - 1) * 0.35; const t = Math.pow(r(), 1.2); return [CX + u * PW, PY + PH * 0.2 + t * 46]; },
+    sample: r => { const t = Math.pow(r(), 1.6); const u = (r() + r() - 1) * 0.35 * (1 - 0.5 * t); return [CX + u * PW, PY + PH * 0.2 + t * 46]; },
     dir: () => -Math.PI / 2 + (rng() - 0.5) * 0.06,
     col: (x, y, r) => jig(mix('#fff3d4', '#f0d28e', r() * 0.5), r, 3),
     len: (x, y) => 8 + free(x, y, 957) * 18, lw: 1.6, steps: 2, lenJ: 0.4, impasto: 0, relief: 0, op: 0.22,

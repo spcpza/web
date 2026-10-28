@@ -521,7 +521,10 @@ export function paint(E, opts = {}) {
   // every stroke combed by the wind; pale undersides flash where it tears
   const CR = trunk(0.93);
   const canCx = CR[0] + 52, canCy = CR[1] - 4;
-  strokes(out, counter, {
+  // ⚠ Oct 28: the crown below this was an 88×26 ELLIPSE — on the page a flat green slab, a table top on a stick.
+  // It is walked on a scratch array now (the plate rng, and every mark after it, stays put) and the real crown is
+  // painted by the pass that follows, with its own rng.
+  strokes([], { n: 0 }, {
     rng, n: 430,
     // ⚠⚠ THE CROWN IS REDRAWN EACH FRAME, NOT SLID. Fred, circling the canopy: "can you
     // draw several version of this tree and then cycle it so it looks like the tree is
@@ -551,6 +554,39 @@ export function paint(E, opts = {}) {
     },
     len: 16, lw: 2.6, steps: 3, follow: 0.95, wild: 0.12, lenJ: 0.55, aJ: 0.3,
   });
+  // THE CROWN AS A STREAMED MASS (Oct 28). A tree in a gale is not a disc: the wind piles the crown up against
+  // the trunk and drags it out downwind into a long tapering tongue. So the mass is DEEP where it leaves the trunk
+  // and thins to the tip, its upper edge is a row of lumps (clumps the gale has not yet flattened) and its belly
+  // is ragged. Light falls on the top — crown lit, belly deep (Fred's light-from-above rule) — so it has a body.
+  {
+    const crng = mulberry32(seed + 4421);
+    const TX = CR[0] - 30, TL = 200;                                   // from just behind the trunk's head to the tip
+    const halfH = w => 40 * Math.pow(1 - w, 0.75) * (0.35 + 0.65 * Math.min(1, w * 3.2 + 0.25));
+    const midY = w => CR[1] - 8 + w * 6;                               // the tongue sinks a hair as it thins
+    const lumpT = w => 0.62 + 0.62 * fbm(w * 6.5, 1.3, 4431);          // the lumpy top edge
+    const lumpB = w => 0.62 + 0.30 * fbm(w * 9.0, 4.7, 4433);          // the torn belly sits tighter
+    const at = (x) => Math.max(0, Math.min(1, (x - TX) / TL));
+    strokes(out, counter, {
+      rng: crng, n: 620,
+      sample: r => {
+        const w = Math.pow(r(), 1.15);
+        const v = (r() + r() - 1);                                     // -1 top .. +1 belly
+        let x = TX + w * TL;
+        let y = midY(w) + v * halfH(w) * (v < 0 ? lumpT(w) : lumpB(w));
+        x += GUST * 30 * w * w;                                        // dragged east, tip furthest (redrawn per frame)
+        y -= GUST * 9 * w;
+        return [x, y];
+      },
+      dir: (x, y) => 0.08 + GUST * 0.12 + (fbm(x / 40, y / 40, 67) - 0.5) * 0.5,
+      col: (x, y, r) => {
+        if (r() < 0.06 + GUST * 0.05) return jig(mix('#7d967e', '#9ab295', r()), r, 10);   // a leaf turned over in the gust
+        const w = at(x), hh = Math.max(4, halfH(w));
+        const up = Math.max(0, Math.min(1, 0.5 - (y - midY(w)) / (2 * hh)));            // 1 = crown top, 0 = belly
+        return jig(ramp(['#16221f', '#243626', '#3a4c2c', '#58663a', '#76844a'], Math.min(1, up * 0.85 + fbm(x / 26, y / 26, 71) * 0.3)), r, 9);
+      },
+      len: 15, lw: 2.6, steps: 3, follow: 0.95, wild: 0.12, lenJ: 0.55, aJ: 0.3,
+    });
+  }
   // torn leaves flying downwind, scattering east off the canopy
   strokes(out, counter, {
     rng, n: 26,

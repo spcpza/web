@@ -328,7 +328,10 @@ export function paint(E, opts = {}) {
         const near = nearE(x, y);
         if (near < 0.55 && r() < 0.06) return jig(mix(skyCol(x, y, r, e.lift), '#e6ecfb', 0.45), r, 6);   // pale-silver at the eddy knots, mixed into the sky
         const k2 = fbm(x / 92, y / 92, 71) + (r() - 0.5) * 0.2;
-        if (k2 > 0.76) return jig('#d4ddf4', r, 8);                                          // pale-silver twilight cloud-crests (only the crest edges catch light)
+        // pale-silver twilight cloud-crests (only the crest edges catch light). ⚠ Oct 28: a flat #d4ddf4 chip on the threshold
+        // made ONE lone near-white mark curl into a white HOOK mid-sky (sky2, ~453,170). The crest now RISES out of the sky's
+        // own colour as k2 climbs past the threshold; its sky colour gets its own rng so the sheet's stream stays put.
+        if (k2 > 0.76) return jig(mix(skyCol(x, y, mulberry32((x * 73 + y * 151) | 0), e.lift), '#d4ddf4', 0.3 + Math.min(1, (k2 - 0.76) / 0.18) * 0.32), r, 8);
         return skyCol(x, y, r, e.lift);
       },
       len: (x, y) => e.len * lengthOf(x, y, 51 + k), lw: (x, y) => e.lw * widthOf(x, y, 57 + k),

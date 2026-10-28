@@ -97,7 +97,9 @@ export function paint(E, opts = {}) {
   // a dull orange spark exactly where the break's warmth dies into blue
   const skyCol = (x, y, r, lift) => {
     const g = light(x, y);
-    if (g > 0.18 && g < 0.28 && r() < 0.018) return jig('#a8662f', r, 12);
+    // (Oct 28: the spark was a pure #a8662f chip — orange tiles and a red block floating in the gale. It is mixed INTO
+    // the sky's own colour now, the way road's warmth is; same r() calls, so nothing else moves.)
+    if (g > 0.18 && g < 0.28 && r() < 0.018) return jig(mix(ramp(['#22305e', '#36497e', '#5d7cc0', '#93a8cc', '#ddd9bc'], Math.min(1, 0.12 + g * 1.1 + fbm(x / 100, y / 100, 23) * 0.32)), '#a8662f', 0.32), r, 8);
     const t = Math.min(1, 0.12 + g * 1.1 + fbm(x / 100, y / 100, 23) * 0.32);
     let c = ramp(['#22305e', '#36497e', '#5d7cc0', '#93a8cc', '#ddd9bc'], t);
     for (const [ex, ey, ec] of EGLOW) { const d2 = Math.hypot(x - ex, y - ey); c = mix(c, ec, Math.exp(-d2 / 95) * 0.5); }   // the eddy cores breathe faint jewel light
@@ -187,7 +189,10 @@ export function paint(E, opts = {}) {
       const w = 5 + RB() * 2.4, d = 2.2 + RB() * 1.3, tilt = (RB() - 0.5) * 1.0;
       // Oct 25 (Fred: "no emoji looking things"): the bent-stroke 'M's read as a printed glyph. Same count, same two
       // colours (the cipher stands), but each is a real bird in the gale: two swept wings and a body, deep-toned.
-      E.realBird(out, counter, RB, p.x, p.y, w * 0.42, { tilt: tilt * 0.6, col: GREEN.has(i) ? '#24582c' : '#5a1a14' });
+      // Oct 28: realBird's three wedge ribbons still read as red CHEVRONS at this size. Walked on scratch (RB stream, so
+      // the cipher's places never move), painted by skyBird — gull wings, a body, a lit leading edge — same 31 : 3.
+      E.realBird([], { n: 0 }, RB, p.x, p.y, w * 0.42, { tilt: tilt * 0.6, col: GREEN.has(i) ? '#24582c' : '#5a1a14' });
+      E.skyBird(out, counter, mulberry32((p.x * 131 + p.y * 7) | 0), p.x, p.y, w * 0.18, { tilt: tilt * 0.6, col: GREEN.has(i) ? '#24582c' : '#5a1a14', lit: 0.34 });
     }
   }
 

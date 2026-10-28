@@ -622,14 +622,16 @@ export function paint(E, opts = {}) {
       col: (x, y, r) => jig(ramp(['#20180f', '#33251a', '#4a3524'], r()), r, 6),
       len: 8, lw: 2.6, steps: 1, relief: 0, op: 0.8,
     });
+    const stR = mulberry32(seed ^ 0x570e);
     for (let k = 0; k < 14; k++) {
       const a2 = Math.PI * (0.06 + k / 13.6);
       const sx = FX + Math.cos(a2) * 84, sy = FY + Math.sin(a2) * 28 + 5;
       const sw = 11 + fRng() * 9;
-      E.daub(mid, counter, sx, sy + sw * 0.2, sw * 0.5, jig('#1d1a16', fRng, 5), fRng);
-      E.daub(mid, counter, sx, sy, sw * 0.46, jig(ramp(['#5e5a54', '#7b766d', '#9a948a'], fRng()), fRng, 6), fRng);
-      E.daub(mid, counter, sx - sw * 0.08, sy - sw * 0.16, sw * 0.24,
-        jig(mix('#c9c2b4', '#ffd9a0', 0.5), fRng, 7), fRng);      // the firelit top of each stone
+      E.daub([], { n: 0 }, sx, sy + sw * 0.2, sw * 0.5, jig('#1d1a16', fRng, 5), fRng);    // (Oct 28: walked, not painted — see firelitStone)
+      E.daub([], { n: 0 }, sx, sy, sw * 0.46, jig(ramp(['#5e5a54', '#7b766d', '#9a948a'], fRng()), fRng, 6), fRng);
+      E.daub([], { n: 0 }, sx - sw * 0.08, sy - sw * 0.16, sw * 0.24,
+        jig(mix('#c9c2b4', '#ffd9a0', 0.5), fRng, 7), fRng);
+      firelitStone(E, mid, counter, stR, sx, sy, sw * 0.95, FX, FY - 10);
     }
     // 2 · THE SMOKE. A fire with nothing coming off it is a lamp. The column is the one
     // thing on this page that joins the ground to the sky, and it is what makes the flame
@@ -775,11 +777,13 @@ export function paint(E, opts = {}) {
           },
           { lw: 5 + eRng() * 3, len: 5, density: 1, jitter: 0.3 });
       }
-      // the cut ends catch the light like little coins
+      // the cut ends catch the light (Oct 28: they were little coins — now split ends, see splitLogEnd)
+      const endR = mulberry32(seed ^ 0xe7d5);
       for (let i = 0; i < 9; i++) {
         const lx = 214 + (i % 3) * 17 + (i > 5 ? 8 : 0) + 16;
         const ly = 470 - ((i / 3) | 0) * 9;
-        E.daub(mid, counter, lx, ly, 2.6, jig(mix('#c9a274', '#f6dca8', eRng()), eRng, 7), eRng, 0.8);
+        E.daub([], { n: 0 }, lx, ly, 2.6, jig(mix('#c9a274', '#f6dca8', eRng()), eRng, 7), eRng, 0.8);   // (Oct 28: walked — the coin)
+        splitLogEnd(E, mid, counter, endR, lx, ly, 3.4, Math.max(0, 1 - Math.hypot(lx - FIRE.x, (ly - FIRE.y) / 0.4) / 210));
       }
     }
     // 5 · and the heat of it on the grass all round — the thing that lights the faces
@@ -821,8 +825,9 @@ export function paint(E, opts = {}) {
     {
       const kx = 392, ky = 462, kr = 11;
       // the stone it stands on
-      E.daub(mid, counter, kx, ky + 7, 9, jig('#221f1a', cRng, 5), cRng);
-      E.daub(mid, counter, kx - 1, ky + 5, 7.5, jig(mix('#6a655c', '#a3958a', 0.4), cRng, 6), cRng);
+      E.daub([], { n: 0 }, kx, ky + 7, 9, jig('#221f1a', cRng, 5), cRng);
+      E.daub([], { n: 0 }, kx - 1, ky + 5, 7.5, jig(mix('#6a655c', '#a3958a', 0.4), cRng, 6), cRng);
+      firelitStone(E, mid, counter, mulberry32(seed ^ 0x6e77), kx - 1, ky + 6, 22, FIRE.x, FIRE.y - 10);
       // the body — a squat iron pot, dark, with the flame down its left cheek
       strokes(mid, counter, {
         rng: cRng, n: 240,
@@ -853,7 +858,7 @@ export function paint(E, opts = {}) {
 
     // ── THE WOOD, split and stacked for later ────────────────────────────────
     {
-      const wx = 522, wy = 464;
+      const wx = 522, wy = 464, woodR = mulberry32(seed ^ 0x700d);
       for (let row = 0; row < 3; row++) {
         const n2 = 4 - row;
         for (let i = 0; i < n2; i++) {
@@ -869,9 +874,10 @@ export function paint(E, opts = {}) {
             len: 7, lw: 2.4, steps: 1, relief: 0.12, impasto: 0.25,
           });
           // the split face at the near end — pale sapwood, the one bright thing in the pile
-          E.daub(mid, counter, lx - half, ly, 4.6, jig('#120d09', cRng, 4), cRng);
-          E.daub(mid, counter, lx - half - 0.5, ly - 0.5, 3.6,
+          E.daub([], { n: 0 }, lx - half, ly, 4.6, jig('#120d09', cRng, 4), cRng);
+          E.daub([], { n: 0 }, lx - half - 0.5, ly - 0.5, 3.6,
             jig(mix('#7c6a4e', '#e6c184', 0.35 + lit(lx, ly) * 0.5), cRng, 7), cRng);
+          splitLogEnd(E, mid, counter, woodR, lx - half - 0.4, ly, 5.6, 0.35 + lit(lx, ly) * 0.6);
         }
       }
     }
@@ -1054,4 +1060,44 @@ export function paint(E, opts = {}) {
   return svgWrap(ALT, out.slice(0, bgEnd)
     .concat(mid.slice(0, midGroundEnd), out.slice(bgEnd), mid.slice(midGroundEnd))
     .join('\n'));
+}
+
+/* ⭐ Oct 28 — a STONE and a LOG END you can read at arm's length. The ring stones were three stacked daubs (dark, grey,
+   pale) = grey eggs; the woodpile's cut ends were a pale daub in a dark daub = coins. A stone is a lumpy outline lit
+   from the side that faces the fire, with a hard contact shadow and a little tooth; a split end is a bark rim, pale
+   sapwood, a darker heart and the rings. Both take their own rng, so the plate's stream never moves. */
+function firelitStone(E, out, counter, rng, x, y, w, fx, fy) {
+  const { R1, mix, jig } = E, id = 'fst' + counter.n;
+  const h = w * (0.66 + rng() * 0.16), N = 11, pts = [];
+  for (let i = 0; i < N; i++) {
+    const a = i / N * Math.PI * 2, k = 0.84 + rng() * 0.28;
+    const flat = Math.sin(a) > 0 ? 0.78 : 1;                         // it sits on its flat side
+    pts.push([x + Math.cos(a) * w * 0.5 * k, y + Math.sin(a) * h * 0.5 * k * flat]);
+  }
+  const d = 'M' + pts.map(p => R1(p[0]) + ' ' + R1(p[1])).join(' L') + ' Z';
+  const a = Math.atan2(fy - y, fx - x), ux = Math.cos(a) * 0.5, uy = Math.sin(a) * 0.5;
+  const near = Math.max(0, 1 - Math.hypot(x - fx, (y - fy) / 0.5) / 160);
+  out.push(`<defs><linearGradient id="${id}" x1="${(0.5 - ux).toFixed(2)}" y1="${(0.5 - uy).toFixed(2)}" x2="${(0.5 + ux).toFixed(2)}" y2="${(0.5 + uy).toFixed(2)}">`
+    + `<stop offset="0" stop-color="${mix('#141210', '#221e1a', rng())}"/><stop offset="0.6" stop-color="${mix('#3e3a36', '#5a4a3c', near)}"/>`
+    + `<stop offset="1" stop-color="${mix('#7a7268', '#e8b47a', 0.3 + near * 0.6)}"/></linearGradient></defs>`);
+  out.push(`<ellipse cx="${R1(x + 1)}" cy="${R1(y + h * 0.36)}" rx="${R1(w * 0.56)}" ry="${R1(h * 0.2)}" fill="#0e0c0a" opacity="0.7"/>`);
+  out.push(`<path d="${d}" fill="url(#${id})"/>`);
+  // the lit lip on the fire side, and a few grains of tooth
+  const lx = x + Math.cos(a) * w * 0.3, ly = y + Math.sin(a) * h * 0.28;
+  out.push(`<path d="M${R1(lx - Math.sin(a) * w * 0.22)} ${R1(ly + Math.cos(a) * h * 0.2)} Q${R1(lx + Math.cos(a) * 1.2)} ${R1(ly + Math.sin(a) * 1.2)} ${R1(lx + Math.sin(a) * w * 0.22)} ${R1(ly - Math.cos(a) * h * 0.2)}" stroke="${mix('#d8c0a0', '#ffd9a0', near)}" stroke-width="${R1(Math.max(0.8, w * 0.07))}" fill="none" opacity="${(0.3 + near * 0.4).toFixed(2)}" stroke-linecap="round"/>`);
+  for (let i = 0; i < 5; i++) {
+    const gx = x + (rng() - 0.5) * w * 0.6, gy = y + (rng() - 0.5) * h * 0.5;
+    out.push(`<circle cx="${R1(gx)}" cy="${R1(gy)}" r="${R1(0.35 + rng() * 0.45)}" fill="${jig(rng() < 0.5 ? '#2a2622' : '#8a8076', rng, 6)}" opacity="0.7"/>`);
+  }
+  counter.n += 8;
+}
+function splitLogEnd(E, out, counter, rng, x, y, r, lit) {
+  const { R1, mix } = E, rx = r * 0.62, ry = r;
+  out.push(`<ellipse cx="${R1(x)}" cy="${R1(y)}" rx="${R1(rx)}" ry="${R1(ry)}" fill="${mix('#1a120c', '#3a2414', lit * 0.6)}"/>`);   // bark
+  out.push(`<ellipse cx="${R1(x - 0.2)}" cy="${R1(y)}" rx="${R1(rx * 0.8)}" ry="${R1(ry * 0.82)}" fill="${mix('#8a7050', '#f0cc90', lit * 0.75)}"/>`);   // sapwood, firelit
+  out.push(`<ellipse cx="${R1(x - 0.2)}" cy="${R1(y + 0.2)}" rx="${R1(rx * 0.36)}" ry="${R1(ry * 0.38)}" fill="${mix('#6a4c30', '#b8844c', lit * 0.6)}" opacity="0.85"/>`);   // heartwood
+  out.push(`<ellipse cx="${R1(x - 0.2)}" cy="${R1(y)}" rx="${R1(rx * 0.58)}" ry="${R1(ry * 0.6)}" fill="none" stroke="#5a3e24" stroke-width="0.4" opacity="0.6"/>`);
+  const ca = rng() * Math.PI * 2;
+  out.push(`<path d="M${R1(x)} ${R1(y)} L${R1(x + Math.cos(ca) * rx * 0.78)} ${R1(y + Math.sin(ca) * ry * 0.8)}" stroke="#2a1a0e" stroke-width="0.5" opacity="0.8"/>`);   // the split
+  counter.n += 5;
 }
