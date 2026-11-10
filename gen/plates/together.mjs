@@ -382,7 +382,7 @@ export function paint(E, opts = {}) {
      between the travellers and the Light they walk toward. A fourth-look secret. */
   E.inscriptionText(out, E.greekRef(3, 9), { x: 392, y: 326, h: 14, body: '#1a1204', edge: '#f6eecc', op: 0.78, edgeOp: 0.55 });
 
-  const ALT = 'A cold deep-blue night, sparkling faintly; far ahead on the horizon a great radiant gold Light glows like a home, ringed with golden light. A bright golden road reaches back from it across the dark, to two small travellers low at the left: the recurring red child — washed clean, glowing with a soft white aura — has turned back, taken the hand of a darker figure still standing in the shadow, and points the way up the road toward the distant Light. He leads the other home; the Light ahead is the true source he only carries and reflects.';
+  const ALT = 'A cold deep-blue night, sparkling faintly; far ahead on the horizon a great radiant gold Light glows like a home, ringed with golden light. A bright golden road reaches back from it across the dark, to two small travellers low at the left: the same small child in the blue hood — washed clean, glowing with a soft white aura — has turned back, taken the hand of a darker figure still standing in the shadow, and points the way up the road toward the distant Light. He leads the other home; the Light ahead is the true source he only carries and reflects.';
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart on

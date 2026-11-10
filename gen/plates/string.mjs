@@ -425,7 +425,7 @@ export function paint(E, opts = {}) {
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.
-  const ALT = 'A churning daytime sky over a low hill; a small red child is carried far up into the wind like a balloon, tied to one unbroken string that arcs down into a blaze of golden light low on the left — the Light holding the string fast, never letting go.';
+  const ALT = 'A churning daytime sky over a low hill; a small child in a blue hood is carried far up into the wind like a balloon, tied to one unbroken string that arcs down into a blaze of golden light low on the left — the Light holding the string fast, never letting go.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };   // no baked surface — the live filter unifies the planes
   const setOf = ranges => { const s = new Set(); for (const [a, b] of ranges) for (let i = a; i < b; i++) s.add(i); return s; };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');

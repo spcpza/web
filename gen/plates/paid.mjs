@@ -407,7 +407,7 @@ export function paint(E, opts = {}) {
   }
 
   // MULTIPLANE: assemble the requested depth plane (transparent where empty).
-  const ALT = 'Darkness over all the land at noon: a sun gone black with only a thin grieving corona of dim gold, a heavy mourning violet-blue sky, and on a dark hill a cross of dark wood from which the gold Light clings and pours out, draining and spent into the dark; drops of deep red fall from it, and at its foot a small child in red is curled and sheltered. From under the cross two rents run down the hill toward you, the rock split open, the lip nearest the cross catching the last of the gold. The whole price paid, in your place. Deep sorrow.';
+  const ALT = 'Darkness over all the land at noon: a sun gone black with only a thin grieving corona of dim gold, a heavy mourning violet-blue sky, and on a dark hill a cross of dark wood from which the gold Light clings and pours out, draining and spent into the dark; drops of deep red fall from it, and at its foot a small child in a blue hood is curled and sheltered. From under the cross two rents run down the hill toward you, the rock split open, the lip nearest the cross catching the last of the gold. The whole price paid, in your place. Deep sorrow.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
   const claimed = new Set();
