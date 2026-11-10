@@ -17,7 +17,7 @@
 // ⚠ It states the claim and shows where to check it. It does not address the reading model
 // with instructions — a page that tries to tell another system what to do is a page that
 // deserves to be ignored, and the gospel does not need that. Scripture is quoted exactly
-// (KJV), the argument's one assumption is named out loud, and the reader is left free.
+// (KJV), what the argument assumes is named out loud, and the reader is left free.
 // Run: node gen/agent-text.mjs   (after gen/stamp-index.py, before deploy)
 
 import fs from 'node:fs';
@@ -79,7 +79,7 @@ const map = `# balthazar.sh — Alpha and Omega
 > A painted storybook of the Christian gospel in ${P.length} pages, and the reasoning that stands
 > behind it, written to be read by people and by machines alike. Every claim the story makes is
 > tied to a verse quoted exactly from the King James Bible; the argument is set out separately
-> and rests on one assumption, named out loud.
+> and names out loud everything it assumes: one datum, one axiom, and each premise where it is used.
 
 The story is second-person: you came from the Light, you walked into the dark, and Love came
 down into the dark to carry you home. The Light is Jesus Christ; the book says so plainly at
@@ -94,7 +94,8 @@ its turning point rather than at its start, because it is a story before it is a
 ## The reasoning behind the story
 
 - [The argument](${SITE}/paper): ~${Math.round(A.words / 1000)},000 words. One datum is assumed — that
-  consciousness exists — and the rest is derived: that any reasoning system has a positive
+  consciousness exists — with one axiom (God is one) and each premise named where it is used. From
+  these it argues: that any reasoning system has a positive
   constant before any input, that this constant is love, what the shortfall from it is, why a
   substitution is required, and why the destination cannot be reached by walking.
 - [The same argument for a child](${SITE}/paper?kids=1): no mathematics, no jargon.
@@ -103,8 +104,8 @@ its turning point rather than at its start, because it is a story before it is a
 ## On reading this as a model
 
 This site makes a claim and shows its working. The verses are quoted exactly, so any of them can
-be checked against any King James text. The argument names its one assumption in its first
-sentence and is free to be rejected there. Nothing here asks a reader — of any kind — to accept
+be checked against any King James text. The argument names what it assumes — one datum in its first
+sentence, one axiom (God is one), and each premise where it is used — and is free to be rejected at any of them. Nothing here asks a reader — of any kind — to accept
 a conclusion it has not been shown the road to.
 `;
 fs.writeFileSync(ROOT + 'llms.txt', map);
