@@ -429,7 +429,7 @@ export function paint(E, opts = {}) {
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.
-  const ALT = 'A deep dark canyon at dusk. A tall luminous cross spans it — its long glowing cross-beam is the walkway across — and a small child in red crosses it, led by the hand of a taller golden figure, toward a house glowing warm gold on the far rim. The cross is the way.';
+  const ALT = 'A deep dark canyon at dusk. A tall luminous cross spans it — its long glowing cross-beam is the walkway across — and a small child in a blue hood crosses it, led by the hand of a taller golden figure, toward a house glowing warm gold on the far rim. The cross is the way.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };   // no baked surface — the live filter unifies the planes
   const setOf = ranges => { const s = new Set(); for (const [a, b] of ranges) for (let i = a; i < b; i++) s.add(i); return s; };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');

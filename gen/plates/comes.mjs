@@ -1149,7 +1149,7 @@ export function paint(E, opts = {}) {
   }
   fgRanges.push([_earth0, out.length]);   // [FG] the dark earth + landing pool + lifted figures + eggs
 
-  const ALT = 'The heavens tear open near the top of the sky and a great radiant gold shaft of glory pours straight DOWN toward the earth — the King, the Light, descending in power. The cloud parts at the rift, a spectral rainbow arcs across the opening, and gold sparks rain down the falling beam. Below, on a small dark earth where the shaft lands, tiny figures including a small red child lift their arms UP toward the coming Light, and a great flock of birds rises from the land in two curved streams to meet the descending glory — caught up together to meet the Lord in the air. Behold, I come quickly.';
+  const ALT = 'The heavens tear open near the top of the sky and a great radiant gold shaft of glory pours straight DOWN toward the earth — the King, the Light, descending in power. The cloud parts at the rift, a spectral rainbow arcs across the opening, and gold sparks rain down the falling beam. Below, on a small dark earth where the shaft lands, tiny figures including a small child in a blue hood lift their arms UP toward the coming Light, and a great flock of birds rises from the land in two curved streams to meet the descending glory — caught up together to meet the Lord in the air. Behold, I come quickly.';
 
   // MULTIPLANE: assemble the requested depth plane by slicing the recorded
   // ranges. Each cel is transparent where it has no content, so the planes stack

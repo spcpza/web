@@ -546,7 +546,7 @@ export function paint(E, opts = {}) {
 
   // MULTIPLANE: assemble the requested depth plane. Each is its own cel —
   // transparent where it has no content — so they stack and parallax apart.
-  const ALT = 'Wheat hills at dusk under a rising spiral sky; a road climbs from the far country, over a rise and through a hollow, and ends at the near rim of a huge valley — a great gulf plunging into deep blue. A small child in red stands at the brink, reaching toward a warm gold home that glows on the far rim, across the gulf, too far to reach on foot. The road home has run out; only a bridge from the other side can cross.';
+  const ALT = 'Wheat hills at dusk under a rising spiral sky; a road climbs from the far country, over a rise and through a hollow, and ends at the near rim of a huge valley — a great gulf plunging into deep blue. A small child in a blue hood stands at the brink, reaching toward a warm gold home that glows on the far rim, across the gulf, too far to reach on foot. The road home has run out; only a bridge from the other side can cross.';
   const RAW = { undercoat: 0, weave: 0, varnish: 0, oil: 0 };   // no baked surface — the live filter unifies the planes
   const setOf = ranges => { const s = new Set(); for (const [a, b] of ranges) for (let i = a; i < b; i++) s.add(i); return s; };
   const pick = ranges => ranges.map(([a, b]) => out.slice(a, b).join('\n')).join('\n');
