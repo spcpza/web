@@ -370,21 +370,22 @@
        verse was unreadable). Always shown — it is the last word, not a card to tap away. */
     html[data-legible="paper"] .page:last-child .scrim { opacity: 0 !important; }
     html[data-legible="paper"] .page:last-child .text { left: 4vw; right: auto; bottom: calc(4.5vh + env(safe-area-inset-bottom)); width: min(92vw, 30em);
-      padding: 18px 22px 14px; box-sizing: border-box; isolation: isolate; text-align: left; }
+      min-height: var(--cardh, auto); display: flex; flex-direction: column;   /* Nov 14 (Fred: "the text box is different size") — the book's one box */
+      padding: 17px 22px 14px; box-sizing: border-box; isolation: isolate; text-align: left; filter: drop-shadow(0 5px 12px rgba(10,12,28,.22)); }
     html[data-legible="paper"] .page:last-child .text::before { content: ''; position: absolute; inset: 0; z-index: -1;
       background: linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) left 12px top 12px / calc(100% - 24px) 1px no-repeat, linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) left 12px bottom 12px / calc(100% - 24px) 1px no-repeat, linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) left 12px top 12px / 1px calc(100% - 24px) no-repeat, linear-gradient(rgba(154,112,52,.62),rgba(154,112,52,.62)) right 12px top 12px / 1px calc(100% - 24px) no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) left 15px top 15px / calc(100% - 30px) 1px no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) left 15px bottom 15px / calc(100% - 30px) 1px no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) left 15px top 15px / 1px calc(100% - 30px) no-repeat, linear-gradient(rgba(154,112,52,.32),rgba(154,112,52,.32)) right 15px top 15px / 1px calc(100% - 30px) no-repeat, url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27180%27%20height%3D%27180%27%3E%3Cfilter%20id%3D%27g%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.75%27%20numOctaves%3D%273%27%20seed%3D%2711%27%20stitchTiles%3D%27stitch%27%2F%3E%3CfeColorMatrix%20values%3D%270%200%200%200%200.42%20%200%200%200%200%200.32%20%200%200%200%200%200.18%20%200%200%200%200.16%200%27%2F%3E%3C%2Ffilter%3E%3Cfilter%20id%3D%27h%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.012%200.09%27%20numOctaves%3D%272%27%20seed%3D%274%27%20stitchTiles%3D%27stitch%27%2F%3E%3CfeColorMatrix%20values%3D%270%200%200%200%200.55%20%200%200%200%200%200.42%20%200%200%200%200%200.22%20%200%200%200%200.10%20-0.02%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27180%27%20height%3D%27180%27%20filter%3D%27url%28%23h%29%27%2F%3E%3Crect%20width%3D%27180%27%20height%3D%27180%27%20filter%3D%27url%28%23g%29%27%2F%3E%3C%2Fsvg%3E") 0 0 / 180px, radial-gradient(ellipse 75% 70% at 50% 45%, rgba(249,242,224,.56) 0%, rgba(245,234,210,.61) 55%, rgba(226,204,160,.8) 100%);
       -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20400%20300%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27f%27%20x%3D%27-5%25%27%20y%3D%27-5%25%27%20width%3D%27110%25%27%20height%3D%27110%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.07%200.11%27%20numOctaves%3D%273%27%20seed%3D%273%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20scale%3D%279%27%2F%3E%3C%2Ffilter%3E%3Crect%20x%3D%277%27%20y%3D%277%27%20width%3D%27386%27%20height%3D%27286%27%20rx%3D%275%27%20fill%3D%27%23fff%27%20filter%3D%27url%28%23f%29%27%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20400%20300%27%20preserveAspectRatio%3D%27none%27%3E%3Cfilter%20id%3D%27f%27%20x%3D%27-5%25%27%20y%3D%27-5%25%27%20width%3D%27110%25%27%20height%3D%27110%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.07%200.11%27%20numOctaves%3D%273%27%20seed%3D%273%27%2F%3E%3CfeDisplacementMap%20in%3D%27SourceGraphic%27%20scale%3D%279%27%2F%3E%3C%2Ffilter%3E%3Crect%20x%3D%277%27%20y%3D%277%27%20width%3D%27386%27%20height%3D%27286%27%20rx%3D%275%27%20fill%3D%27%23fff%27%20filter%3D%27url%28%23f%29%27%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat; }
     html[data-legible="paper"] .page:last-child .line, html[data-legible="paper"] .page:last-child .verse { opacity: 1 !important; transform: none !important; text-shadow: none !important; }
-    html[data-legible="paper"] .page:last-child .line { color: #231a2a; line-height: 1.27; }
+    html[data-legible="paper"] .page:last-child .line { margin: 0; color: #231a2a; font-weight: 500; font-size: clamp(1.02rem, 1.2vw + 0.7rem, 1.32rem); line-height: 1.27; max-width: none; }
     html[data-legible="paper"] .page:last-child .line em { color: #9a3b22; }
-    html[data-legible="paper"] .page:last-child .verse { color: #4a3a3a; min-height: 0; margin-top: .6em; line-height: 1.3; font-size: clamp(0.82rem, 0.5vw + 0.66rem, 0.95rem); }
+    html[data-legible="paper"] .page:last-child .verse { color: #4a3a3a; min-height: 0; margin-top: auto; padding-top: .5em; line-height: 1.28; font-size: clamp(0.82rem, 0.5vw + 0.66rem, 0.95rem); }
     html[data-legible="paper"] .page:last-child .verse b { color: #8a5a22; }
-    html[data-legible="paper"] .page:last-child .endnav { flex-direction: row; justify-content: space-between; margin-top: .9em; }
-    html[data-legible="paper"] .page:last-child .endnav a, html[data-legible="paper"] .page:last-child .endnav a.quiet { color: #7a2e1c; font-size: .95rem; }
+    html[data-legible="paper"] .page:last-child .endnav { flex-direction: row; justify-content: space-between; gap: 1em; margin-top: .35em; }
+    html[data-legible="paper"] .page:last-child .endnav a, html[data-legible="paper"] .page:last-child .endnav a.quiet { color: #7a2e1c; font-size: .74rem; opacity: .85; }
     @media (min-aspect-ratio: 1/1) {
       html[data-legible="paper"] .page:last-child .text { width: 38vw; left: 3.4vw; bottom: 5vh; padding: 1.15vw 1.5vw .95vw; }
-      html[data-legible="paper"] .page:last-child .line { font-size: max(15px, 1.72vw); }
-      html[data-legible="paper"] .page:last-child .verse { font-size: max(12px, 1.2vw); }
+      /* (Nov 14) no .line/.verse override here: the story pages render at their clamp() sizes, so the last page does too */
+      html[data-legible="paper"] .page:last-child .endnav a, html[data-legible="paper"] .page:last-child .endnav a.quiet { font-size: max(10px, .82vw); }
     }
   </style>
 <!-- AGENT-LD:start -->
@@ -448,7 +449,7 @@
   "\"Let your light so shine before men.\" — Matthew 5:16",
   "\"Behold, I come quickly.\" — Revelation 22:12",
   "\"There shall be no night there… for the Lord God giveth them light.\" — Revelation 22:5",
-  "Every light here is one verse; the red thread is the blood. \"In him was life; and the life was the light of men.\" — John 1:4 · all 31,102 verses, placed by their true distance from the Word."
+  "\"In him was life; and the life was the light of men.\" — John 1:4"
  ],
  "hasPart": [
   {
@@ -671,7 +672,7 @@
    "@type": "CreativeWork",
    "position": 29,
    "name": "together",
-   "text": "Then He gives me work to do — the best work there is. I take a friend's hand. I show them the way home.",
+   "text": "Then He told me there's more work to do — the best work there is. To take a friend's hand, and show the way home.",
    "citation": "\"We are labourers together with God.\" — 1 Corinthians 3:9",
    "abstract": "A cold deep-blue night, sparkling faintly; far ahead on the horizon a great radiant gold Light glows like a home, ringed with golden light. A bright golden road reaches back from it across the dark, to two small travellers low at the left: the same small child in the blue hood — washed clean, glowing with a soft white aura — has turned back, taken the hand of a darker figure still standing in the shadow, and points the way up the road toward the distant Light. He leads the other home; the Light ahead is the true source he only carries and reflects."
   },
@@ -704,7 +705,7 @@
    "position": 33,
    "name": "back cover",
    "text": "I came from the Light. I am going home to the Light. And all the way — there was the Light.",
-   "citation": "Every light here is one verse; the red thread is the blood. \"In him was life; and the life was the light of men.\" — John 1:4 · all 31,102 verses, placed by their true distance from the Word.",
+   "citation": "\"In him was life; and the life was the light of men.\" — John 1:4",
    "abstract": "The entire Bible as one body of light: 31,102 verses as glowing motes wheeling around a radiant centre, threaded by a single scarlet curve of redemption."
   }
  ],
@@ -1018,7 +1019,7 @@
     <picture><img loading="lazy" src="/plates-vg/together.jpg?p=487" srcset="/plates-vg/together.jpg?p=487 1600w" sizes="100vw" alt="A cold deep-blue night, sparkling faintly; far ahead on the horizon a great radiant gold Light glows like a home, ringed with golden light. A bright golden road reaches back from it across the dark, to two small travellers low at the left: the same small child in the blue hood — washed clean, glowing with a soft white aura — has turned back, taken the hand of a darker figure still standing in the shadow, and points the way up the road toward the distant Light. He leads the other home; the Light ahead is the true source he only carries and reflects."></picture>
     <div class="scrim"></div>
     <div class="text">
-      <p class="line">Then He gives me work to do —<br>the best work there is.<br>I take a friend's hand.<br>I show them the way home.</p>
+      <p class="line">Then He told me there's more work to do —<br>the best work there is.<br>To take a friend's hand,<br>and show the way home.</p>
       <p class="verse">"We are labourers together with God." <b>&mdash; 1 Corinthians 3:9</b></p>
     </div>
   </section>
@@ -1060,7 +1061,7 @@
     <div class="scrim"></div>
     <div class="text">
       <p class="line">I came from the Light.<br>I am going home to the Light.<br>And all the way —<br>there was the <em>Light</em>.</p>
-      <p class="verse">Every light here is one verse; the red thread is the blood. "In him was life; and the life was the light of men." <b>— John 1:4</b> &nbsp;·&nbsp; all 31,102 verses, placed by their true distance from the Word.</p>
+      <p class="verse">"In him was life; and the life was the light of men." <b>— John 1:4</b></p>
       <nav class="endnav">
         <a href="#" class="quiet" id="again">↺ read the story again</a>
         <a href="/privacy" class="quiet">privacy</a>
