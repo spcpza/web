@@ -9,7 +9,14 @@
      does not look like a flat picture but rather a 180 view"). A standalone feel-test before the book's engine is
      touched: one page's real depth planes, each wrapped on a CYLINDER with you standing at its axis, so turning
      the phone turns your head inside the painting (the plate's width = 180°). Toggle FLAT to feel today's slide.
-     ?n=<page> picks the page (default 15, ran) · ?look=-1..1 pins the view (for screenshots) · ?mode=flat
+     ?n=<page> picks the page (default 15, ran) · ?look=-1..1 pins the view (for screenshots) · ?curve=-100..100
+     ⚠ Nov 14, round 2 — Fred: "it still looks the same. my idea was to create so that the sides wrap around you when
+     panned". The true cylinder was right in geometry and invisible in practice: a phone sees only ~46° of a 180° plate,
+     and inside ±23° every curve is nearly straight. So the bend is now a DIAL, exaggerated on purpose:
+       curve > 0  WRAP AROUND YOU — the inside of a curved screen: the sides come toward you, swell and stand taller,
+                  the horizon bows, and a thing grows as it passes the edge.
+       curve < 0  DRUM — the outside of a barrel: the sides turn away, squeezed, so more of the scene is in view.
+     The centre of the screen always shows the painting at its normal size.
      ⚠ WEBGL, NOT CSS STRIPS. The first cut built each cylinder from vertical CSS strips; on a SEE-THROUGH plane
      every strip edge showed as a line (an antialiased gap lets the sky through, an overlap doubles the alpha, and a
      feathered overlap can't sum back either — "over" compositing is not additive). One full-screen pass per plane
@@ -17,8 +24,12 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: none; }
   canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-  #ui { position: fixed; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); display: flex; gap: 10px; justify-content: center;
+  #ui { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; align-items: center;
         font: 600 15px/1 Georgia, serif; z-index: 5; }
+  #ui > div:last-child { display: flex; gap: 10px; }
+  #dialrow { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 420px; color: #fff4e0; text-shadow: 0 1px 3px #000; font-size: 13px; }
+  #dial { flex: 1; accent-color: #c9922a; }
+  #dv { color: #fff4e0; text-shadow: 0 1px 3px #000; font-size: 14px; }
   #ui button { border: 0; border-radius: 22px; padding: 12px 18px; background: rgba(250,242,222,.86); color: #3a2416; font: inherit; }
   #ui button.on { background: #7a2e1c; color: #fff4e0; }
   #msg { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 0; right: 0; text-align: center; color: rgba(255,248,230,.85);
@@ -28,11 +39,15 @@
 <body>
 <canvas id="gl"></canvas>
 <div id="msg">tilt your phone left and right</div>
-<div id="ui"><button id="b180" class="on">180°</button><button id="bflat">flat (today)</button><button id="bmo" hidden>allow tilt</button></div>
+<div id="ui">
+  <div id="dialrow"><span>drum</span><input id="dial" type="range" min="-100" max="100" step="1" value="60"><span>wrap</span></div>
+  <div id="dv"></div>
+  <div><button id="bflat">flat (today)</button><button id="bwrap">wrap 60</button><button id="bmo" hidden>allow tilt</button></div>
+</div>
 <script>
 (function () {
   var q = new URLSearchParams(location.search);
-  var N = parseInt(q.get('n') || '15', 10), MODE = q.get('mode') === 'flat' ? 0 : 1;
+  var N = parseInt(q.get('n') || '15', 10), CURVE = Math.max(-1, Math.min(1, (q.get('curve') != null ? parseFloat(q.get('curve')) : 60) / 100));
   var PIN = q.get('look') != null ? Math.max(-1, Math.min(1, parseFloat(q.get('look')) || 0)) : null;
   var msg = document.getElementById('msg');
   // the same depth table and rate curve the book uses (engine/scene.js DIO_DEPTH / dioRate), so the
@@ -54,15 +69,20 @@
   //  flat: today's slide — the painting simply moves sideways by yaw·R.
   var FS = [
     'precision highp float;',
-    'uniform sampler2D tex; uniform vec2 scr; uniform float R, Wp, ph, top, yaw, dy, mode, dpr;',
+    'uniform sampler2D tex; uniform vec2 scr; uniform float Wp, ph, top, pan, dy, cv, dpr;',
     'void main(){',
     '  vec2 c = vec2(gl_FragCoord.x, scr.y - gl_FragCoord.y) / dpr;',
-    '  float dx = c.x - scr.x * 0.5 / dpr;',
-    '  float cy = scr.y * 0.5 / dpr;',
-    '  float a = atan(dx / R);',
-    '  float u = mode > 0.5 ? (a + yaw) * R : dx + yaw * R;',
-    '  float y = mode > 0.5 ? cy + (c.y - cy) * cos(a) : c.y;',
-    '  vec2 t = vec2((u + Wp * 0.5) / Wp, (y - dy - top) / ph);',
+    '  float hw = scr.x * 0.5 / dpr, dx = c.x - hw, cy = scr.y * 0.5 / dpr;',
+    '  float u = dx, ys = 1.0;',
+    '  if (cv > 0.001) {',                                       // wrap around you: a ray at angle a meets a wall of radius Rc
+    '    float th = cv * 1.15, Rc = hw / tan(th), a = atan(dx / Rc);',
+    '    u = a * Rc; ys = cos(a);',                               // the sides are nearer: magnified, and taller
+    '  } else if (cv < -0.001) {',                                // the drum: the sides turn away
+    '    float th = -cv * 1.3, Rv = hw / sin(th), p = asin(clamp(dx / Rv, -1.0, 1.0));',
+    '    u = p * Rv; ys = 1.0 + (-cv) * 0.6 * (1.0 - cos(p));',   // squeezed, and smaller as they recede
+    '  }',
+    '  float y = cy + (c.y - cy) * ys;',
+    '  vec2 t = vec2((u + pan + Wp * 0.5) / Wp, (y - dy - top) / ph);',
     '  if (t.x < 0.0 || t.x > 1.0 || t.y < 0.0 || t.y > 1.0) discard;',
     '  gl_FragColor = texture2D(tex, t);',
     '}'].join('\n');
@@ -74,7 +94,7 @@
   var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
   var ap = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(ap); gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
-  var U = {}; ['tex', 'scr', 'R', 'Wp', 'ph', 'top', 'yaw', 'dy', 'mode', 'dpr'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+  var U = {}; ['tex', 'scr', 'Wp', 'ph', 'top', 'pan', 'dy', 'cv', 'dpr'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
   gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);   // premultiplied "over"
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
@@ -106,31 +126,32 @@
     msg.textContent = base + ' · tilt your phone left and right';
   });
 
-  var W, H, dpr, ph, Wp, R, top, LMAX;
+  var W, H, dpr, ph, Wp, top;
   function size() {
     dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     gl.viewport(0, 0, cv.width, cv.height);
     ph = H * SC; Wp = ph * 1.6;                            // the plate, sized as the book sizes it (cover by height)
     if (Wp < W * SC) { Wp = W * SC; ph = Wp / 1.6; }        // a wide screen: cover by width instead
-    R = Wp / SPAN;                                          // the plate's width wraps exactly half way round you
     top = (H - ph) * CROP_Y;
-    // turn only until the plate's edge reaches the screen's edge
-    var edge = Math.atan((W / 2) / R);
-    LMAX = Math.max(0, SPAN / 2 - edge);
     dirty = true;
   }
   size(); addEventListener('resize', size);
-
+  // how far from the centre the screen's edge reaches into the painting, at this bend (the shader's own formula)
+  function edgeU(c) {
+    var hw = W / 2;
+    if (c > 0.001) { var th = c * 1.15; return th * hw / Math.tan(th); }
+    if (c < -0.001) { var t2 = -c * 1.3; return t2 * hw / Math.sin(t2); }
+    return hw;
+  }
   function draw() {
     gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform2f(U.scr, cv.width, cv.height); gl.uniform1f(U.dpr, dpr);
-    gl.uniform1f(U.R, R); gl.uniform1f(U.Wp, Wp); gl.uniform1f(U.ph, ph); gl.uniform1f(U.top, top); gl.uniform1f(U.mode, MODE);
+    gl.uniform1f(U.Wp, Wp); gl.uniform1f(U.ph, ph); gl.uniform1f(U.top, top); gl.uniform1f(U.cv, CURVE);
+    var reach = Math.max(0, Wp / 2 - edgeU(CURVE));      // turn until the painting's edge meets the screen's edge
     for (var i = 0; i < planes.length; i++) {
       var pl = planes[i]; if (!pl.tex) continue;
-      // flat mode is today's book: a slide of up to the plate's overflow; 180° turns up to LMAX
-      var reach = MODE ? LMAX : Math.max(0, (Wp - W) / 2) / R;
-      gl.uniform1f(U.yaw, look * reach * pl.rate);         // near planes sweep past faster (the depth cue the book already has)
+      gl.uniform1f(U.pan, look * reach * pl.rate);         // near planes sweep past faster (the depth cue the book already has)
       gl.uniform1f(U.dy, Math.max(-11, Math.min(11, lookY * (pl.rate - 1) * 24)));
       gl.bindTexture(gl.TEXTURE_2D, pl.tex); gl.uniform1i(U.tex, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -165,10 +186,16 @@
   addEventListener('pointermove', function (e) { if (dragX != null) { lookT = Math.max(-1, Math.min(1, lookT - (e.clientX - dragX) / (W * 0.5))); dragX = e.clientX; } });
   addEventListener('pointerup', function () { dragX = null; });
 
-  function setMode(m) { MODE = m; document.getElementById('b180').classList.toggle('on', m === 1); document.getElementById('bflat').classList.toggle('on', m === 0); dirty = true; }
-  document.getElementById('b180').onclick = function () { setMode(1); };
-  document.getElementById('bflat').onclick = function () { setMode(0); };
-  setMode(MODE);
+  var dial = document.getElementById('dial'), dv = document.getElementById('dv');
+  function setCurve(c) {
+    CURVE = c; dial.value = Math.round(c * 100);
+    dv.textContent = c > 0.005 ? 'wrap around you ' + Math.round(c * 100) : c < -0.005 ? 'drum ' + Math.round(-c * 100) : 'flat (today)';
+    dirty = true;
+  }
+  dial.addEventListener('input', function () { setCurve(dial.value / 100); });
+  document.getElementById('bflat').onclick = function () { setCurve(0); };
+  document.getElementById('bwrap').onclick = function () { setCurve(0.6); };
+  setCurve(CURVE);
 })();
 </script>
 </body>
