@@ -207,7 +207,11 @@ export function paint(E, opts = {}) {
       sample: r => {
         const t = r();
         const x = cx2 + t * len2;
-        const y = cy2 + Math.sin(t * 2.6 + k) * 7 + (r() * 2 - 1) * th;
+        // ⚠ SOFT EDGES (Nov 14): a uniform spread gave each thread a hard top and bottom, and six of them
+        // stacked into one translucent SLAB with a straight edge — read on the phone as a box in the sky.
+        // A peaked spread, and threads that thin out toward their ends, so the air has no outline.
+        const y = cy2 + Math.sin(t * 2.6 + k) * 7 + (r() + r() + r() - 1.5) * th * 1.2;
+        if (r() > Math.pow(Math.sin(Math.PI * t), 0.6)) return null;
         return (x < -70 || x > 870) ? null : [x, y];
       },
       dir: (x, y) => 0.02 + (fbm(x / 90, y / 40, 411) - 0.5) * 0.30,

@@ -558,8 +558,17 @@
     // every plane each frame for the tilt, and an animation on the same property wins the
     // cascade and would kill the parallax. `translate` composes with it instead.
     // the sway rides ON TOP of the page-turn travel (.sc-dio img translate/scale) instead of replacing it
-    + '@keyframes dioCloud{0%{translate:calc(var(--sp,0px) * var(--pk,0.5)) 0}50%{translate:calc(var(--sp,0px) * var(--pk,0.5) + var(--cd,26px)) var(--cdy,0px)}100%{translate:calc(var(--sp,0px) * var(--pk,0.5)) 0}}'
+    // ⚠ CENTRED on the rest position (Nov 14): the travel was 0 → +cd, so with the reader tilted to the far left
+    // `lost`'s 66px drift pulled the plane's own left edge into view — a hard box in the sky. ±cd/2 stays inside
+    // the plane's overscale on both sides.
+    + '@keyframes dioCloud{0%{translate:calc(var(--sp,0px) * var(--pk,0.5) - var(--cd,26px) / 2) 0}50%{translate:calc(var(--sp,0px) * var(--pk,0.5) + var(--cd,26px) / 2) var(--cdy,0px)}100%{translate:calc(var(--sp,0px) * var(--pk,0.5) - var(--cd,26px) / 2) 0}}'
     + '.sc-dio img.dio-cloud{animation:dioCloud var(--cs,90s) ease-in-out infinite;scale:calc((1 + var(--spz,0) * var(--pk,0.5)) * var(--cz,1));}'
+    // ⚠ AND ITS BOX IS WIDER THAN THE FRAME BY THE DRIFT (Nov 14). object-fit:cover clips the picture to the img's
+    // own box, and on a phone that box overhangs the screen by only the 6% overscale — 12px — so any drift past
+    // ±12px walked the box's straight edge into the sky (`lost`: a hard-edged slab). camMeasure widens the box by
+    // --cm each side wherever that leaves the cover HEIGHT-limited (the picture keeps its exact scale), and
+    // camApply corrects the object-position so the painting stays exactly where the other planes put it.
+    + '.page .sc-dio img.dio-cloud{left:calc(var(--cm,0px) * -1);width:calc(100% + 2 * var(--cm,0px));}'
     // ⚠ THE THREE-HAND SHIMMER — Fred's own design, and it is better than the carousel I
     // kept building: "i want all 3 to be visible... a 50%, b 50%, c 100%; then a 50%, b
     // 100%, c 50%; then a 100%, b 50%, c 50%." A carousel SWAPS one drawing for another and
@@ -791,7 +800,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=487';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=488';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -4359,7 +4368,9 @@
           // runs out (the road wasn't painted to the corner). The house sits at ~81%, so
           // this still reveals it; it just stops before the unfinished edge shows.
           var _Pc = Math.max(DIO_EDGE, Math.min(100 - DIO_EDGE, Pp));
-          pl.img.style.objectPosition = _Pc.toFixed(2) + '% ' + (CROP_Y * 100) + '%';
+          var _Po = _Pc;
+          if (pl.cm) _Po = ((pl.bw - pl.cw) * _Pc / 100 + pl.cm) / (pl.bw + 2 * pl.cm - pl.cw) * 100;   // the widened cloud box (see .dio-cloud CSS): same painting position
+          pl.img.style.objectPosition = _Po.toFixed(2) + '% ' + (CROP_Y * 100) + '%';
           /* ⚠ A SPINNING PLANE IGNORES object-position (Sep 17, Fred: "i tilted so that the stars go
              away from the core"). The cover's mote shells live inside a `.dio-spin` host whose images
              are object-fit:fill — they exactly fill the host, so there is nothing for object-position
@@ -4420,6 +4431,16 @@
     camPlanes = page.__dio || null;                    // diorama pages drive planes instead of the single composite
     camGround = 1;
     camExt = page.__ext || 0; camH = page.clientHeight || 0;
+    if (camPlanes) for (var ci = 0; ci < camPlanes.length; ci++) {
+      var cp = camPlanes[ci], cim = cp.img;
+      cp.cm = 0;
+      if (!cim || !cim.classList || !cim.classList.contains('dio-cloud')) continue;
+      var cd = Math.abs(parseFloat(cim.style.getPropertyValue('--cd')) || 0);
+      var bw = page.clientWidth, bh = cim.offsetHeight, nr = cim.naturalWidth && cim.naturalHeight ? cim.naturalWidth / cim.naturalHeight : 0;
+      var m = cd / 2 + 6;
+      if (cd && bh && nr && (bw + 2 * m) / bh < nr) { cp.cm = m; cp.bw = bw; cp.cw = bh * nr; cim.style.setProperty('--cm', m + 'px'); }
+      else cim.style.removeProperty('--cm');
+    }
     var _gn = SPRITE_GROUND[idx];
     if (_gn && camPlanes) for (var gi = 0; gi < camPlanes.length; gi++) if (camPlanes[gi].name === _gn) { camGround = camPlanes[gi].rate; break; }
     if (!camImg) { camMaxPan = 0; camRest = 0; camOV = 0; return; }

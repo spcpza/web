@@ -768,7 +768,37 @@ export function strokes(out, counter, o) {
     const seed = (Math.round(x0 * 31 + y1 * 17 + x1 * 7 + o.n * 13) ^ 0x7e57) >>> 0;
     strokesCore(out, counter, Object.assign({}, o, { _ext: true, rng: mulberry32(seed), n: Math.round(o.n * Math.min(1.6, ratio) * 1.3),
       sample: rej(x0, y0 - TOP_EXT - 14, x1, y0 + 2, mask) }));
+  } else if (TOP_EXT > 0 && !o._ext && o.n > 0 && typeof o.sample === 'function') {
+    // ⚠ AND A PASS THAT PICKS ITS OWN POINTS (a light falling from above, a wrap, a box starting a few units
+    // down) has no box to repeat — `prayer`'s gold glints stopped dead at the old frame line. Its top strip
+    // is MIRRORED up across y = 0 instead: same marks' density, same colour field, own rng. Points the pass
+    // already lays above the frame are left alone (the wider viewBox shows them now).
+    const lim = TOP_EXT + 14, s0 = o.sample, pr = mulberry32(o.n * 7 + 29);
+    let hit = 0, tot = 0;
+    for (let q = 0; q < 160; q++) { const p = s0(pr); if (!p) continue; tot++; if (p[1] >= 0 && p[1] < lim) hit++; }
+    if (hit >= 3 && tot) {
+      const seed = (Math.round(o.n * 13 + hit * 31 + tot * 7) ^ 0x5eed) >>> 0;
+      strokesCore(out, counter, Object.assign({}, o, { _ext: true, rng: mulberry32(seed), n: Math.round(o.n * hit / tot),
+        sample: r => { for (let t = 0; t < 40; t++) { const p = s0(r); if (p && p[1] >= 0 && p[1] < lim) return [p[0], -p[1]]; } return null; } }));
+    }
   }
+}
+/* ⚠ A WASH THAT STOPS AT THE FRAME. Plates lay full-frame glazes as <rect>s at y = 0 (or −20); with the viewBox
+   widened they end in a straight line across the new sky (`light`'s vignette). Each one is mirrored up across its
+   own top edge — continuous at the seam by construction, and the rect itself is untouched, so a gradient in
+   objectBoundingBox units keeps its exact look inside the frame. */
+function extendWashes(body) {
+  if (!(TOP_EXT > 0)) return body;
+  let k = 0;
+  return body.replace(/<rect\b[^>]*\/>/g, s => {
+    if (/transform=|clip-path=/.test(s)) return s;
+    const a = n => { const m = s.match(new RegExp('\\s' + n + '="(-?[\\d.]+)"')); return m ? parseFloat(m[1]) : null; };
+    const x = a('x') ?? 0, y = a('y') ?? 0, w = a('width'), h = a('height');
+    if (w == null || h == null || y > 2 || y <= -TOP_EXT || x > 2 || x + w < W - 2 || h < H * 0.8) return s;
+    const id = 'xw' + (k++);
+    return s + `<clipPath id="${id}"><rect x="-60" y="${-TOP_EXT - 30}" width="${W + 120}" height="${y + TOP_EXT + 30}"/></clipPath>`
+      + `<g clip-path="url(#${id})"><g transform="translate(0 ${2 * y}) scale(1 -1)">${s}</g></g>`;
+  });
 }
 function strokesCore(out, counter, { rng, n, sample, dir, col, len, lw, lenJ = 0.35, wJ = 0.3, aJ = 0.22, steps = 3, follow = 1, wild = 0, impasto = 0, relief = 1, op = STROKE_OPACITY, flow = 1 }) {
   if (DENSITY !== 1) n = Math.round(n * DENSITY);
@@ -4117,6 +4147,7 @@ function undercoatLayer(base, title) {
 //   varnish:   warm glaze + corner vignette, one radial gradient, unifying
 export function svgWrap(title, body, opts = {}) {
   const { undercoat = 1, weave = 1, varnish = 1, oil = 1, melt = 0 } = opts;
+  body = extendWashes(body);
   const oilAmt = typeof oil === 'number' ? oil : (oil ? 1 : 0);
   // MELT — the oil displacement ALONE (no opaque base rect, no weave/varnish),
   // so a TRANSPARENT depth cel still melts its crisp vector edges into paint and
