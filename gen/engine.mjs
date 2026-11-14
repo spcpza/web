@@ -751,7 +751,26 @@ export function setBoil(frame, nFrames, amp, twinkle) {
   BOIL_F = frame | 0; BOIL_N = Math.max(1, nFrames | 0); BOIL_AMP = amp || 0; BOIL_TWK = twinkle || 0;
 }
 
-export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ = 0.35, wJ = 0.3, aJ = 0.22, steps = 3, follow = 1, wild = 0, impasto = 0, relief = 1, op = STROKE_OPACITY, flow = 1 }) {
+/* ⭐ ART ABOVE THE FRAME (Nov 14 — Fred: "can you add more art on top that is not seen so the reader can tilt it up and
+   down a bit?"). When the build renders the DEPTH PLANES it sets TOP_EXT (plate units): every pass whose sample box
+   touches the top edge is painted a second time into a band TOP_EXT tall above y = 0 — same direction field, same
+   colours, same brush — with its OWN rng, so the approved marks (and everything painted after them) do not move.
+   The flat plate and the portrait never set it, so they are byte-identical. svgWrap widens the viewBox upward. */
+let TOP_EXT = 0;
+export function setTopExt(e) { TOP_EXT = e || 0; }
+export function getTopExt() { return TOP_EXT; }
+export function strokes(out, counter, o) {
+  strokesCore(out, counter, o);
+  const b = o.sample && o.sample.box;
+  if (TOP_EXT > 0 && b && b[1] <= 2 && !o._ext && o.n > 0) {
+    const [x0, y0, x1, y1, mask] = b;
+    const ratio = TOP_EXT / Math.max(20, y1 - y0);
+    const seed = (Math.round(x0 * 31 + y1 * 17 + x1 * 7 + o.n * 13) ^ 0x7e57) >>> 0;
+    strokesCore(out, counter, Object.assign({}, o, { _ext: true, rng: mulberry32(seed), n: Math.round(o.n * Math.min(1.6, ratio) * 1.3),
+      sample: rej(x0, y0 - TOP_EXT - 14, x1, y0 + 2, mask) }));
+  }
+}
+function strokesCore(out, counter, { rng, n, sample, dir, col, len, lw, lenJ = 0.35, wJ = 0.3, aJ = 0.22, steps = 3, follow = 1, wild = 0, impasto = 0, relief = 1, op = STROKE_OPACITY, flow = 1 }) {
   if (DENSITY !== 1) n = Math.round(n * DENSITY);
   let ECO = 1, FL = 1;
   if (ECONOMY > 1 && n >= 40) { n = Math.round(n / ECONOMY); ECO = Math.sqrt(ECONOMY); }   // fewer, surer (see setEconomy)
@@ -972,13 +991,15 @@ export function strokes(out, counter, { rng, n, sample, dir, col, len, lw, lenJ 
 }
 
 export function rej(x0, y0, x1, y1, mask) {
-  return rng => {
+  const f = rng => {
     for (let t = 0; t < 24; t++) {
       const x = x0 + rng() * (x1 - x0), y = y0 + rng() * (y1 - y0);
       if (!mask || mask(x, y)) return [x, y];
     }
     return null;
   };
+  f.box = [x0, y0, x1, y1, mask];   // strokes() reads it to paint the band above the frame (TOP_EXT)
+  return f;
 }
 
 // geometry helpers for figure silhouettes
@@ -4102,7 +4123,7 @@ export function svgWrap(title, body, opts = {}) {
   // reads like the rest of the book. Use for foreground planes over a live scene.
   if (melt) {
     const mAmt = typeof melt === 'number' ? melt : 1;
-    const f = `<defs><filter id="oil" x="-3%" y="-3%" width="106%" height="106%">
+    const f = `<defs><filter id="oil" filterUnits="userSpaceOnUse" x="-24" y="${-TOP_EXT - 15}" width="${W + 48}" height="${H + TOP_EXT + 30}">
 <feGaussianBlur in="SourceGraphic" stdDeviation="0.45" result="wet"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.013 0.010" numOctaves="2" seed="41" result="slow"/>
 <feDisplacementMap in="wet" in2="slow" scale="${(6 * mAmt).toFixed(1)}" xChannelSelector="R" yChannelSelector="G" result="drag"/>
@@ -4111,7 +4132,7 @@ export function svgWrap(title, body, opts = {}) {
 </filter></defs>`;
     let g = `${f}<g filter="url(#oil)">${body}</g>`;
     if (LAYER_OPACITY < 1) g = `<g opacity="${LAYER_OPACITY.toFixed(3)}">${g}</g>`;
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img"><title>${title}</title>${g}</svg>`;
+    return `<svg viewBox="0 ${-TOP_EXT} ${W} ${H + TOP_EXT}" xmlns="http://www.w3.org/2000/svg" role="img"><title>${title}</title>${g}</svg>`;
   }
   const m = body.match(/<rect width="[^"]+" height="[^"]+" fill="(#[0-9a-fA-F]{6})"\/>/);
   const base = m ? m[1] : DARKEST;
@@ -4123,14 +4144,14 @@ export function svgWrap(title, body, opts = {}) {
   // fine high-frequency one (bristle raggedness at every stroke edge), with
   // a whisper of blur first so hard fills bleed wet-on-wet into neighbours.
   if (oilAmt) {
-    inner = `<defs><filter id="oil" x="-3%" y="-3%" width="106%" height="106%">
+    inner = `<defs><filter id="oil" filterUnits="userSpaceOnUse" x="-24" y="${-TOP_EXT - 15}" width="${W + 48}" height="${H + TOP_EXT + 30}">
 <feGaussianBlur in="SourceGraphic" stdDeviation="0.45" result="wet"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.013 0.010" numOctaves="2" seed="41" result="slow"/>
 <feDisplacementMap in="wet" in2="slow" scale="${(6 * oilAmt).toFixed(1)}" xChannelSelector="R" yChannelSelector="G" result="drag"/>
 <feTurbulence type="fractalNoise" baseFrequency="0.065 0.08" numOctaves="2" seed="43" result="bristle"/>
 <feDisplacementMap in="drag" in2="bristle" scale="${(3.2 * oilAmt).toFixed(1)}" xChannelSelector="R" yChannelSelector="G"/>
 </filter></defs>
-<rect width="${W}" height="${H}" fill="${base}"/>
+<rect y="${-TOP_EXT}" width="${W}" height="${H + TOP_EXT}" fill="${base}"/>
 <g filter="url(#oil)">
 ${inner}
 </g>`;
@@ -4140,17 +4161,17 @@ ${inner}
 <path d="M0 0.7h3M0 2.2h3" stroke="${wHi}" stroke-width="0.55"/>
 <path d="M0.7 0v3M2.2 0v3" stroke="${wLo}" stroke-width="0.55"/>
 </pattern></defs>
-<rect width="${W}" height="${H}" fill="url(#wv)" opacity="0.055"/>` : '';
+<rect y="${-TOP_EXT}" width="${W}" height="${H + TOP_EXT}" fill="url(#wv)" opacity="0.055"/>` : '';
   const varnishS = varnish ? `<defs><radialGradient id="vn" cx="0.42" cy="0.36" r="0.82">
 <stop offset="0" stop-color="#ffd98a" stop-opacity="0.065"/>
 <stop offset="0.55" stop-color="#b98a3a" stop-opacity="0.04"/>
 <stop offset="1" stop-color="#0d0a04" stop-opacity="0.25"/>
 </radialGradient></defs>
-<rect width="${W}" height="${H}" fill="url(#vn)"/>` : '';
+<rect y="${-TOP_EXT}" width="${W}" height="${H + TOP_EXT}" fill="url(#vn)"/>` : '';
   // LESS-OPAQUE FOREGROUND: a depth plane drawn under reduced opacity glazes over
   // the luminous layers behind it — the picture lit from within (the build sets it).
   if (LAYER_OPACITY < 1) inner = `<g opacity="${LAYER_OPACITY.toFixed(3)}">${inner}</g>`;
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">
+  return `<svg viewBox="0 ${-TOP_EXT} ${W} ${H + TOP_EXT}" xmlns="http://www.w3.org/2000/svg" role="img">
 <title>${title}</title>
 ${inner}
 ${weaveS}

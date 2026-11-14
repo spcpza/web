@@ -746,6 +746,11 @@ for (const m of modules) {
     const isLandscape = bands[0] && bands[0].name === 'sky';
     const NEARGROUND = new Set(['mid', 'land']);   // plane the figures stand on → solid
     const FARHAZE = new Set(['far', 'hills']);     // distance → airy aerial perspective
+    // ART ABOVE THE FRAME (Nov 14): the depth planes get a band EXT plate-units tall above y = 0 (engine.setTopExt) —
+    // the flat plate and portrait, built before this, keep the old frame, so the runtime's sprite geometry is unchanged.
+    // Covers (word) never pan, so they never get one.
+    const EXT = m.name === 'word' || m.name === 'word-cover' ? 0 : parseFloat(process.env.EXT || '0');
+    engine.setTopExt(EXT);
     const svgs = bands.map((L, i) => {
       const t = NB > 1 ? i / (NB - 1) : 0;               // 0 back → 1 front
       // THICK in back → really THIN up front, front-weighted (curve).
@@ -804,6 +809,7 @@ for (const m of modules) {
     engine.setBoilFlash(0);
     engine.setBoilTint(null, 0);
     engine.setDensity(1); engine.setReliefK(1); engine.setFurrowK(1);
+    engine.setTopExt(0);
     svgs[0] = stampSig(svgs[0], fx, built.length, m.sig);   // hide Immanuel on the opaque base so it shows on mobile too (same spot as the full)
     const out = [];
     bands.forEach((L, i) => {
@@ -822,8 +828,11 @@ for (const m of modules) {
       // breathes. Same trick, opposite result, depending on what it is seen next to.
       const _ring = (BOIL_RING_BANDS[m.name] || []).indexOf(L.name) !== -1;
       const _half = BOIL_FRAME && _ring;
-      const png = rasterize(bn, svgs[i], _half ? 800 : 1600, _half ? 500 : 1000, 800, 0, m.focal, { raw: true, transparent: !opaque });
-      if (opaque) { toJpeg(bn, png, TARGET_KB); out.push(`${L.name}${BSUF}.jpg`); }
+      const _hx = (500 + EXT) / 500;   // a taller plane: same scale, the band on top
+      const png = rasterize(bn, svgs[i], _half ? 800 : 1600, Math.round((_half ? 500 : 1000) * _hx), 800, 0, m.focal, { raw: true, transparent: !opaque || EXT > 0 });
+      // an opaque plane with a band is shot on transparent so the band can be underpainted from its own sky (see the script)
+      if (opaque && EXT > 0) execFileSync('python3', [join(DIR, 'band-underpaint.py'), png, String(Math.round(EXT * (_half ? 1 : 2)))], { stdio: 'pipe' });
+      if (opaque) { toJpeg(bn, png, TARGET_KB * _hx); out.push(`${L.name}${BSUF}.jpg`); }
       else {
         /* ⚠ AND THE PNG GOES AWAY AGAIN IF THE WEBP WORKED. Measured Sep 6: these fallbacks
            had grown to 709 files and 305 MB — 58% of everything the site deploys — and not
@@ -839,7 +848,7 @@ for (const m of modules) {
       }
       // PORTRAIT plane press — same focal window (x0) as the flat portrait, so a
       // phone can slide the same depth planes without cropping the scene.
-      if (m.portraitPlanes && !BOIL_FRAME) {
+      if (m.portraitPlanes && !BOIL_FRAME && !EXT) {
         const pSvgL = portraitSvg(svgs[i], m.focal).svg;
         const pPngL = rasterize(`${m.name}-${L.name}-p`, pSvgL, 1000, 1600, P_W, x0, m.focal, { raw: true, transparent: !opaque });
         if (opaque) toJpeg(`${m.name}-${L.name}-p`, pPngL, TARGET_P_KB);

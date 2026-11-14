@@ -545,6 +545,10 @@
     // stop travelling.
     + '@media (prefers-reduced-motion: reduce){.sc-dio img,.page > picture img,.sc-layer{scale:1 !important;}}'
     + '.sc-dio,.sc-dio-front,.sc-layer{transition:none;}'
+    // ART ABOVE THE FRAME (Nov 14): a plane built with a band on top is taller by --ext of the frame. Its box grows by
+    // the same share UPWARD, so the painting keeps its scale and the old frame sits exactly where it was; the band
+    // waits above the top edge until the reader looks up (camApply).
+    + '.page .sc-dio.tall img{top:calc(var(--ext,0) * -100%);bottom:auto;height:calc((1 + var(--ext,0)) * 100%);}'
     // ---- ⚠ CLOUDS MOVE SIDEWAYS (Fred: "make the background move as if clouds moving in
     // the sky") ----
     // A cross-faded breath makes a sky shimmer in place; clouds TRAVEL. The swirl sheets
@@ -2284,6 +2288,21 @@
       page.insertBefore(dio, layer);   // below the sprite layer
       if (dioF) page.insertBefore(dioF, page.querySelector('.scrim') || null);   // ABOVE the sprite layer, below the poem/scrim
       page.__dio = planes;
+      // ART ABOVE THE FRAME: the base plane's own shape says whether this page was built with a band on top
+      // (1600x1160 instead of 1600x1000). Every plane of a page is built together, so one tells for all.
+      (function (b0) {
+        if (!b0) return;
+        var seat = function () {
+          var e = b0.naturalWidth ? (b0.naturalHeight / b0.naturalWidth) * 1.6 - 1 : 0;
+          if (!(e > 0.02)) return;
+          page.__ext = e; dio.classList.add('tall'); dio.style.setProperty('--ext', e.toFixed(4));
+          if (dioF) { dioF.classList.add('tall'); dioF.style.setProperty('--ext', e.toFixed(4)); }
+          var org = '50% ' + ((0.5 + e) / (1 + e) * 100).toFixed(2) + '%';   // scale about the OLD frame's centre, not the taller box's
+          planes.forEach(function (q) { q.img.style.transformOrigin = org; });
+          if (pages[currentIdx()] === page) { camExt = e; camApply(camCur); }
+        };
+        if (b0.complete && b0.naturalWidth) seat(); else b0.addEventListener('load', seat, { once: true });
+      })(planes[0] && planes[0].img);
       page.__boilQ = boilQ; page.__boilGo = false; page.__artDone = false;
       if (pages[currentIdx()] === page) setTimeout(function () { loadBoil(page); }, 0);   // built while being read (cold open, resize): start its breath
       seatActors(page, idx);   // ground the figures (actors may already be built)
@@ -4316,7 +4335,13 @@
   var SPRITE_GROUND = { 5: 'bg', 9: 'ground', 24: 'bg', 28: 'bg', 25: 'far' };   // 25 prayer: he kneels AT THE BED, so the child and his aura take the bed plane's rate — Fred: "bed and aura should stick to the floor"
   var camGround = 1, camLive = null;   // camLive: the cover's sparkle canvas (canvas.live) — it must pan with the mote shells it lights (Fred, Sep 16: "stars dont move with motion")
   var camNyT = 0, camCurY = 0, camVel = 0, camVelY = 0, camT0 = 0;                         // the VERTICAL look (up/down), -1..1 — the 2nd gyro axis, so the phone is a WINDOW you look through
-  var DIO_SCALE = 1.06, DIO_VMAX = 11, DIO_EDGE = 6.5;   // DIO_EDGE mirrors the plane clamp, so camApply can follow the ground                 // planes zoom 6% (overscan headroom) so the up/down depth-parallax never reveals an edge (±11px, safe on short screens too)
+  var DIO_SCALE = 1.06, DIO_VMAX = 11, DIO_EDGE = 6.5;
+  // ⭐ LOOKING UP (Nov 14 — Fred: "add more art on top that is not seen so the reader can tilt it up and down a bit").
+  // A page whose planes carry a band above the frame (page.__ext, a share of the frame's height) lets the up-look
+  // lower the WHOLE scene — every plane and the figures standing in it — by up to that band, so the sky above comes
+  // into view. Rest shows the old frame exactly; only looking UP uses it (there is no band below the ground).
+  var camExt = 0, camH = 0, DIO_EXT_EST = 0.16;
+  function camLift() { return camExt > 0 ? Math.max(0, camCurY) * camExt * camH : 0; }   // DIO_EDGE mirrors the plane clamp, so camApply can follow the ground                 // planes zoom 6% (overscan headroom) so the up/down depth-parallax never reveals an edge (±11px, safe on short screens too)
   function camApply(dx) {                              // pure style writes, zero DOM reads/queries
     if (EP === 1 && camMaxPan <= 0) return;            // no-pan page (the 4K covers): never write object-position — animating it re-runs the CSS filter over 3840×2400 every frame → iOS memory crash
     if (EP === 1) {
@@ -4349,7 +4374,7 @@
           // real 3-D scene behind glass. Rides inside the 6% overscan so no edge shows.
           var Yp = camCurY * (pl.rate - 1) * 24;
           Yp = Yp < -DIO_VMAX ? -DIO_VMAX : Yp > DIO_VMAX ? DIO_VMAX : Yp;
-          pl.img.style.transform = 'scale(' + DIO_SCALE + ') translateY(' + Yp.toFixed(1) + 'px)';
+          pl.img.style.transform = 'scale(' + DIO_SCALE + ') translateY(' + (Yp + camLift() / DIO_SCALE).toFixed(1) + 'px)';
         }
       } else if (camImg) {
         var P = camOV > 0 ? 50 - (dx / camOV) * 100 : 50;
@@ -4385,6 +4410,7 @@
         ly = camCurY * (camGround - 1) * 24;
         ly = ly < -DIO_VMAX ? -DIO_VMAX : ly > DIO_VMAX ? DIO_VMAX : ly;
       }
+      ly += camLift();                                   // looking up lowers the whole scene, the figures with it
       camLayer.style.transform = 'translate3d(' + lx.toFixed(1) + 'px,' + ly.toFixed(1) + 'px,0)';
       if (camLive) camLive.style.transform = 'translate3d(' + lx.toFixed(1) + 'px,' + ly.toFixed(1) + 'px,0)';
     }
@@ -4393,6 +4419,7 @@
     camImg = page.querySelector('picture img'); camLayer = page.__scLayer; camLive = page.querySelector('canvas.live');
     camPlanes = page.__dio || null;                    // diorama pages drive planes instead of the single composite
     camGround = 1;
+    camExt = page.__ext || 0; camH = page.clientHeight || 0;
     var _gn = SPRITE_GROUND[idx];
     if (_gn && camPlanes) for (var gi = 0; gi < camPlanes.length; gi++) if (camPlanes[gi].name === _gn) { camGround = camPlanes[gi].rate; break; }
     if (!camImg) { camMaxPan = 0; camRest = 0; camOV = 0; return; }
@@ -4834,7 +4861,7 @@
     // heavy stretch it quietly holds two. Nothing is dropped that the reader can see, and
     // the ceiling holds no matter how many planes a future page declares — which is the
     // part that matters, because every page I rebuild adds planes.
-    var HOLD_MB = 112, PLANE_MB = 6.1;   // ⚠ 132 -> 112: never even attempt to hold two of the heavy pages
+    var HOLD_MB = 112, PLANE_MB = 6.1 * (1 + DIO_EXT_EST);   // (Nov 14) a plane with a band above the frame is that much taller   // ⚠ 132 -> 112: never even attempt to hold two of the heavy pages
     // ⚠ COUNT THE BOIL, NOT JUST THE LAYER LIST. Fred, after the first budget shipped: "still
     // crashed on my phone on the swipe from road to bridge." The budget was honest about the
     // planes a page DECLARES and blind to the ones the boil creates — and those two pages are
