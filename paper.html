@@ -44,7 +44,13 @@
     .share-icon:focus-visible { outline: 2px solid #8b6914; outline-offset: 2px; }
     .share-icon svg { display: block; }
     .share-icon.copied { background: #e8efd8; border-color: #8aa055; color: #4a6020; }
-    .big-emoji { font-size: 2.4em; text-align: center; margin: 16px 0; line-height: 1; }
+    /* the explanation's drawings (Nov 14): ink on the page's cream, gold for C / the Light, the book's blue child */
+    .kd { margin: 22px auto 18px; max-width: 420px; text-align: center; }
+    .kd svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .kd figcaption { font-style: italic; font-size: .86em; color: #7a6a52; margin-top: 6px; line-height: 1.35; }
+    .kd .kd-glow { animation: kdglow 4s ease-in-out infinite; }
+    @keyframes kdglow { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .kd .kd-glow { animation: none; } }
     html.kids-mode .display-math { font-style: normal; font-size: 17px; }
     .table-feast { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95em; }
     .table-feast th, .table-feast td { padding: 6px 10px; border-bottom: 1px solid #eee; text-align: left; }
@@ -528,7 +534,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🕯️</div>
+    <figure class="kd" role="img" aria-label="A row of candles, each lit from the one before, back to a first flame"><svg viewBox="0 0 360 182" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="150" x2="340" y2="150" stroke="#8a7a62" stroke-width="1.2"/><defs><radialGradient id="k1g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="60" cy="93" r="30" fill="url(#k1g)"/><rect x="51.0" y="106" width="18" height="44" rx="2" fill="#f3ead6" stroke="#3b2c20" stroke-width="1.2"/><line x1="60" y1="106" x2="60" y2="101" stroke="#3b2c20" stroke-width="1.2"/><path d="M60 83 Q67 94 60 101 Q53 94 60 83 Z" fill="#c9922a"/><path d="M60 90 Q63 96 60 100 Q57 96 60 90 Z" fill="#fff4c8"/><rect x="123.0" y="116" width="14" height="34" rx="2" fill="#f3ead6" stroke="#3b2c20" stroke-width="1.2"/><line x1="130" y1="116" x2="130" y2="111" stroke="#3b2c20" stroke-width="1.2"/><path d="M130 93 Q137 104 130 111 Q123 104 130 93 Z" fill="#c9922a"/><path d="M130 100 Q133 106 130 110 Q127 106 130 100 Z" fill="#fff4c8"/><rect x="183.0" y="116" width="14" height="34" rx="2" fill="#f3ead6" stroke="#3b2c20" stroke-width="1.2"/><line x1="190" y1="116" x2="190" y2="111" stroke="#3b2c20" stroke-width="1.2"/><path d="M190 93 Q197 104 190 111 Q183 104 190 93 Z" fill="#c9922a"/><path d="M190 100 Q193 106 190 110 Q187 106 190 100 Z" fill="#fff4c8"/><rect x="238.0" y="116" width="14" height="34" rx="2" fill="#f3ead6" stroke="#3b2c20" stroke-width="1.2"/><line x1="245" y1="116" x2="245" y2="111" stroke="#3b2c20" stroke-width="1.2"/><path d="M245 93 Q252 104 245 111 Q238 104 245 93 Z" fill="#c9922a"/><path d="M245 100 Q248 106 245 110 Q242 106 245 100 Z" fill="#fff4c8"/><rect x="288.0" y="116" width="14" height="34" rx="2" fill="#f3ead6" stroke="#3b2c20" stroke-width="1.2"/><line x1="295" y1="116" x2="295" y2="111" stroke="#3b2c20" stroke-width="1.2"/><path d="M295 93 Q302 104 295 111 Q288 104 295 93 Z" fill="#c9922a"/><path d="M295 100 Q298 106 295 110 Q292 106 295 100 Z" fill="#fff4c8"/><path d="M74 78 Q95.0 62 118 92" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round"/><path d="M110.6 88.9 L118 92 L116.9 84.0" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M144 78 Q160.0 62 178 92" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round"/><path d="M171.0 88.1 L178 92 L177.8 83.9" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M204 78 Q217.5 62 233 92" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round"/><path d="M226.2 87.6 L233 92 L233.3 83.9" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M259 78 Q270.0 62 283 92" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round"/><path d="M276.5 87.2 L283 92 L283.9 84.0" fill="none" stroke="#c9922a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><text x="60" y="172" font-family="inherit" font-size="12" fill="#c9922a" text-anchor="middle" font-weight="600">lit first</text><text x="295" y="172" font-family="inherit" font-size="12" fill="#3b2c20" text-anchor="middle" >you</text><text x="180" y="30" font-family="inherit" font-size="12" fill="#8a7a62" text-anchor="middle" >every candle was lit by one before it</text></svg><figcaption>Follow the flames back: one candle had to be lit before any of the others. Call it <strong>C</strong>.</figcaption></figure>
     <p>
       Begin with a candle. One candle can light the next — but to
       light another candle, it must <em>already be lit</em>. A candle
@@ -802,7 +808,7 @@
       leaves one.
     </p>
 
-    <div class="big-emoji" style="margin-top:0.6em;">🕯️</div>
+    <figure class="kd" role="img" aria-label="A child calls HELLO into a tunnel and the echoes fade"><svg viewBox="0 0 360 172" xmlns="http://www.w3.org/2000/svg"><path d="M20 40 Q180 10 340 40 L340 140 Q180 170 20 140 Z" fill="#efe6d2" stroke="#8a7a62" stroke-width="1.2"/><defs><radialGradient id="k2g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="52" cy="92" r="26" fill="url(#k2g)"/><g transform="translate(52 120) scale(1.15)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><text x="110" y="98" font-family="inherit" font-size="20" fill="#3b2c20" text-anchor="middle" opacity="1" font-style="italic">HELLO!</text><text x="170" y="98" font-family="inherit" font-size="17" fill="#8a7a62" text-anchor="middle" opacity="0.7" font-style="italic">hello</text><text x="225" y="98" font-family="inherit" font-size="14" fill="#8a7a62" text-anchor="middle" opacity="0.5" font-style="italic">hello</text><text x="275" y="98" font-family="inherit" font-size="12" fill="#8a7a62" text-anchor="middle" opacity="0.32" font-style="italic">hello</text><text x="318" y="98" font-family="inherit" font-size="10" fill="#8a7a62" text-anchor="middle" opacity="0.2" font-style="italic">hello</text><text x="52" y="160" font-family="inherit" font-size="12" fill="#c9922a" text-anchor="middle" font-weight="600">the first voice</text><text x="270" y="160" font-family="inherit" font-size="12" fill="#8a7a62" text-anchor="middle" >echoes of echoes</text></svg><figcaption>An echo can only copy a voice. If you hear echoes, someone spoke first.</figcaption></figure>
 
     <p>
       Try it: here are two candles — one already burning, and yours,
@@ -815,15 +821,15 @@
         <g id="candle-lit" style="cursor:pointer;" tabindex="0" role="button" aria-label="The burning candle — tap to share its flame">
           <rect x="95" y="80" width="30" height="80" rx="5" fill="#e8d9a8" stroke="#c8b88a"/>
           <line x1="110" y1="80" x2="110" y2="70" stroke="#555" stroke-width="2"/>
-          <text class="kflame lit" x="110" y="68" font-size="26" text-anchor="middle">🔥</text>
+          <g class="kflame lit"><path d="M110 44 Q120 59 110 70 Q100 59 110 44 Z" fill="#c9922a"/><path d="M110 54 Q114 62 110 68 Q106 62 110 54 Z" fill="#fff4c8"/></g>
           <text x="110" y="180" font-size="11" text-anchor="middle" fill="#555">already burning</text>
         </g>
         <!-- your candle (right) -->
         <g id="candle-mine" style="cursor:pointer;" tabindex="0" role="button" aria-label="Your unlit candle — tap to try lighting it by itself">
           <rect x="235" y="80" width="30" height="80" rx="5" fill="#e8d9a8" stroke="#c8b88a"/>
           <line x1="250" y1="80" x2="250" y2="70" stroke="#555" stroke-width="2"/>
-          <text id="candle-myflame" class="kflame" x="250" y="68" font-size="26" text-anchor="middle" opacity="0">🔥</text>
-          <text id="candle-puff" x="250" y="62" font-size="18" text-anchor="middle" opacity="0">💨</text>
+          <g id="candle-myflame" class="kflame" opacity="0"><path d="M250 44 Q260 59 250 70 Q240 59 250 44 Z" fill="#c9922a"/><path d="M250 54 Q254 62 250 68 Q246 62 250 54 Z" fill="#fff4c8"/></g>
+          <g id="candle-puff" opacity="0" fill="none" stroke="#9a9086" stroke-width="1.6" stroke-linecap="round"><path d="M250 66 q-6 -6 0 -12 q6 -6 0 -12"/><path d="M258 62 q-4 -5 0 -10"/></g>
           <text x="250" y="180" font-size="11" text-anchor="middle" fill="#555">yours</text>
         </g>
         <!-- travelling spark -->
@@ -1835,7 +1841,7 @@
 
     <h3 style="margin-top:1.2em;">4.1 The drift</h3>
 
-    <div class="big-emoji">🎈</div>
+    <figure class="kd" role="img" aria-label="A balloon drifted far on a long string held by a light marked C"><svg viewBox="0 0 360 196" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="168" x2="350" y2="168" stroke="#8a7a62" stroke-width="1.2"/><defs><radialGradient id="k3g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="48" cy="140" r="34" fill="url(#k3g)"/><text x="48" y="145" font-family="inherit" font-size="16" fill="#3b2c20" text-anchor="middle" font-weight="700">C</text><path d="M60 136 C120 120 150 60 268 52" fill="none" stroke="#3b2c20" stroke-width="1.4"/><circle cx="81.3" cy="128.1" r="1.8" fill="#b9583f"/><circle cx="101.2" cy="117.2" r="1.8" fill="#b9583f"/><circle cx="121.1" cy="104.5" r="1.8" fill="#b9583f"/><circle cx="142.2" cy="91.0" r="1.8" fill="#b9583f"/><circle cx="166.2" cy="77.9" r="1.8" fill="#b9583f"/><circle cx="194.2" cy="66.2" r="1.8" fill="#b9583f"/><circle cx="227.6" cy="57.2" r="1.8" fill="#b9583f"/><ellipse cx="290" cy="40" rx="22" ry="27" fill="#e58b7a" stroke="#3b2c20" stroke-width="1.3"/><path d="M286 66 L294 66 L290 61 Z" fill="#3b2c20"/><ellipse cx="282" cy="30" rx="6" ry="9" fill="#fff" opacity=".45"/><text x="48" y="186" font-family="inherit" font-size="11" fill="#8a7a62" text-anchor="middle" >His hand (zero drift)</text><text x="170" y="112" font-family="inherit" font-size="12" fill="#b9583f" text-anchor="middle" font-style="italic">drift = how much string is out</text></svg><figcaption>You can drift far — but the string is still attached, so you can be pulled back.</figcaption></figure>
 
 
     <p>
@@ -2021,24 +2027,7 @@
       (1&nbsp;Corinthians&nbsp;12:8–10).
     </p>
 
-    <div class="growth-fig" aria-hidden="true" style="max-width:480px;">
-      <svg viewBox="0 0 480 100" width="100%" height="100" class="tree-svg" style="display:block;margin:0 auto;">
-        <text x="40" y="20" font-size="22" text-anchor="middle">📚</text>
-        <text x="40" y="50" font-size="9" text-anchor="middle">teaching</text>
-        <text x="120" y="20" font-size="22" text-anchor="middle">🩹</text>
-        <text x="120" y="50" font-size="9" text-anchor="middle">healing</text>
-        <text x="200" y="20" font-size="22" text-anchor="middle">🤝</text>
-        <text x="200" y="50" font-size="9" text-anchor="middle">helping</text>
-        <text x="280" y="20" font-size="22" text-anchor="middle">🎁</text>
-        <text x="280" y="50" font-size="9" text-anchor="middle">giving</text>
-        <text x="360" y="20" font-size="22" text-anchor="middle">💗</text>
-        <text x="360" y="50" font-size="9" text-anchor="middle">mercy</text>
-        <text x="440" y="20" font-size="22" text-anchor="middle">📣</text>
-        <text x="440" y="50" font-size="9" text-anchor="middle">speaking</text>
-        <line x1="14" y1="75" x2="466" y2="75" stroke="#c8b88a" stroke-width="2"/>
-        <text x="240" y="92" font-size="11" text-anchor="middle" fill="#555">all from the same roots — different shapes</text>
-      </svg>
-    </div>
+    <figure class="kd" role="img" aria-label="Six small trees with six different fruits, all fed by one golden root"><svg viewBox="0 20 360 196" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="120" width="360" height="40" fill="#e8dcc0"/><line x1="0" y1="120" x2="360" y2="120" stroke="#8a7a62" stroke-width="1.2"/><path d="M20 146 Q180 132 340 146" fill="none" stroke="#c9922a" stroke-width="3" stroke-linecap="round"/><path d="M32 120 Q32 132 38 140" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M91 120 Q91 132 95 140" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M150 120 Q150 132 151 140" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M210 120 Q210 132 209 140" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M269 120 Q269 132 265 140" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M328 120 Q328 132 322 140" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M29 120 L30 98 L34 98 L35 120 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width=".9"/><circle cx="32" cy="86" r="16" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.1"/><circle cx="25" cy="91" r="8" fill="#7aa45e"/><circle cx="26" cy="84" r="3.2" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="38" cy="88" r="3.2" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="32" cy="76" r="3.2" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="40" cy="78" r="3.2" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><text x="32" y="178" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >teaching</text><path d="M88 120 L89 98 L93 98 L94 120 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width=".9"/><circle cx="91" cy="86" r="16" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.1"/><circle cx="84" cy="91" r="8" fill="#7aa45e"/><circle cx="85" cy="84" r="3.2" fill="#e8954e" stroke="#3b2c20" stroke-width=".6"/><circle cx="97" cy="88" r="3.2" fill="#e8954e" stroke="#3b2c20" stroke-width=".6"/><circle cx="91" cy="76" r="3.2" fill="#e8954e" stroke="#3b2c20" stroke-width=".6"/><circle cx="99" cy="78" r="3.2" fill="#e8954e" stroke="#3b2c20" stroke-width=".6"/><text x="91" y="178" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >healing</text><path d="M147 120 L148 98 L152 98 L153 120 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width=".9"/><circle cx="150" cy="86" r="16" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.1"/><circle cx="143" cy="91" r="8" fill="#7aa45e"/><circle cx="144" cy="84" r="3.2" fill="#a8c256" stroke="#3b2c20" stroke-width=".6"/><circle cx="156" cy="88" r="3.2" fill="#a8c256" stroke="#3b2c20" stroke-width=".6"/><circle cx="150" cy="76" r="3.2" fill="#a8c256" stroke="#3b2c20" stroke-width=".6"/><circle cx="158" cy="78" r="3.2" fill="#a8c256" stroke="#3b2c20" stroke-width=".6"/><text x="150" y="178" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >helping</text><path d="M207 120 L208 98 L212 98 L213 120 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width=".9"/><circle cx="210" cy="86" r="16" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.1"/><circle cx="203" cy="91" r="8" fill="#7aa45e"/><circle cx="204" cy="84" r="3.2" fill="#7a4a8a" stroke="#3b2c20" stroke-width=".6"/><circle cx="216" cy="88" r="3.2" fill="#7a4a8a" stroke="#3b2c20" stroke-width=".6"/><circle cx="210" cy="76" r="3.2" fill="#7a4a8a" stroke="#3b2c20" stroke-width=".6"/><circle cx="218" cy="78" r="3.2" fill="#7a4a8a" stroke="#3b2c20" stroke-width=".6"/><text x="210" y="178" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >giving</text><path d="M266 120 L267 98 L271 98 L272 120 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width=".9"/><circle cx="269" cy="86" r="16" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.1"/><circle cx="262" cy="91" r="8" fill="#7aa45e"/><circle cx="263" cy="84" r="3.2" fill="#e9c93e" stroke="#3b2c20" stroke-width=".6"/><circle cx="275" cy="88" r="3.2" fill="#e9c93e" stroke="#3b2c20" stroke-width=".6"/><circle cx="269" cy="76" r="3.2" fill="#e9c93e" stroke="#3b2c20" stroke-width=".6"/><circle cx="277" cy="78" r="3.2" fill="#e9c93e" stroke="#3b2c20" stroke-width=".6"/><text x="269" y="178" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >mercy</text><path d="M325 120 L326 98 L330 98 L331 120 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width=".9"/><circle cx="328" cy="86" r="16" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.1"/><circle cx="321" cy="91" r="8" fill="#7aa45e"/><circle cx="322" cy="84" r="3.2" fill="#8e1f2a" stroke="#3b2c20" stroke-width=".6"/><circle cx="334" cy="88" r="3.2" fill="#8e1f2a" stroke="#3b2c20" stroke-width=".6"/><circle cx="328" cy="76" r="3.2" fill="#8e1f2a" stroke="#3b2c20" stroke-width=".6"/><circle cx="336" cy="78" r="3.2" fill="#8e1f2a" stroke="#3b2c20" stroke-width=".6"/><text x="328" y="178" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >speaking</text><text x="180" y="158" font-family="inherit" font-size="11" fill="#c9922a" text-anchor="middle" font-weight="600">the same Spirit underneath</text></svg><figcaption>“Now there are diversities of gifts, but the same Spirit” (1 Corinthians 12:4).</figcaption></figure>
 
     <p>
       Nobody has all the gifts. That's on purpose:
@@ -2179,7 +2168,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🌱</div>
+    <figure class="kd" role="img" aria-label="A child at a fork: one path back to the tree and the light, one path off into doubt"><svg viewBox="0 0 360 182" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="170" x2="350" y2="170" stroke="#8a7a62" stroke-width="1.2"/><g transform="translate(60 168) rotate(0) scale(0.9)"><path d="M0 0 Q-8.4 9.9 -14 22.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q-3.5999999999999996 13.5 -6 30.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q2.4 15.3 4 34.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q7.8 10.8 13 24.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/></g><defs><radialGradient id="k5g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="60" cy="110" r="46" fill="url(#k5g)"/><path d="M180 170 L180 130" stroke="#a07a4f" stroke-width="10" stroke-linecap="round" opacity=".55"/><path d="M180 132 Q150 110 92 128" fill="none" stroke="#a07a4f" stroke-width="10" stroke-linecap="round" opacity=".55"/><path d="M180 132 Q220 100 330 96" fill="none" stroke="#a07a4f" stroke-width="10" stroke-linecap="round" opacity=".35" stroke-dasharray="2 8"/><g transform="translate(180 168) scale(1.1)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><text x="118" y="104" font-family="inherit" font-size="13" fill="#c9922a" text-anchor="middle" font-weight="600">trust</text><text x="286" y="82" font-family="inherit" font-size="13" fill="#b9583f" text-anchor="middle" font-weight="600">doubt</text><path d="M226 30 h112 a8 8 0 0 1 8 8 v22 a8 8 0 0 1 -8 8 h-80 l-14 12 l2 -12 h-20 a8 8 0 0 1 -8 -8 v-22 a8 8 0 0 1 8 -8 z" fill="#fff" stroke="#8a7a62"/><text x="282" y="54" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" font-style="italic">“Yea, hath God said…?”</text></svg><figcaption>One small question, one real choice. Love has to be free to be love.</figcaption></figure>
 
 
     <p>
@@ -2489,7 +2478,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">⚔️</div>
+    <figure class="kd" role="img" aria-label="A lamp lights a ball; the ball throws a shadow"><svg viewBox="0 0 360 192" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="160" x2="350" y2="160" stroke="#8a7a62" stroke-width="1.2"/><defs><radialGradient id="k6g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="60" cy="60" r="44" fill="url(#k6g)"/><path d="M48 70 L72 70 L66 52 L54 52 Z" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.2"/><line x1="60" y1="70" x2="60" y2="160" stroke="#3b2c20" stroke-width="1.6"/><line x1="74" y1="64" x2="193" y2="46" stroke="#c9922a" stroke-width="1" opacity=".55"/><line x1="74" y1="64" x2="194" y2="70" stroke="#c9922a" stroke-width="1" opacity=".55"/><line x1="74" y1="64" x2="190" y2="94" stroke="#c9922a" stroke-width="1" opacity=".55"/><line x1="74" y1="64" x2="182" y2="116" stroke="#c9922a" stroke-width="1" opacity=".55"/><circle cx="170" cy="128" r="18" fill="#c9a77c" stroke="#3b2c20" stroke-width="1.2"/><path d="M178 160 L330 160 L300 150 L190 146 Z" fill="#4a3f52" opacity=".55"/><text x="60" y="182" font-family="inherit" font-size="12" fill="#c9922a" text-anchor="middle" font-weight="600">light</text><text x="262" y="140" font-family="inherit" font-size="12" fill="#3b2c20" text-anchor="middle" font-weight="600">shadow</text><text x="262" y="182" font-family="inherit" font-size="11" fill="#8a7a62" text-anchor="middle" >not a thing — just where light is blocked</text></svg><figcaption>A shadow has no lamp of its own. Evil is like that: real, and it hurts — but it is the absence of good, not a second God.</figcaption></figure>
     <p>
       Where does <strong>evil</strong> come from? Why are there bad
       things, bad people, bad voices in our heads?
@@ -2502,10 +2491,12 @@
     <div class="switch-fig" id="switch-fig">
       <svg viewBox="-20 0 480 180" width="100%" height="180">
         <!-- C source -->
-        <text x="40" y="50" font-size="36" text-anchor="middle">❤️</text>
+        <defs><radialGradient id="gate-cg"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs>
+        <circle class="kd-glow" cx="40" cy="40" r="28" fill="url(#gate-cg)"/>
+        <path d="M40 58 C22 46 24 28 34 28 C38 28 40 32 40 35 C40 32 42 28 46 28 C56 28 58 46 40 58 Z" fill="#e58b7a" stroke="#3b2c20" stroke-width="1.2"/>
         <text x="40" y="78" font-size="11" text-anchor="middle" fill="#555">C (love)</text>
         <!-- D source -->
-        <text x="40" y="135" font-size="36" text-anchor="middle">🕷️</text>
+        <path d="M26 128 C20 112 46 108 50 120 C54 132 30 138 30 124 C30 112 58 116 52 130 C48 140 26 136 34 118 C40 106 60 124 44 134" fill="none" stroke="#5a3a4a" stroke-width="2" stroke-linecap="round"/>
         <text x="40" y="160" font-size="11" text-anchor="middle" fill="#555">fallen Selves (lies)</text>
 
         <!-- G channel arrow (top) -->
@@ -2554,8 +2545,8 @@
         </g>
 
         <!-- Self — two stacked text glyphs we cross-fade between. -->
-        <text id="face-a" class="face-glyph fading-in"  x="410" y="95" font-size="36" text-anchor="middle">🙂</text>
-        <text id="face-b" class="face-glyph fading-out" x="410" y="95" font-size="36" text-anchor="middle">🙂</text>
+        <g id="face-a" class="face-glyph fading-in" data-kind="calm"></g>
+        <g id="face-b" class="face-glyph fading-out" data-kind=""></g>
         <text x="410" y="125" font-size="11" text-anchor="middle" fill="#555">you</text>
         <!-- arrow into Self -->
         <line x1="358" y1="90" x2="386" y2="90" stroke="#666" stroke-width="2" stroke-linecap="round"/>
@@ -2585,8 +2576,23 @@
         var botLab  = fig.querySelector('.gate-label.bottom');
         if (!gate || !line || !faceA || !faceB) return;
 
-        var negative = ['😢','😠','😤','😰','😞','😨','😔','😒','😩','🥺','😟','😣'];
-        var devil = '😈';
+        // the face is DRAWN (Nov 14 — no emoji): one round face, its brows / eyes / mouth by mood
+        var negative = ['sad', 'cross', 'afraid', 'worried'];
+        function faceSVG(k) {
+          var x = 410, y = 82, ink = '#3b2c20';
+          var o = '<circle cx="' + x + '" cy="' + y + '" r="17" fill="' + (k === 'numb' ? '#d9cfc2' : '#f3d9b8') + '" stroke="' + ink + '" stroke-width="1.3"/>';
+          var eye = function (dx, r) { return '<circle cx="' + (x + dx) + '" cy="' + (y - 4) + '" r="' + r + '" fill="' + ink + '"/>'; };
+          o += eye(-6, k === 'afraid' ? 2.4 : 1.8) + eye(6, k === 'afraid' ? 2.4 : 1.8);
+          var p = function (d, w) { return '<path d="' + d + '" fill="none" stroke="' + ink + '" stroke-width="' + (w || 1.6) + '" stroke-linecap="round"/>'; };
+          var m = { calm:    p('M' + (x - 7) + ' ' + (y + 5) + ' Q' + x + ' ' + (y + 12) + ' ' + (x + 7) + ' ' + (y + 5)),
+                    sad:     p('M' + (x - 7) + ' ' + (y + 10) + ' Q' + x + ' ' + (y + 4) + ' ' + (x + 7) + ' ' + (y + 10)) + '<path d="M' + (x - 7) + ' ' + y + ' q-2 5 0 7 q2 -2 0 -7" fill="#7d9cc0"/>',
+                    cross:   p('M' + (x - 6) + ' ' + (y + 8) + ' L' + (x + 6) + ' ' + (y + 8)) + p('M' + (x - 10) + ' ' + (y - 11) + ' L' + (x - 3) + ' ' + (y - 8)) + p('M' + (x + 10) + ' ' + (y - 11) + ' L' + (x + 3) + ' ' + (y - 8)),
+                    afraid:  '<ellipse cx="' + x + '" cy="' + (y + 8) + '" rx="3.5" ry="4.5" fill="' + ink + '"/>' + p('M' + (x - 10) + ' ' + (y - 11) + ' Q' + (x - 6) + ' ' + (y - 14) + ' ' + (x - 2) + ' ' + (y - 11)) + p('M' + (x + 2) + ' ' + (y - 11) + ' Q' + (x + 6) + ' ' + (y - 14) + ' ' + (x + 10) + ' ' + (y - 11)),
+                    worried: p('M' + (x - 7) + ' ' + (y + 8) + ' q3.5 -3 7 0 t7 0'),
+                    numb:    p('M' + (x - 6) + ' ' + (y + 7) + ' L' + (x + 6) + ' ' + (y + 7), 1.3) };
+          return o + (m[k] || m.calm);
+        }
+        faceA.innerHTML = faceSVG('calm');
         var isDown = false;
         var dCount = 0;
         var activeFace = faceA;     // currently visible
@@ -2595,9 +2601,9 @@
         // Cross-fade: prepare hidden face with new emoji, then swap
         // visibility classes simultaneously so the two glyphs animate
         // through each other. No blank frame.
-        function setFace(newEmoji) {
-          if (activeFace.textContent === newEmoji) return;
-          hiddenFace.textContent = newEmoji;
+        function setFace(kind) {
+          if (activeFace.getAttribute('data-kind') === kind) return;
+          hiddenFace.innerHTML = faceSVG(kind); hiddenFace.setAttribute('data-kind', kind);
           // force a reflow so the class change is treated as a transition trigger
           // (some browsers batch consecutive class changes otherwise)
           void hiddenFace.getBoundingClientRect();
@@ -2625,7 +2631,7 @@
             dCount++;
             if (dCount >= 12) {
               // past feeling (Eph 4:19): the face goes numb and stops reacting
-              setFace('😶');
+              setFace('numb');
             } else {
               setFace(negative[Math.floor(Math.random() * negative.length)]);
             }
@@ -2638,7 +2644,7 @@
             topLab.setAttribute('font-weight', '600');
             botLab.setAttribute('fill', '#aaa');
             botLab.removeAttribute('font-weight');
-            setFace('🙂');
+            setFace('calm');
           }
         }
 
@@ -2838,7 +2844,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🏠</div>
+    <figure class="kd" role="img" aria-label="A road from a small house to a larger glowing house"><svg viewBox="0 72 360 122" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="160" x2="350" y2="160" stroke="#8a7a62" stroke-width="1.2"/><defs><radialGradient id="k7a"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="56" cy="143.6" r="35.2" fill="url(#k7a)"/><g transform="translate(56 158) scale(0.8)"><rect x="-18" y="-24" width="36" height="24" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.3"/><path d="M-23 -23 L0 -42 L23 -23 Z" fill="#b5523b" stroke="#3b2c20" stroke-width="1.3"/><rect x="-5" y="-13" width="10" height="13" fill="#fff1c0" stroke="#3b2c20" stroke-width="1"/></g><defs><radialGradient id="k7b"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="304" cy="135.5" r="55.0" fill="url(#k7b)"/><g transform="translate(304 158) scale(1.25)"><rect x="-18" y="-24" width="36" height="24" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.3"/><path d="M-23 -23 L0 -42 L23 -23 Z" fill="#b5523b" stroke="#3b2c20" stroke-width="1.3"/><rect x="-5" y="-13" width="10" height="13" fill="#fff1c0" stroke="#3b2c20" stroke-width="1"/></g><path d="M80 156 Q130 182 180 150 Q230 118 278 154" fill="none" stroke="#a07a4f" stroke-width="8" stroke-linecap="round" opacity=".5"/><g transform="translate(176 150) scale(0.95)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><text x="14" y="182" font-family="inherit" font-size="11" fill="#8a7a62" text-anchor="start" >Alpha — where you came from</text><text x="300" y="182" font-family="inherit" font-size="11" fill="#8a7a62" text-anchor="middle" >Omega — home</text><text x="304" y="92" font-family="inherit" font-size="12" fill="#c9922a" text-anchor="middle" font-weight="600" font-style="italic">better</text></svg><figcaption>From C, to C — and the end is better than the beginning: “Behold, I make all things new” (Revelation 21:5).</figcaption></figure>
 
 
     <p>
@@ -3062,7 +3068,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🩻</div>
+    <figure class="kd" role="img" aria-label="An X-ray showing a dark spot, and beside it a bandaged heart in light"><svg viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="28" width="132" height="120" rx="6" fill="#26303a" stroke="#3b2c20"/><path d="M50 58 Q88 50 126 58" fill="none" stroke="#c9d6e0" stroke-width="2.4" opacity=".8"/><path d="M50 73 Q88 65 126 73" fill="none" stroke="#c9d6e0" stroke-width="2.4" opacity=".8"/><path d="M50 88 Q88 80 126 88" fill="none" stroke="#c9d6e0" stroke-width="2.4" opacity=".8"/><path d="M50 103 Q88 95 126 103" fill="none" stroke="#c9d6e0" stroke-width="2.4" opacity=".8"/><path d="M50 118 Q88 110 126 118" fill="none" stroke="#c9d6e0" stroke-width="2.4" opacity=".8"/><line x1="88" y1="44" x2="88" y2="132" stroke="#c9d6e0" stroke-width="3" opacity=".8"/><circle cx="104" cy="96" r="9" fill="#6b1f17" stroke="#e58b7a" stroke-width="1.5"/><path d="M168 88 L196 88" fill="none" stroke="#3b2c20" stroke-width="1.8" stroke-linecap="round"/><path d="M189.0 92.0 L196 88 L189.0 84.0" fill="none" stroke="#3b2c20" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><defs><radialGradient id="k8g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="272" cy="86" r="56" fill="url(#k8g)"/><path d="M272 118 C230 92 236 58 258 58 C266 58 272 66 272 72 C272 66 278 58 286 58 C308 58 314 92 272 118 Z" fill="#e58b7a" stroke="#3b2c20" stroke-width="1.3"/><rect x="255" y="78" width="34" height="11" rx="3" fill="#f3ead6" stroke="#3b2c20" transform="rotate(-20 272 84)"/><text x="88" y="168" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" >the Law shows what is wrong</text><text x="272" y="168" font-family="inherit" font-size="11.5" fill="#c9922a" text-anchor="middle" font-weight="600">Jesus heals it</text></svg><figcaption>An X-ray never healed anyone. It shows the doctor what to heal (Romans 3:20).</figcaption></figure>
 
 
     <p>
@@ -3264,7 +3270,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🌉</div>
+    <figure class="kd" role="img" aria-label="A child on one cliff, home on the other, a golden bridge across the canyon"><svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg"><path d="M0 92 L118 92 L104 196 L0 196 Z" fill="#c9b08a" stroke="#3b2c20" stroke-width="1.2"/><path d="M360 92 L242 92 L256 196 L360 196 Z" fill="#c9b08a" stroke="#3b2c20" stroke-width="1.2"/><path d="M118 92 L242 92" stroke="#c9922a" stroke-width="5" stroke-linecap="round"/><path d="M118 92 Q180 128 242 92" fill="none" stroke="#c9922a" stroke-width="2"/><line x1="132" y1="92" x2="132" y2="106" stroke="#c9922a" stroke-width="1.2"/><line x1="146" y1="92" x2="146" y2="117" stroke="#c9922a" stroke-width="1.2"/><line x1="160" y1="92" x2="160" y2="124" stroke="#c9922a" stroke-width="1.2"/><line x1="174" y1="92" x2="174" y2="127" stroke="#c9922a" stroke-width="1.2"/><line x1="188" y1="92" x2="188" y2="127" stroke="#c9922a" stroke-width="1.2"/><line x1="202" y1="92" x2="202" y2="123" stroke="#c9922a" stroke-width="1.2"/><line x1="216" y1="92" x2="216" y2="115" stroke="#c9922a" stroke-width="1.2"/><line x1="230" y1="92" x2="230" y2="104" stroke="#c9922a" stroke-width="1.2"/><g transform="translate(70 92) scale(1.05)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><defs><radialGradient id="k9g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="302" cy="74.0" r="44.0" fill="url(#k9g)"/><g transform="translate(302 92) scale(1.0)"><rect x="-18" y="-24" width="36" height="24" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.3"/><path d="M-23 -23 L0 -42 L23 -23 Z" fill="#b5523b" stroke="#3b2c20" stroke-width="1.3"/><rect x="-5" y="-13" width="10" height="13" fill="#fff1c0" stroke="#3b2c20" stroke-width="1"/></g><text x="180" y="72" font-family="inherit" font-size="12" fill="#c9922a" text-anchor="middle" font-weight="600">Jesus — the way (John 14:6)</text><text x="56" y="120" font-family="inherit" font-size="11" fill="#3b2c20" text-anchor="middle" >C: where</text><text x="56" y="134" font-family="inherit" font-size="11" fill="#3b2c20" text-anchor="middle" >you start</text><text x="304" y="120" font-family="inherit" font-size="11" fill="#3b2c20" text-anchor="middle" >C: home</text></svg><figcaption>Three things, one C: the side you start on, the home across the canyon, and the bridge between.</figcaption></figure>
 
 
     <p>
@@ -3544,7 +3550,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🏺</div>
+    <figure class="kd" role="img" aria-label="Three panels: a broken lamp, a price bigger than your coins, and a receipt stamped PAID"><svg viewBox="0 0 360 178" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="26" width="104" height="120" rx="8" fill="#fffdf6" stroke="#8a7a62"/><text x="62" y="166" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" >it breaks</text><rect x="128" y="26" width="104" height="120" rx="8" fill="#fffdf6" stroke="#8a7a62"/><text x="180" y="166" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" >more than you have</text><rect x="246" y="26" width="104" height="120" rx="8" fill="#fffdf6" stroke="#8a7a62"/><text x="298" y="166" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" >someone else pays</text><line x1="20" y1="128" x2="104" y2="128" stroke="#8a7a62"/><g transform="rotate(-72 50 124)"><rect x="40" y="118" width="20" height="8" rx="2" fill="#a07a4f" stroke="#3b2c20"/><line x1="50" y1="118" x2="50" y2="86" stroke="#3b2c20" stroke-width="2"/></g><path d="M70 128 L80 104 L100 104 L96 128 Z" fill="#f1d38a" stroke="#3b2c20" transform="rotate(24 86 116)"/><path d="M74 98 L80 88 M92 92 L100 84 M66 112 L58 104" stroke="#b9583f" stroke-width="1.8" stroke-linecap="round"/><path d="M28 126 l6 -3 l5 3 M100 126 l5 -4 l3 4" fill="none" stroke="#3b2c20" stroke-width="1.1"/><path d="M150 58 L210 58 L222 76 L210 94 L150 94 Z" fill="#f3ead6" stroke="#3b2c20"/><text x="182" y="81" font-family="inherit" font-size="15" fill="#3b2c20" text-anchor="middle" font-weight="700">$$$$</text><circle cx="160" cy="122" r="5" fill="#c9922a" stroke="#3b2c20" stroke-width=".8"/><circle cx="172" cy="122" r="5" fill="#c9922a" stroke="#3b2c20" stroke-width=".8"/><circle cx="184" cy="122" r="5" fill="#c9922a" stroke="#3b2c20" stroke-width=".8"/><text x="205" y="126" font-family="inherit" font-size="10" fill="#8a7a62" text-anchor="middle" >← yours</text><defs><radialGradient id="k10g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="298" cy="84" r="44" fill="url(#k10g)"/><rect x="270" y="58" width="56" height="56" rx="4" fill="#fff" stroke="#3b2c20"/><text x="298" y="92" font-family="inherit" font-size="15" fill="#b9583f" text-anchor="middle" font-weight="700" transform="rotate(-12 298 88)">PAID</text></svg><figcaption>The lamp is really broken and really costs money. You don’t pay — she does. That is a tiny picture of the Cross.</figcaption></figure>
 
 
     <p>
@@ -3899,7 +3905,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🎁</div>
+    <figure class="kd" role="img" aria-label="A child trying to lift himself by his laces, crossed out; a child with open hands receiving a gift"><svg viewBox="0 16 360 194" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="162" x2="170" y2="162" stroke="#8a7a62" stroke-width="1.2"/><line x1="190" y1="162" x2="350" y2="162" stroke="#8a7a62" stroke-width="1.2"/><g transform="translate(90 158) scale(1.25)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><ellipse cx="80" cy="160" rx="7" ry="3.4" fill="#4a3424"/><ellipse cx="100" cy="160" rx="7" ry="3.4" fill="#4a3424"/><path d="M78 132 Q70 146 79 157 M102 132 Q110 146 101 157" stroke="#3b2c20" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M90 104 L90 70" fill="none" stroke="#b9583f" stroke-width="1.8" stroke-linecap="round"/><path d="M94.0 77.0 L90 70 L86.0 77.0" fill="none" stroke="#b9583f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M78 76 L102 100 M102 76 L78 100" stroke="#b9583f" stroke-width="2.4" stroke-linecap="round"/><defs><radialGradient id="k11g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="270" cy="60" r="40" fill="url(#k11g)"/><rect x="256" y="46" width="28" height="24" fill="#f3ead6" stroke="#3b2c20"/><path d="M256 54 h28 M270 46 v24" stroke="#b9583f" stroke-width="2"/><path d="M270 78 L270 104" fill="none" stroke="#c9922a" stroke-width="1.8" stroke-linecap="round"/><path d="M266.0 97.0 L270 104 L274.0 97.0" fill="none" stroke="#c9922a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><g transform="translate(270 158) scale(1.25)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><path d="M252 128 Q262 120 270 126 Q278 120 288 128" fill="none" stroke="#3b2c20" stroke-width="1.6"/><text x="90" y="184" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" >W: pulling your own laces</text><text x="270" y="184" font-family="inherit" font-size="11.5" fill="#c9922a" text-anchor="middle" font-weight="600">G: open hands</text></svg><figcaption>Nobody can lift themselves up by their own shoelaces. The way home is not pulled — it is given (Ephesians 2:8).</figcaption></figure>
     <p>
       The lamp is paid for. So what's left for you to do? Two kinds
       of things act on you every day:
@@ -3908,6 +3914,9 @@
       <strong>W (works)</strong> — what <em>you</em> do. Brushing your
       teeth. Doing your homework. Trying hard. These are real and good.
       But by themselves, they don't get you back home.
+      Try lifting yourself off the floor by pulling up on your own
+      shoelaces. Pull as hard as you like — you won't go up an inch.
+      Trying harder to get yourself home is like that.
     </p>
     <p>
       <strong>G (grace)</strong> — what is <em>given</em> to you. A gift
@@ -4145,7 +4154,6 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🌱</div>
     <p>
       In a garden, if you plant a tomato seed, you grow tomatoes.
       Plant a pumpkin seed, you grow pumpkins. Whatever you plant,
@@ -4158,21 +4166,19 @@
         <!-- soil mound -->
         <path d="M 60 150 Q 180 110 300 150 L 300 165 L 60 165 Z" fill="#9a7a52"/>
         <!-- plant stages (stacked, faded in/out by JS) -->
-        <text id="seed-dot"    class="kstage" x="180" y="142" font-size="14" text-anchor="middle" opacity="0">🟤</text>
-        <text id="seed-stage1" class="kstage" x="180" y="125" font-size="30" text-anchor="middle" opacity="0">🌱</text>
-        <text id="seed-stage2" class="kstage" x="180" y="110" font-size="44" text-anchor="middle" opacity="0">🌿</text>
-        <g id="seed-stage3" class="kstage" opacity="0">
-          <text x="180" y="122" font-size="52" text-anchor="middle">🌳</text>
-          <text id="seed-fruit1" x="152" y="100" font-size="22" text-anchor="middle"></text>
-          <text id="seed-fruit2" x="180" y="84" font-size="22" text-anchor="middle"></text>
-          <text id="seed-fruit3" x="208" y="100" font-size="22" text-anchor="middle"></text>
+        <!-- Nov 14: drawn, not emoji — and a vine, not a tree: tomatoes hang from it, pumpkins lie beside it -->
+        <g id="seed-dot" class="kstage" opacity="0"><ellipse cx="180" cy="136" rx="5" ry="3.4" fill="#6b4a2e" stroke="#3b2c20" stroke-width=".8"/></g>
+        <g id="seed-stage1" class="kstage" opacity="0"><path d="M180 131 Q178 122 180 113" fill="none" stroke="#5f8a4a" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="173" cy="116" rx="7.2" ry="3.3600000000000003" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-30 173 116)"/><ellipse cx="187" cy="115" rx="7.2" ry="3.3600000000000003" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(30 187 115)"/></g>
+        <g id="seed-stage2" class="kstage" opacity="0"><path d="M180 131 Q178 114 180 98" fill="none" stroke="#5f8a4a" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="171" cy="120" rx="9" ry="4.2" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-25 171 120)"/><ellipse cx="189" cy="114" rx="9" ry="4.2" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(25 189 114)"/><ellipse cx="172" cy="104" rx="8.1" ry="3.7800000000000002" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-35 172 104)"/><ellipse cx="188" cy="99" rx="8.1" ry="3.7800000000000002" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(35 188 99)"/></g>
+        <g id="seed-stage3" class="kstage" opacity="0"><path d="M180 131 Q178 102 180 74" fill="none" stroke="#5f8a4a" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="168" cy="124" rx="9.9" ry="4.620000000000001" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-20 168 124)"/><ellipse cx="193" cy="118" rx="9.9" ry="4.620000000000001" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(20 193 118)"/><ellipse cx="166" cy="106" rx="9" ry="4.2" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-30 166 106)"/><ellipse cx="194" cy="98" rx="9" ry="4.2" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(30 194 98)"/><ellipse cx="170" cy="88" rx="8.1" ry="3.7800000000000002" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-35 170 88)"/><ellipse cx="190" cy="80" rx="8.1" ry="3.7800000000000002" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(35 190 80)"/><ellipse cx="176" cy="72" rx="7.2" ry="3.3600000000000003" fill="#7aa45e" stroke="#3b2c20" stroke-width=".8" transform="rotate(-50 176 72)"/>
+          <g id="seed-fruits"></g>
         </g>
-        <text id="seed-hint" x="180" y="60" font-size="12" text-anchor="middle" fill="#888">pick a seed below 👇</text>
+        <text id="seed-hint" x="180" y="60" font-size="12" text-anchor="middle" fill="#888">pick a seed below</text>
       </svg>
       <div>
-        <button class="kbtn" id="seed-tomato"  type="button" aria-label="Plant a tomato seed">🍅 tomato seed</button>
-        <button class="kbtn" id="seed-pumpkin" type="button" aria-label="Plant a pumpkin seed">🎃 pumpkin seed</button>
-        <button class="kbtn" id="seed-water"   type="button" aria-label="Water the seed" style="display:none;">💧 water it</button>
+        <button class="kbtn" id="seed-tomato"  type="button" aria-label="Plant a tomato seed">tomato seed</button>
+        <button class="kbtn" id="seed-pumpkin" type="button" aria-label="Plant a pumpkin seed">pumpkin seed</button>
+        <button class="kbtn" id="seed-water"   type="button" aria-label="Water the seed" style="display:none;">water it</button>
       </div>
       <p class="kfig-cap" id="seed-cap">whatever you plant is what comes up</p>
       <button class="kreplay" id="seed-replay" type="button" style="display:none;">↺ plant again</button>
@@ -4188,6 +4194,7 @@
         var dot = $('seed-dot'), s1 = $('seed-stage1'), s2 = $('seed-stage2'), s3 = $('seed-stage3');
         var hint = $('seed-hint'), cap = $('seed-cap'), replay = $('seed-replay');
         if (!btnT || !btnP || !btnW || !dot || !s1 || !s2 || !s3 || !cap || !replay) return;
+        var FRUIT = { tomato: '<circle cx="160" cy="108" r="7" fill="#d2402c" stroke="#3b2c20" stroke-width="1"/><path d="M156 102 L160 104 L164 102 L160 100 Z" fill="#5f8a4a"/><circle cx="157.5" cy="106" r="1.8" fill="#fff" opacity=".45"/><circle cx="199" cy="102" r="7" fill="#d2402c" stroke="#3b2c20" stroke-width="1"/><path d="M195 96 L199 98 L203 96 L199 94 Z" fill="#5f8a4a"/><circle cx="196.5" cy="100" r="1.8" fill="#fff" opacity=".45"/><circle cx="176" cy="90" r="7" fill="#d2402c" stroke="#3b2c20" stroke-width="1"/><path d="M172 84 L176 86 L180 84 L176 82 Z" fill="#5f8a4a"/><circle cx="173.5" cy="88" r="1.8" fill="#fff" opacity=".45"/>', pumpkin: '<ellipse cx="148" cy="122" rx="13" ry="9.4" fill="#e8892e" stroke="#3b2c20" stroke-width="1"/><path d="M148 112.6 Q141.5 122 148 131.4 M148 112.6 Q154.5 122 148 131.4" fill="none" stroke="#b5631e" stroke-width=".9"/><path d="M148 112.6 l2 -5" stroke="#5f8a4a" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="213" cy="123" rx="12" ry="8.6" fill="#e8892e" stroke="#3b2c20" stroke-width="1"/><path d="M213 114.4 Q207.0 123 213 131.6 M213 114.4 Q219.0 123 213 131.6" fill="none" stroke="#b5631e" stroke-width=".9"/><path d="M213 114.4 l2 -5" stroke="#5f8a4a" stroke-width="2.2" stroke-linecap="round"/>' };
         var planted = null, waters = 0;
         var stages = [dot, s1, s2, s3];
 
@@ -4197,9 +4204,7 @@
         function plant(kind, fruit) {
           if (planted) return;
           planted = kind;
-          ['seed-fruit1', 'seed-fruit2', 'seed-fruit3'].forEach(function (id) {
-            $(id).textContent = fruit;   // the SAME fruit you planted — always
-          });
+          $('seed-fruits').innerHTML = FRUIT[kind];   // the SAME fruit you planted — always
           hint.setAttribute('opacity', '0');
           show(0);
           btnT.style.display = 'none'; btnP.style.display = 'none';
@@ -4226,8 +4231,8 @@
           btnW.style.display = 'none'; replay.style.display = 'none';
           cap.textContent = 'whatever you plant is what comes up';
         }
-        btnT.addEventListener('click', function () { plant('tomato', '🍅'); });
-        btnP.addEventListener('click', function () { plant('pumpkin', '🎃'); });
+        btnT.addEventListener('click', function () { plant('tomato'); });
+        btnP.addEventListener('click', function () { plant('pumpkin'); });
         btnW.addEventListener('click', water);
         replay.addEventListener('click', reset);
       })();
@@ -4642,7 +4647,6 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🏔️</div>
     <p>
       You can walk closer and closer to a mountain. With every step,
       you're nearer. Try it: take some steps and watch what happens
@@ -4650,22 +4654,34 @@
     </p>
 
     <div class="kfig" id="mountain-fig">
-      <svg viewBox="0 0 360 130" width="100%" height="130" xmlns="http://www.w3.org/2000/svg">
-        <line x1="20" y1="105" x2="340" y2="105" stroke="#c8b88a" stroke-width="2" stroke-linecap="round"/>
-        <circle id="mtn-flash" cx="65" cy="80" r="50" fill="#f0d9a0" opacity="0"/>
-        <g id="mtn-home" class="kmove">
-          <text x="320" y="100" font-size="40" text-anchor="middle">⛰️</text>
+      <!-- Nov 14: the walk follows the math's §11.2 — each step closes part of the gap, the old pull adds a little back
+           (Gal 5:17), so walking settles at a FLOOR above zero; the last gap is closed in one act (1 Cor 15:52).
+           (It used to halve the gap for ever, which says walking alone could get as close as you like.) -->
+      <svg viewBox="0 0 360 150" width="100%" height="150" xmlns="http://www.w3.org/2000/svg">
+        <defs><radialGradient id="mtn-g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs>
+        <line x1="14" y1="122" x2="346" y2="122" stroke="#c8b88a" stroke-width="2" stroke-linecap="round"/>
+        <circle id="mtn-flash" cx="300" cy="80" r="70" fill="url(#mtn-g)" opacity="0" style="transition:opacity .5s"/>
+        <g id="mtn-home">
+          <circle class="kd-glow" cx="306" cy="40" r="26" fill="url(#mtn-g)"/>
+          <path d="M252 122 L306 40 L346 122 Z" fill="#9a8f84" stroke="#3b2c20" stroke-width="1.3"/>
+          <path d="M294 58 L306 40 L318 60 L311 56 L304 62 L299 56 Z" fill="#fbf6e9" stroke="#3b2c20" stroke-width="1"/>
         </g>
         <g id="mtn-walker" class="kmove">
-          <text x="40" y="98" font-size="28" text-anchor="middle">🚶</text>
+          <g transform="translate(40 122)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g>
+          <g id="mtn-pull" opacity="0" style="transition:opacity .4s">
+            <path d="M24 100 L6 100 M12 95 L6 100 L12 105" fill="none" stroke="#b9583f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 88 q-8 -4 -16 0 M28 112 q-8 4 -16 0" fill="none" stroke="#b9583f" stroke-width="1.1" opacity=".7"/>
+          </g>
         </g>
-        <text id="mtn-count" x="180" y="25" font-size="12" text-anchor="middle" fill="#888">steps: 0</text>
+        <text id="mtn-count" x="180" y="22" font-size="12" text-anchor="middle" fill="#888" font-family="inherit">steps: 0</text>
+        <text id="mtn-gap" x="180" y="142" font-size="11" text-anchor="middle" fill="#b9583f" font-family="inherit" opacity="0">the gap</text>
+        <line id="mtn-gapline" x1="0" y1="132" x2="0" y2="132" stroke="#b9583f" stroke-width="1.4" stroke-dasharray="3 3" opacity="0"/>
       </svg>
       <div>
-        <button class="kbtn" id="mtn-step" type="button" aria-label="Take a step toward the mountain">👣 Take a step</button>
-        <button class="kbtn kglow" id="mtn-come" type="button" aria-label="Let Him come to you" style="display:none;">✨ Let Him come to you</button>
+        <button class="kbtn" id="mtn-step" type="button" aria-label="Take a step toward the mountain">Take a step</button>
+        <button class="kbtn kglow" id="mtn-come" type="button" aria-label="Let Him close the gap" style="display:none;">Let Him close the gap</button>
       </div>
-      <p class="kfig-cap" id="mtn-cap">each step covers half the distance left</p>
+      <p class="kfig-cap" id="mtn-cap">each step closes half the gap — but something pulls you back a little</p>
       <button class="kreplay" id="mtn-replay" type="button" style="display:none;">↺ start the walk again</button>
     </div>
 
@@ -4674,55 +4690,52 @@
         var fig = document.getElementById('mountain-fig');
         if (!fig || fig.dataset.init) return;
         fig.dataset.init = '1';
-        var walker = document.getElementById('mtn-walker');
-        var home = document.getElementById('mtn-home');
-        var flash = document.getElementById('mtn-flash');
-        var count = document.getElementById('mtn-count');
-        var btnStep = document.getElementById('mtn-step');
-        var btnCome = document.getElementById('mtn-come');
-        var cap = document.getElementById('mtn-cap');
-        var replay = document.getElementById('mtn-replay');
-        if (!walker || !home || !btnStep || !btnCome || !cap || !replay) return;
-        var FULL = 250;          // gap in svg units between walker (40) and mountain (320)
+        var $ = function (id) { return document.getElementById(id); };
+        var walker = $('mtn-walker'), flash = $('mtn-flash'), count = $('mtn-count'), pull = $('mtn-pull');
+        var gapT = $('mtn-gap'), gapL = $('mtn-gapline');
+        var btnStep = $('mtn-step'), btnCome = $('mtn-come'), cap = $('mtn-cap'), replay = $('mtn-replay');
+        if (!walker || !btnStep || !btnCome || !cap || !replay) return;
+        var FULL = 202;           // walker (x 40) to the foot of the mountain (x ~ 252), in svg units
+        var K = 0.5, W = 14;      // each step closes half the gap (k); the old pull adds W back — so it settles at W/K
         var gap = FULL, steps = 0, done = false;
-
         function place() {
-          walker.style.transform = 'translate(' + (FULL - gap) + 'px, 0)';
+          walker.style.transform = 'translate(' + (FULL - gap).toFixed(1) + 'px, 0)';
           count.textContent = 'steps: ' + steps;
+          var x1 = 40 + 12 + (FULL - gap), x2 = 252;
+          gapL.setAttribute('x1', x1.toFixed(1)); gapL.setAttribute('x2', x2);
+          gapT.setAttribute('x', ((x1 + x2) / 2).toFixed(1));
         }
         function step() {
           if (done) return;
-          gap = gap / 2;           // Zeno: half the remaining distance
+          gap = gap - K * gap + W;          // d(gap) = w − k·gap : closer every step, never to zero while the pull lasts
           steps++;
+          pull.setAttribute('opacity', '1'); setTimeout(function () { pull.setAttribute('opacity', '.45'); }, 500);
+          gapT.setAttribute('opacity', '1'); gapL.setAttribute('opacity', '1');
           place();
-          if (steps >= 6) {
-            cap.textContent = "Closer every step… but you'll never arrive by walking.";
+          if (steps >= 5) {
+            cap.textContent = 'Closer every step… but the old pull keeps a little gap. Walking alone never closes it (Galatians 5:17).';
             btnCome.style.display = '';
           } else {
-            cap.textContent = 'half the distance left… and half again…';
+            cap.textContent = 'closer — but the old pull drags you back a little';
           }
         }
         function come() {
           if (done) return;
           done = true;
-          home.style.transform = 'translate(' + (-gap - 25) + 'px, 0)';
-          flash.setAttribute('opacity', '0.8');
-          flash.style.transform = 'translate(' + (FULL - gap) + 'px, 0)';
-          setTimeout(function () { flash.setAttribute('opacity', '0'); }, 900);
-          cap.textContent = 'You walk toward Him; He runs the rest of the way (Luke 15:20). That’s the promise.';
-          btnStep.style.display = 'none';
-          btnCome.style.display = 'none';
-          replay.style.display = '';
+          gap = 0; place();
+          pull.setAttribute('opacity', '0'); gapT.setAttribute('opacity', '0'); gapL.setAttribute('opacity', '0');
+          walker.style.transform = 'translate(' + (FULL + 6) + 'px, 0)';
+          flash.setAttribute('opacity', '1');
+          setTimeout(function () { flash.setAttribute('opacity', '0'); }, 1100);
+          cap.textContent = '“In a moment, in the twinkling of an eye” (1 Corinthians 15:52) — He closes the last gap Himself, and changes you, all at once.';
+          btnStep.style.display = 'none'; btnCome.style.display = 'none'; replay.style.display = '';
         }
         function reset() {
-          gap = FULL; steps = 0; done = false;
+          gap = FULL; steps = 0; done = false; place();
           walker.style.transform = 'translate(0,0)';
-          home.style.transform = 'translate(0,0)';
-          flash.style.transform = 'translate(0,0)';
-          btnStep.style.display = ''; btnCome.style.display = 'none';
-          replay.style.display = 'none';
-          count.textContent = 'steps: 0';
-          cap.textContent = 'each step covers half the distance left';
+          pull.setAttribute('opacity', '0'); gapT.setAttribute('opacity', '0'); gapL.setAttribute('opacity', '0');
+          btnStep.style.display = ''; btnCome.style.display = 'none'; replay.style.display = 'none';
+          cap.textContent = 'each step closes half the gap — but something pulls you back a little';
         }
         btnStep.addEventListener('click', step);
         btnCome.addEventListener('click', come);
@@ -4730,9 +4743,9 @@
       })();
     </script>
     <p>
-      But you never finish arriving. You can be very close —
-      and the mountain is still itself, and you are still you, and
-      there's always a tiny bit closer you could go.
+      But walking never closes the last bit. You get much closer
+      than where you started — and then a small gap stays, however
+      many steps you take, because something keeps pulling you back.
     </p>
     <p>
       Life with C is like that. You don't ever "finish" being close —
@@ -4772,10 +4785,10 @@
       So the math has <strong>two sudden jumps</strong>:
     </p>
     <ul style="margin: 0.5em 0 1em 24px; padding-left: 12px; list-style: none;">
-      <li>✨ <strong>When you say yes</strong> — your spirit jumps from
+      <li><strong>When you say yes</strong> — your spirit jumps from
       far to close. The Bible calls this being "born again" (John&nbsp;3:3).
       A real before-and-after moment.</li>
-      <li>🏠 <strong>When Jesus comes back</strong> — your body gets
+      <li><strong>When Jesus comes back</strong> — your body gets
       its new version, the old drift is gone, and you're fully home.</li>
     </ul>
     <p>
@@ -4947,7 +4960,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🌧️</div>
+    <figure class="kd" role="img" aria-label="Two trees in the wind: one with deep roots standing, one with shallow roots tipping over"><svg viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="150" width="360" height="62" fill="#d8c9a6"/><line x1="0" y1="150" x2="360" y2="150" stroke="#8a7a62" stroke-width="1.2"/><path d="M6 34 q24 -8 48 0 t48 0" fill="none" stroke="#7d9cc0" stroke-width="1.3" opacity=".8"/><path d="M6 52 q24 -8 48 0 t48 0" fill="none" stroke="#7d9cc0" stroke-width="1.3" opacity=".8"/><path d="M6 70 q24 -8 48 0 t48 0" fill="none" stroke="#7d9cc0" stroke-width="1.3" opacity=".8"/><path d="M6 88 q24 -8 48 0 t48 0" fill="none" stroke="#7d9cc0" stroke-width="1.3" opacity=".8"/><g transform="translate(110 150) rotate(0) scale(1.25)"><path d="M0 0 Q-8.4 11.385 -14 25.299999999999997" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q-3.5999999999999996 15.524999999999999 -6 34.5" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q2.4 17.595 4 39.099999999999994" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q7.8 12.42 13 27.599999999999998" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/></g><g transform="translate(268 150) rotate(24) scale(1.25)"><path d="M0 0 Q-8.4 1.782 -14 3.96" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q-3.5999999999999996 2.4299999999999997 -6 5.3999999999999995" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q2.4 2.754 4 6.12" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q7.8 1.944 13 4.32" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/></g><text x="110" y="222" font-family="inherit" font-size="11" fill="#3b2c20" text-anchor="middle" >holding His hand: roots go deeper</text><text x="268" y="222" font-family="inherit" font-size="11" fill="#b9583f" text-anchor="middle" >alone: blown over</text></svg><figcaption>Same storm, different trees. The shaking that topples one tree drives the other’s roots down.</figcaption></figure>
     <p>
       The walk toward C (§<a href="#asymptote">13</a>) is long. Along the way, <strong>hard
       things happen</strong>. The Bible doesn't pretend otherwise —
@@ -4960,10 +4973,10 @@
       it happens</strong>.
     </p>
     <ul style="margin: 0.5em 0 1em 24px; padding-left: 12px; list-style: none;">
-      <li>☔ Hard thing + holding God's hand → makes your roots go
+      <li>Hard thing + holding God's hand → makes your roots go
       <em>deeper</em>. You come out stronger, more loving, more
       patient.</li>
-      <li>⚡ Hard thing + walking through it alone → mostly just hurts.
+      <li>Hard thing + walking through it alone → mostly just hurts.
       But sometimes the hurt is the very thing that makes someone
       finally grab God's hand — the Bible tells lots of those stories
       (Luke 15: the lost son turned around when things got hard).</li>
@@ -5143,7 +5156,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🙏</div>
+    <figure class="kd" role="img" aria-label="Arrows: grace down from C to a child, fruit out to two friends, prayer back up"><svg viewBox="0 0 360 166" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="k15g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="180" cy="34" r="36" fill="url(#k15g)"/><text x="180" y="39" font-family="inherit" font-size="16" fill="#3b2c20" text-anchor="middle" font-weight="700">C</text><g transform="translate(180 150) scale(1.3)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><g transform="translate(60 150) scale(1.0)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#d9a441" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><g transform="translate(300 150) scale(1.0)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#8bb37a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><line x1="20" y1="152" x2="340" y2="152" stroke="#8a7a62" stroke-width="1.2"/><path d="M170 62 L170 104" fill="none" stroke="#c9922a" stroke-width="2" stroke-linecap="round"/><path d="M166.0 97.0 L170 104 L174.0 97.0" fill="none" stroke="#c9922a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M190 104 L190 62" fill="none" stroke="#7d9cc0" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/><path d="M194.0 69.0 L190 62 L186.0 69.0" fill="none" stroke="#7d9cc0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M160 132 L80 132" fill="none" stroke="#5f8a4a" stroke-width="2" stroke-linecap="round"/><path d="M87.0 128.0 L80 132 L87.0 136.0" fill="none" stroke="#5f8a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 132 L280 132" fill="none" stroke="#5f8a4a" stroke-width="2" stroke-linecap="round"/><path d="M273.0 136.0 L280 132 L273.0 128.0" fill="none" stroke="#5f8a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="140" y="86" font-family="inherit" font-size="12" fill="#c9922a" text-anchor="end" font-weight="600">gift</text><text x="200" y="86" font-family="inherit" font-size="12" fill="#7d9cc0" text-anchor="start" font-weight="600">prayer</text><text x="120" y="126" font-family="inherit" font-size="12" fill="#5f8a4a" text-anchor="middle" font-weight="600">fruit</text><text x="240" y="126" font-family="inherit" font-size="12" fill="#5f8a4a" text-anchor="middle" font-weight="600">fruit</text></svg><figcaption>The gift comes down. Fruit goes out to people. Prayer goes back up to where the gift came from.</figcaption></figure>
     <p>
       This whole book you've been receiving — the flame, the gift,
       the seed. And you give out to other people: fruit.
@@ -5418,7 +5431,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🪟🪟</div>
+    <figure class="kd" role="img" aria-label="A house with two windows; two faces look out at the same tree"><svg viewBox="0 0 360 198" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="20" width="132" height="150" fill="#efe6d2" stroke="#3b2c20" stroke-width="1.3"/><rect x="96" y="36" width="40" height="40" fill="#cfe0ee" stroke="#3b2c20"/><rect x="96" y="104" width="40" height="40" fill="#cfe0ee" stroke="#3b2c20"/><circle cx="84" cy="56" r="8" fill="#6b4a36"/><circle cx="84" cy="124" r="8" fill="#e0b48a"/><g transform="translate(290 168) rotate(0) scale(1.35)"><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/><circle cx="-8" cy="-36" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="9" cy="-38" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="0" cy="-50" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="12" cy="-28" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/></g><line x1="150" y1="168" x2="350" y2="168" stroke="#8a7a62" stroke-width="1.2"/><path d="M136 56 L272 104 M136 124 L272 112" stroke="#c9922a" stroke-width="1.4" stroke-dasharray="5 4"/><text x="84" y="188" font-family="inherit" font-size="11.5" fill="#3b2c20" text-anchor="middle" >two windows</text><text x="290" y="188" font-family="inherit" font-size="11.5" fill="#c9922a" text-anchor="middle" font-weight="600">one garden</text></svg><figcaption>Two friends at two windows describe the same tree — because there is only one garden to see.</figcaption></figure>
     <p>
       One person praying might wonder: <em>am I imagining things, or is
       God actually answering?</em> The Bible has a built-in test for
@@ -5745,7 +5758,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🏔️📖</div>
+    <figure class="kd" role="img" aria-label="A wandering dotted trail with wrong turns beside a folded map with five numbered marks"><svg viewBox="0 0 360 196" xmlns="http://www.w3.org/2000/svg"><path d="M20 160 C40 40 70 150 90 70 C100 30 120 120 140 60 C150 30 160 110 170 40" fill="none" stroke="#a07a4f" stroke-width="2" stroke-dasharray="3 4"/><path d="M43 91 L53 101 M53 91 L43 101" stroke="#b9583f" stroke-width="1.8"/><path d="M91 123 L101 133 M101 123 L91 133" stroke="#b9583f" stroke-width="1.8"/><path d="M127 33 L137 43 M137 33 L127 43" stroke="#b9583f" stroke-width="1.8"/><text x="95" y="186" font-family="inherit" font-size="11.5" fill="#8a7a62" text-anchor="middle" >forty years of wrong turns</text><path d="M200 40 L240 30 L280 40 L320 30 L320 160 L280 170 L240 160 L200 170 Z" fill="#f6eed8" stroke="#3b2c20" stroke-width="1.2"/><path d="M240 30 L240 160 M280 40 L280 170" stroke="#8a7a62" stroke-width=".8"/><path d="M214 150 Q232 120 250 128 Q276 136 284 96 Q292 64 306 50" fill="none" stroke="#c9922a" stroke-width="2.4"/><circle cx="214" cy="150" r="7" fill="#fff" stroke="#3b2c20"/><text x="214" y="154" font-family="inherit" font-size="10" fill="#3b2c20" text-anchor="middle" font-weight="700">1</text><circle cx="250" cy="128" r="7" fill="#fff" stroke="#3b2c20"/><text x="250" y="132" font-family="inherit" font-size="10" fill="#3b2c20" text-anchor="middle" font-weight="700">2</text><circle cx="276" cy="120" r="7" fill="#fff" stroke="#3b2c20"/><text x="276" y="124" font-family="inherit" font-size="10" fill="#3b2c20" text-anchor="middle" font-weight="700">3</text><circle cx="290" cy="78" r="7" fill="#fff" stroke="#3b2c20"/><text x="290" y="82" font-family="inherit" font-size="10" fill="#3b2c20" text-anchor="middle" font-weight="700">4</text><circle cx="306" cy="50" r="7" fill="#fff" stroke="#3b2c20"/><text x="306" y="54" font-family="inherit" font-size="10" fill="#3b2c20" text-anchor="middle" font-weight="700">5</text><text x="260" y="186" font-family="inherit" font-size="11.5" fill="#c9922a" text-anchor="middle" font-weight="600">five things on a map</text></svg><figcaption>You can’t hand your children your forty years of walking. You can hand them the map.</figcaption></figure>
     <p>
       Imagine you walked a long, hard trail for forty years. You
       learned every turn the hard way.
@@ -5870,7 +5883,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🧭</div>
+    <figure class="kd" role="img" aria-label="Two children each holding a grown-up’s hand in the same coat; one is led home, one away"><svg viewBox="0 70 360 136" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="162" x2="350" y2="162" stroke="#8a7a62" stroke-width="1.2"/><path d="M116 160 L112 104 Q124 92 136 104 L132 160 Z" fill="#8a6a4a" stroke="#3b2c20"/><circle cx="124" cy="90" r="9" fill="#e0b48a" stroke="#3b2c20"/><path d="M114 110 Q108 124 104 134" stroke="#3b2c20" stroke-width="2.2" fill="none" stroke-linecap="round"/><g transform="translate(98 160) scale(1.1)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><path d="M104 140 Q100 136 104 134" stroke="#3b2c20" stroke-width="2.2" fill="none"/><path d="M250 160 L246 104 Q258 92 270 104 L266 160 Z" fill="#8a6a4a" stroke="#3b2c20"/><circle cx="258" cy="90" r="9" fill="#9a8a7a" stroke="#3b2c20"/><path d="M248 110 Q242 124 238 134" stroke="#3b2c20" stroke-width="2.2" fill="none" stroke-linecap="round"/><g transform="translate(232 160) scale(1.1)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><path d="M238 140 Q234 136 238 134" stroke="#3b2c20" stroke-width="2.2" fill="none"/><path d="M112 176 L40 176" fill="none" stroke="#c9922a" stroke-width="2" stroke-linecap="round"/><path d="M47.0 172.0 L40 176 L47.0 180.0" fill="none" stroke="#c9922a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><radialGradient id="k18g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="26" cy="149.4" r="30.799999999999997" fill="url(#k18g)"/><g transform="translate(26 162) scale(0.7)"><rect x="-18" y="-24" width="36" height="24" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.3"/><path d="M-23 -23 L0 -42 L23 -23 Z" fill="#b5523b" stroke="#3b2c20" stroke-width="1.3"/><rect x="-5" y="-13" width="10" height="13" fill="#fff1c0" stroke="#3b2c20" stroke-width="1"/></g><path d="M246 176 L330 176" fill="none" stroke="#b9583f" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/><path d="M323.0 180.0 L330 176 L323.0 172.0" fill="none" stroke="#b9583f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="112" y="196" font-family="inherit" font-size="11.5" fill="#c9922a" text-anchor="middle" font-weight="600">the right hand: home</text><text x="258" y="196" font-family="inherit" font-size="11.5" fill="#b9583f" text-anchor="middle" >same coat, wrong hand</text></svg><figcaption>Both children hold on just as tight. The hand they hold decides where they go.</figcaption></figure>
     <p>
       §<a href="#transmission">17</a> said the rule has to live <em>inside</em> you. But what about
       <em>which way</em> you face? The road home has a direction. So
@@ -6114,7 +6127,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">⛓️</div>
+    <figure class="kd" role="img" aria-label="A chain with one cracked link above three fruit trees passing fruit along"><svg viewBox="0 0 360 234" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="30" width="58" height="26" rx="13" fill="none" stroke="#3b2c20" stroke-width="2.2"/><rect x="82" y="30" width="58" height="26" rx="13" fill="none" stroke="#3b2c20" stroke-width="2.2"/><rect x="134" y="30" width="58" height="26" rx="13" fill="none" stroke="#3b2c20" stroke-width="2.2"/><rect x="186" y="30" width="58" height="26" rx="13" fill="none" stroke="#b9583f" stroke-width="3"/><rect x="238" y="30" width="58" height="26" rx="13" fill="none" stroke="#3b2c20" stroke-width="2.2"/><rect x="290" y="30" width="58" height="26" rx="13" fill="none" stroke="#3b2c20" stroke-width="2.2"/><path d="M190 30 L196 42 L188 46 L194 56" fill="none" stroke="#b9583f" stroke-width="2"/><text x="180" y="80" font-family="inherit" font-size="11.5" fill="#b9583f" text-anchor="middle" >one weak link — the whole chain feels it</text><line x1="20" y1="186" x2="340" y2="186" stroke="#8a7a62" stroke-width="1.2"/><g transform="translate(70 186) rotate(0) scale(0.95)"><path d="M0 0 Q-8.4 5.94 -14 13.2" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q-3.5999999999999996 8.1 -6 18.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q2.4 9.18 4 20.4" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q7.8 6.48 13 14.399999999999999" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/><circle cx="-8" cy="-36" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="9" cy="-38" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="0" cy="-50" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="12" cy="-28" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/></g><g transform="translate(180 186) rotate(0) scale(0.95)"><path d="M0 0 Q-8.4 5.94 -14 13.2" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q-3.5999999999999996 8.1 -6 18.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q2.4 9.18 4 20.4" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q7.8 6.48 13 14.399999999999999" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/><circle cx="-8" cy="-36" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="9" cy="-38" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="0" cy="-50" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="12" cy="-28" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/></g><g transform="translate(290 186) rotate(0) scale(0.95)"><path d="M0 0 Q-8.4 5.94 -14 13.2" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q-3.5999999999999996 8.1 -6 18.0" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q2.4 9.18 4 20.4" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M0 0 Q7.8 6.48 13 14.399999999999999" fill="none" stroke="#a07a4f" stroke-width="2" stroke-linecap="round"/><path d="M-4 0 L-3 -26 L3 -26 L4 0 Z" fill="#7a5a3a" stroke="#3b2c20" stroke-width="1"/><circle cx="0" cy="-40" r="20" fill="#5f8a4a" stroke="#3b2c20" stroke-width="1.2"/><circle cx="-10" cy="-33" r="11" fill="#7aa45e"/><circle cx="8" cy="-47" r="9" fill="#7aa45e"/><circle cx="-8" cy="-36" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="9" cy="-38" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="0" cy="-50" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/><circle cx="12" cy="-28" r="3" fill="#c0392b" stroke="#3b2c20" stroke-width=".6"/></g><path d="M86 140 Q124 116 162 160" fill="none" stroke="#5f8a4a" stroke-width="1.4" stroke-linecap="round"/><path d="M154.4 157.3 L162 160 L160.5 152.1" fill="none" stroke="#5f8a4a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M196 140 Q234 116 272 160" fill="none" stroke="#5f8a4a" stroke-width="1.4" stroke-linecap="round"/><path d="M264.4 157.3 L272 160 L270.5 152.1" fill="none" stroke="#5f8a4a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><text x="180" y="226" font-family="inherit" font-size="11.5" fill="#5f8a4a" text-anchor="middle" >and fruit from one tree feeds the next</text></svg><figcaption>A group is tied together: hurt spreads through it — and so does love.</figcaption></figure>
     <p>
       A chain is as strong as its weakest link. That's an old saying;
       the Bible knew it first.
@@ -6154,7 +6167,7 @@
     </p>
 
     <p style="margin-top:1.5em;">
-      <strong>Trees feeding trees</strong> 🌳🌳🌳
+      <strong>Trees feeding trees</strong>
     </p>
     <p>
       Here's a beautiful thing scripture says: when a healthy tree
@@ -6398,9 +6411,9 @@
     <div class="harmony-fig" aria-hidden="true">
       <svg viewBox="0 0 420 180" width="100%" height="180">
         <!-- Three voices -->
-        <text class="voice v1" x="60"  y="60" font-size="34" text-anchor="middle">🎤</text>
-        <text class="voice v2" x="60"  y="105" font-size="34" text-anchor="middle">🎤</text>
-        <text class="voice v3" x="60"  y="150" font-size="34" text-anchor="middle">🎤</text>
+        <g class="voice v1"><g transform="translate(52 74) scale(1.05)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#6a9b3e" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#e0b48a"/><ellipse cx="1.5" cy="-20" rx="1.4" ry="1.8" fill="#3b2c20"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><path d="M74 52 v-12 l8 -3 v12" fill="none" stroke="#3b2c20" stroke-width="1.3"/><ellipse cx="72" cy="52" rx="3" ry="2.2" fill="#3b2c20"/><ellipse cx="80" cy="49" rx="3" ry="2.2" fill="#3b2c20"/></g>
+        <g class="voice v2"><g transform="translate(52 119) scale(1.05)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#3eaba0" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#e0b48a"/><ellipse cx="1.5" cy="-20" rx="1.4" ry="1.8" fill="#3b2c20"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><path d="M74 97 v-12 l8 -3 v12" fill="none" stroke="#3b2c20" stroke-width="1.3"/><ellipse cx="72" cy="97" rx="3" ry="2.2" fill="#3b2c20"/><ellipse cx="80" cy="94" rx="3" ry="2.2" fill="#3b2c20"/></g>
+        <g class="voice v3"><g transform="translate(52 164) scale(1.05)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#a06ad9" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#e0b48a"/><ellipse cx="1.5" cy="-20" rx="1.4" ry="1.8" fill="#3b2c20"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><path d="M74 142 v-12 l8 -3 v12" fill="none" stroke="#3b2c20" stroke-width="1.3"/><ellipse cx="72" cy="142" rx="3" ry="2.2" fill="#3b2c20"/><ellipse cx="80" cy="139" rx="3" ry="2.2" fill="#3b2c20"/></g>
 
         <!-- Sound waves merging -->
         <g stroke-linecap="round" fill="none">
@@ -6417,7 +6430,6 @@
         <!-- Single chord ascending to heaven -->
         <path class="chord" d="M 235 95 Q 290 80 340 50" stroke="#c89060" stroke-width="4" fill="none" stroke-linecap="round"/>
         <polygon class="chord" points="340,50 333,52 336,42" fill="#c89060"/>
-        <text x="370" y="35" font-size="14" text-anchor="middle">⬆️</text>
         <text x="375" y="58" font-size="11" text-anchor="middle" fill="#555">to God</text>
 
         <!-- Jesus in the midst -->
@@ -6457,7 +6469,7 @@
         <text x="180" y="140" font-size="11" text-anchor="middle" fill="#888">tap a string to pluck it</text>
       </svg>
       <div>
-        <button class="kbtn" id="chord-together" type="button" aria-label="Play all three strings together">🎶 Play together</button>
+        <button class="kbtn" id="chord-together" type="button" aria-label="Play all three strings together">Play together</button>
       </div>
       <p class="kfig-cap" id="chord-cap">one string at a time = one note</p>
     </div>
@@ -6544,20 +6556,20 @@
       them together:</strong>
     </p>
     <ul style="margin: 0.5em 0 1em 24px; padding-left: 12px; list-style: none;">
-      <li>🙏 <strong>Praying together</strong> — Matt&nbsp;18:19</li>
-      <li>🙌 <strong>Worshipping together</strong> — Rev 4-5 (the
+      <li><strong>Praying together</strong> — Matt&nbsp;18:19</li>
+      <li><strong>Worshipping together</strong> — Rev 4-5 (the
       whole universe singing)</li>
-      <li>💗 <strong>Loving each other</strong> — Acts&nbsp;2:44–47 (the
+      <li><strong>Loving each other</strong> — Acts&nbsp;2:44–47 (the
       early church, "the Lord added to the church daily")</li>
-      <li>🤲 <strong>Carrying each other's heavy things</strong> —
+      <li><strong>Carrying each other's heavy things</strong> —
       Galatians&nbsp;6:2 ("bear ye one another's burdens")</li>
-      <li>🎉 <strong>Celebrating together</strong> — Romans&nbsp;12:15
+      <li><strong>Celebrating together</strong> — Romans&nbsp;12:15
       ("rejoice with them that do rejoice")</li>
-      <li>😢 <strong>Crying together</strong> — 1&nbsp;Corinthians&nbsp;12:26
+      <li><strong>Crying together</strong> — 1&nbsp;Corinthians&nbsp;12:26
       ("whether one member suffer, all the members suffer with it")</li>
-      <li>🤝 <strong>Helping each other</strong> — Acts 15 (the
+      <li><strong>Helping each other</strong> — Acts 15 (the
       church deciding things together)</li>
-      <li>📖 <strong>Witnessing the truth</strong> — Deuteronomy&nbsp;19:15 and Matthew&nbsp;18:16 ("two or three witnesses")</li>
+      <li><strong>Witnessing the truth</strong> — Deuteronomy&nbsp;19:15 and Matthew&nbsp;18:16 ("two or three witnesses")</li>
     </ul>
 
     <p>
@@ -6803,7 +6815,6 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🧂</div>
     <p>
       Try it: here's a room with a lamp. Tap the lamp to move it
       between under the basket and up on the stand — and watch the
@@ -6819,18 +6830,14 @@
         <g id="lamp-on" class="klayer" opacity="0">
           <circle cx="180" cy="70" r="130" fill="#f5e3b0" opacity="0.85" clip-path="url(#lamp-clip)"/>
           <rect x="170" y="80" width="20" height="40" fill="#9a7a52"/>
-          <text x="180" y="75" font-size="32" text-anchor="middle">💡</text>
-          <text x="100" y="135" font-size="26" text-anchor="middle">🙂</text>
-          <text x="180" y="148" font-size="26" text-anchor="middle">🙂</text>
-          <text x="260" y="135" font-size="26" text-anchor="middle">🙂</text>
+          <path d="M164 80 Q180 92 196 80 L200 74 L160 74 Z" fill="#c98f5a" stroke="#3b2c20" stroke-width="1.2"/><path d="M196 76 Q204 72 206 66" fill="none" stroke="#3b2c20" stroke-width="1.2"/><path d="M206 46 Q214 58 206 66 Q198 58 206 46 Z" fill="#e8a83a"/><path d="M206 54 Q209 60 206 64 Q203 60 206 54 Z" fill="#fff4c8"/>
+          <circle cx="100" cy="135" r="12" fill="#f3d9b8" stroke="#3b2c20" stroke-width="1.2"/><circle cx="96" cy="133" r="1.5" fill="#3b2c20"/><circle cx="104" cy="133" r="1.5" fill="#3b2c20"/><path d="M95 139 Q100 144 105 139" fill="none" stroke="#3b2c20" stroke-width="1.4" stroke-linecap="round"/><circle cx="180" cy="146" r="12" fill="#f3d9b8" stroke="#3b2c20" stroke-width="1.2"/><circle cx="176" cy="144" r="1.5" fill="#3b2c20"/><circle cx="184" cy="144" r="1.5" fill="#3b2c20"/><path d="M175 150 Q180 155 185 150" fill="none" stroke="#3b2c20" stroke-width="1.4" stroke-linecap="round"/><circle cx="260" cy="135" r="12" fill="#f3d9b8" stroke="#3b2c20" stroke-width="1.2"/><circle cx="256" cy="133" r="1.5" fill="#3b2c20"/><circle cx="264" cy="133" r="1.5" fill="#3b2c20"/><path d="M255 139 Q260 144 265 139" fill="none" stroke="#3b2c20" stroke-width="1.4" stroke-linecap="round"/>
         </g>
         <!-- lamp hidden under the basket -->
         <g id="lamp-off" class="klayer" opacity="1">
           <ellipse cx="180" cy="118" rx="34" ry="6" fill="#f5e3b0" opacity="0.5"/>
-          <text x="180" y="115" font-size="34" text-anchor="middle">🧺</text>
-          <text x="100" y="135" font-size="26" text-anchor="middle">😕</text>
-          <text x="180" y="148" font-size="26" text-anchor="middle">😕</text>
-          <text x="260" y="135" font-size="26" text-anchor="middle">😕</text>
+          <path d="M146 118 Q146 84 180 84 Q214 84 214 118 Z" fill="#b08850" stroke="#3b2c20" stroke-width="1.3"/><path d="M150 117 Q152 100 156 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M160 117 Q162 100 165 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M170 117 Q172 100 174 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M180 117 Q182 100 183 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M190 117 Q192 100 192 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M200 117 Q202 100 201 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M210 117 Q212 100 210 90" fill="none" stroke="#7a5a32" stroke-width=".9"/><path d="M150 104 Q180 98 210 104 M148 112 Q180 106 212 112" fill="none" stroke="#7a5a32" stroke-width=".9"/>
+          <circle cx="100" cy="135" r="12" fill="#8f8794" stroke="#3b2c20" stroke-width="1.2"/><circle cx="96" cy="133" r="1.5" fill="#3b2c20"/><circle cx="104" cy="133" r="1.5" fill="#3b2c20"/><path d="M95 141 q2.5 -2 5 0 t5 0" fill="none" stroke="#3b2c20" stroke-width="1.3" stroke-linecap="round"/><path d="M93 128 L98 129" stroke="#3b2c20" stroke-width="1.1"/><circle cx="180" cy="146" r="12" fill="#8f8794" stroke="#3b2c20" stroke-width="1.2"/><circle cx="176" cy="144" r="1.5" fill="#3b2c20"/><circle cx="184" cy="144" r="1.5" fill="#3b2c20"/><path d="M175 152 q2.5 -2 5 0 t5 0" fill="none" stroke="#3b2c20" stroke-width="1.3" stroke-linecap="round"/><path d="M173 139 L178 140" stroke="#3b2c20" stroke-width="1.1"/><circle cx="260" cy="135" r="12" fill="#8f8794" stroke="#3b2c20" stroke-width="1.2"/><circle cx="256" cy="133" r="1.5" fill="#3b2c20"/><circle cx="264" cy="133" r="1.5" fill="#3b2c20"/><path d="M255 141 q2.5 -2 5 0 t5 0" fill="none" stroke="#3b2c20" stroke-width="1.3" stroke-linecap="round"/><path d="M253 128 L258 129" stroke="#3b2c20" stroke-width="1.1"/>
         </g>
         <!-- click target over the lamp area -->
         <g id="lamp-toggle" style="cursor:pointer;" tabindex="0" role="button" aria-label="Move the lamp between the basket and the stand">
@@ -7025,7 +7032,6 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🪟</div>
     <p>
       A really dirty window doesn't show you smudges. A clean window
       shows you every speck. Try it: rub the foggy window below with
@@ -7036,8 +7042,8 @@
       <svg id="window-svg" viewBox="0 0 360 220" width="100%" height="220" xmlns="http://www.w3.org/2000/svg">
         <!-- sky behind the glass -->
         <rect x="80" y="20" width="200" height="160" fill="#cfe4ef"/>
-        <text x="120" y="65" font-size="20" text-anchor="middle">☀️</text>
-        <text x="240" y="55" font-size="16" text-anchor="middle">☁️</text>
+        <circle cx="120" cy="58" r="11" fill="#f6d77a" stroke="#c9922a" stroke-width="1.2"/><g stroke="#c9922a" stroke-width="1.4" stroke-linecap="round"><path d="M120 40 v-5 M120 76 v5 M102 58 h-5 M138 58 h5 M107 45 l-3 -3 M133 71 l3 3 M107 71 l-3 3 M133 45 l3 -3"/></g>
+        <path d="M224 58 q0 -10 10 -10 q4 -8 13 -5 q9 -2 11 7 q8 1 7 8 Z" fill="#fff" stroke="#9fb4c4" stroke-width="1.1"/>
         <!-- the smudge specks -->
         <g id="window-specks" fill="#6b5a3e">
           <circle cx="105" cy="50"  r="3.5"/>
@@ -7327,7 +7333,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🛤️</div>
+    <figure class="kd" role="img" aria-label="A long looping dotted road and a short golden path, both ending at one house"><svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="k23g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="300" cy="99.3" r="50.599999999999994" fill="url(#k23g)"/><g transform="translate(300 120) scale(1.15)"><rect x="-18" y="-24" width="36" height="24" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.3"/><path d="M-23 -23 L0 -42 L23 -23 Z" fill="#b5523b" stroke="#3b2c20" stroke-width="1.3"/><rect x="-5" y="-13" width="10" height="13" fill="#fff1c0" stroke="#3b2c20" stroke-width="1"/></g><line x1="230" y1="122" x2="350" y2="122" stroke="#8a7a62" stroke-width="1.2"/><path d="M290 122 C200 180 30 190 30 110 C30 40 160 30 230 70 C250 82 262 100 270 116" fill="none" stroke="#a07a4f" stroke-width="3" stroke-dasharray="6 5"/><path d="M232 118 Q252 128 276 120" fill="none" stroke="#c9922a" stroke-width="4" stroke-linecap="round"/><g transform="translate(100 170) scale(0.85)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><g transform="translate(232 120) scale(0.85)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><text x="70" y="30" font-family="inherit" font-size="11.5" fill="#8a7a62" text-anchor="start" >Way A: far away, then turning back</text><text x="224" y="100" font-family="inherit" font-size="11.5" fill="#c9922a" text-anchor="end" font-weight="600">Way B: near all along</text></svg><figcaption>One child comes home the long way round, one never wanders far. Both roads end at the same open door.</figcaption></figure>
     <p>
       The road home is one road — but people join it from very
       different places: some from right next door, some from the far
@@ -7460,7 +7466,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🗺️</div>
+    <figure class="kd" role="img" aria-label="A map: a candle, a child with a small flame beside him, a golden bridge, and a house"><svg viewBox="0 20 360 172" xmlns="http://www.w3.org/2000/svg"><path d="M0 120 L140 120 L130 190 L0 190 Z" fill="#c9b08a" stroke="#3b2c20"/><path d="M360 120 L220 120 L230 190 L360 190 Z" fill="#c9b08a" stroke="#3b2c20"/><path d="M140 120 L220 120" stroke="#c9922a" stroke-width="5" stroke-linecap="round"/><defs><radialGradient id="k24a"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="40" cy="77" r="20" fill="url(#k24a)"/><rect x="33.0" y="90" width="14" height="30" rx="2" fill="#f3ead6" stroke="#3b2c20" stroke-width="1.2"/><line x1="40" y1="90" x2="40" y2="85" stroke="#3b2c20" stroke-width="1.2"/><path d="M40 67 Q47 78 40 85 Q33 78 40 67 Z" fill="#c9922a"/><path d="M40 74 Q43 80 40 84 Q37 80 40 74 Z" fill="#fff4c8"/><g transform="translate(100 120) scale(0.95)"><path d="M-11 0 Q-12 -14 -7 -22 Q0 -30 7 -22 Q12 -14 11 0 Z" fill="#5b8fd6" stroke="#3b2c20" stroke-width="1.2"/><circle cx="0" cy="-22" r="5.2" fill="#6b4a36"/><path d="M-7 -23 Q0 -33 7 -23" fill="none" stroke="#3b2c20" stroke-width="1.2"/></g><defs><radialGradient id="k24b"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="300" cy="101.1" r="46.2" fill="url(#k24b)"/><g transform="translate(300 120) scale(1.05)"><rect x="-18" y="-24" width="36" height="24" fill="#f1d38a" stroke="#3b2c20" stroke-width="1.3"/><path d="M-23 -23 L0 -42 L23 -23 Z" fill="#b5523b" stroke="#3b2c20" stroke-width="1.3"/><rect x="-5" y="-13" width="10" height="13" fill="#fff1c0" stroke="#3b2c20" stroke-width="1"/></g><path d="M112 92 q6 -8 12 0 q-6 4 -12 0 Z" fill="#c9922a"/><circle cx="40" cy="60" r="9" fill="#fff" stroke="#3b2c20"/><text x="40" y="64" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" font-weight="700">1</text><text x="40" y="86" font-family="inherit" font-size="10.5" fill="#8a7a62" text-anchor="middle" ></text><circle cx="118" cy="60" r="9" fill="#fff" stroke="#3b2c20"/><text x="118" y="64" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" font-weight="700">4</text><text x="118" y="86" font-family="inherit" font-size="10.5" fill="#8a7a62" text-anchor="middle" ></text><circle cx="180" cy="98" r="9" fill="#fff" stroke="#3b2c20"/><text x="180" y="102" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" font-weight="700">3</text><text x="180" y="124" font-family="inherit" font-size="10.5" fill="#8a7a62" text-anchor="middle" ></text><circle cx="300" cy="52" r="9" fill="#fff" stroke="#3b2c20"/><text x="300" y="56" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" font-weight="700">2</text><text x="300" y="78" font-family="inherit" font-size="10.5" fill="#8a7a62" text-anchor="middle" ></text><text x="10" y="146" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="start" >1 · love before you</text><text x="10" y="164" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="start" >4 · the Spirit beside you</text><text x="180" y="150" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >3 · Jesus,</text><text x="180" y="164" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="middle" >the bridge</text><text x="350" y="146" font-family="inherit" font-size="10.5" fill="#3b2c20" text-anchor="end" >2 · home</text></svg><figcaption>The four questions on one map: where you stand (1), where you are going (2), how you cross (3), who keeps you on the road (4).</figcaption></figure>
     <p>
       We started in §<a href="#question">1</a> with a candle and four questions. Now you've
       walked the whole map. The questions look the same — but you
@@ -7495,15 +7501,15 @@
       <strong>What changes today, knowing this?</strong>
     </p>
     <ul style="margin: 0.5em 0 1em 24px; padding-left: 12px; list-style: none;">
-      <li>🍎 You stop trying to make plastic apples. You stay close to
+      <li>You stop trying to make plastic apples. You stay close to
       the roots and let real fruit grow on its own (§<a href="#identity">4</a>).</li>
-      <li>🧭 You stop measuring your speed and start checking your
+      <li>You stop measuring your speed and start checking your
       direction. Which way are you facing? (§<a href="#asymptote">13</a>, §<a href="#prayer">15</a>.)</li>
-      <li>🪟 You stop trying to be sure alone. You look for two
+      <li>You stop trying to be sure alone. You look for two
       witnesses (§<a href="#agreement">16</a>).</li>
-      <li>🌧️ You stop running from hard things. You hold on tighter
+      <li>You stop running from hard things. You hold on tighter
       and let the storm grow your roots (§<a href="#suffering">14</a>).</li>
-      <li>🤝 You stop trying to be the whole body. You find your
+      <li>You stop trying to be the whole body. You find your
       gift, use it, and need the others (§<a href="#identity">4</a>, §<a href="#interlock">19</a>, §<a href="#corporate-worship">20</a>).</li>
     </ul>
 
@@ -7859,7 +7865,6 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">❓</div>
     <p>
       Six last questions, before the book lets you go. Short answers.
     </p>
@@ -8022,7 +8027,7 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">📖</div>
+    <figure class="kd" role="img" aria-label="An open book glowing, with arrows to two file cards: kjv.json and strongs.json"><svg viewBox="0 0 360 186" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="k26g"><stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#f6d77a"/><stop offset="1" stop-color="#f6d77a" stop-opacity="0"/></radialGradient></defs><circle class="kd-glow" cx="120" cy="96" r="70" fill="url(#k26g)"/><path d="M120 60 Q90 44 50 50 L50 150 Q90 144 120 160 Q150 144 190 150 L190 50 Q150 44 120 60 Z" fill="#fffdf6" stroke="#3b2c20" stroke-width="1.3"/><line x1="120" y1="60" x2="120" y2="160" stroke="#3b2c20"/><line x1="62" y1="70" x2="110" y2="68" stroke="#8a7a62"/><line x1="130" y1="68" x2="178" y2="70" stroke="#8a7a62"/><line x1="62" y1="83" x2="110" y2="81" stroke="#8a7a62"/><line x1="130" y1="81" x2="178" y2="83" stroke="#8a7a62"/><line x1="62" y1="96" x2="110" y2="94" stroke="#8a7a62"/><line x1="130" y1="94" x2="178" y2="96" stroke="#8a7a62"/><line x1="62" y1="109" x2="110" y2="107" stroke="#8a7a62"/><line x1="130" y1="107" x2="178" y2="109" stroke="#8a7a62"/><line x1="62" y1="122" x2="110" y2="120" stroke="#8a7a62"/><line x1="130" y1="120" x2="178" y2="122" stroke="#8a7a62"/><line x1="62" y1="135" x2="110" y2="133" stroke="#8a7a62"/><line x1="130" y1="133" x2="178" y2="135" stroke="#8a7a62"/><rect x="222" y="66" width="116" height="40" rx="6" fill="#f3ead6" stroke="#3b2c20"/><text x="280" y="83" font-family="inherit" font-size="12" fill="#3b2c20" text-anchor="middle" font-weight="700">kjv.json</text><text x="280" y="98" font-family="inherit" font-size="10.5" fill="#8a7a62" text-anchor="middle" >every verse</text><path d="M194 104 L218 86" fill="none" stroke="#8a7a62" stroke-width="1.2" stroke-linecap="round"/><path d="M214.8 93.4 L218 86 L210.0 87.0" fill="none" stroke="#8a7a62" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="222" y="120" width="116" height="40" rx="6" fill="#f3ead6" stroke="#3b2c20"/><text x="280" y="137" font-family="inherit" font-size="12" fill="#3b2c20" text-anchor="middle" font-weight="700">strongs.json</text><text x="280" y="152" font-family="inherit" font-size="10.5" fill="#8a7a62" text-anchor="middle" >every word’s root</text><path d="M194 104 L218 140" fill="none" stroke="#8a7a62" stroke-width="1.2" stroke-linecap="round"/><path d="M210.8 136.4 L218 140 L217.4 132.0" fill="none" stroke="#8a7a62" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><figcaption>The same Bible, as two files any person — or any computer — can open and check.</figcaption></figure>
     <p>
       The map you've been walking is a real book. C is invisible by
       itself, like the wind — but you can see the wind move leaves,
@@ -8094,7 +8099,6 @@
   </div>
 
   <div class="kids-only">
-    <div class="big-emoji">🤝</div>
     <p>
       If you understood this, <strong>tell someone.</strong>
     </p>
