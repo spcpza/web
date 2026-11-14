@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>180° test</title>
+<!-- lab-180 (Nov 14 — Fred: "add parallax on the sides of each art so when you tilt the phone left and right, it
+     does not look like a flat picture but rather a 180 view"). A standalone feel-test before the book's engine is
+     touched: one page's real depth planes, each wrapped on a CYLINDER with you standing at its axis, so turning
+     the phone turns your head inside the painting (the plate's width = 180°). Toggle FLAT to feel today's slide.
+     ?n=<page> picks the page (default 15, ran) · ?look=-1..1 pins the view (for screenshots) · ?mode=flat
+     ⚠ WEBGL, NOT CSS STRIPS. The first cut built each cylinder from vertical CSS strips; on a SEE-THROUGH plane
+     every strip edge showed as a line (an antialiased gap lets the sky through, an overlap doubles the alpha, and a
+     feathered overlap can't sum back either — "over" compositing is not additive). One full-screen pass per plane
+     with the cylinder in the shader has no seams at all, and costs the phone almost nothing. -->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: none; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #ui { position: fixed; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); display: flex; gap: 10px; justify-content: center;
+        font: 600 15px/1 Georgia, serif; z-index: 5; }
+  #ui button { border: 0; border-radius: 22px; padding: 12px 18px; background: rgba(250,242,222,.86); color: #3a2416; font: inherit; }
+  #ui button.on { background: #7a2e1c; color: #fff4e0; }
+  #msg { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 0; right: 0; text-align: center; color: rgba(255,248,230,.85);
+         font: 14px/1.3 Georgia, serif; text-shadow: 0 1px 3px #000; z-index: 5; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="msg">tilt your phone left and right</div>
+<div id="ui"><button id="b180" class="on">180°</button><button id="bflat">flat (today)</button><button id="bmo" hidden>allow tilt</button></div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var N = parseInt(q.get('n') || '15', 10), MODE = q.get('mode') === 'flat' ? 0 : 1;
+  var PIN = q.get('look') != null ? Math.max(-1, Math.min(1, parseFloat(q.get('look')) || 0)) : null;
+  var msg = document.getElementById('msg');
+  // the same depth table and rate curve the book uses (engine/scene.js DIO_DEPTH / dioRate), so the
+  // planes separate exactly as much as they do on the page
+  var DEPTH = { bg: 0, sky: 0, sky1: 0.1, sky2: 0.18, far: 0.34, hills: 0.34, birds: 0.42, mid: 0.5, land: 0.5, ground: 0.55,
+    tc: 0.58, t3: 0.5, ta: 0.66, t2: 0.62, dad: 0.68, tb: 0.74, t1: 0.74, near: 0.82, kid: 0.86, fg: 0.9, front: 0.64 };
+  function rate(d) { return d < 0.30 ? 0.62 + d : d <= 0.55 ? 1.0 : 1.0 + (d - 0.55) * 1.45; }
+  var CROP_Y = 0.72, SPAN = Math.PI, SC = 1.06;             // the plate's width is 180°; the book's 6% overscan
+  var cv = document.getElementById('gl');
+  var gl = cv.getContext('webgl', { premultipliedAlpha: true, antialias: false });
+  if (!gl) { msg.textContent = 'this phone has no WebGL'; return; }
+  var planes = [], look = 0, lookT = 0, lookY = 0, lookYT = 0, dirty = true;
+
+  var VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
+  // For each screen pixel: which point of the painting is seen there.
+  //  180°: you stand at the axis of a cylinder of radius R; the screen is the plane tangent to it in front of you.
+  //        A ray at screen offset dx leaves at angle a = atan(dx/R) and meets the wall at arc length (a + yaw)·R,
+  //        and that wall point sits nearer the horizon by cos(a) — the stretch at the edges that says "turning".
+  //  flat: today's slide — the painting simply moves sideways by yaw·R.
+  var FS = [
+    'precision highp float;',
+    'uniform sampler2D tex; uniform vec2 scr; uniform float R, Wp, ph, top, yaw, dy, mode, dpr;',
+    'void main(){',
+    '  vec2 c = vec2(gl_FragCoord.x, scr.y - gl_FragCoord.y) / dpr;',
+    '  float dx = c.x - scr.x * 0.5 / dpr;',
+    '  float cy = scr.y * 0.5 / dpr;',
+    '  float a = atan(dx / R);',
+    '  float u = mode > 0.5 ? (a + yaw) * R : dx + yaw * R;',
+    '  float y = mode > 0.5 ? cy + (c.y - cy) * cos(a) : c.y;',
+    '  vec2 t = vec2((u + Wp * 0.5) / Wp, (y - dy - top) / ph);',
+    '  if (t.x < 0.0 || t.x > 1.0 || t.y < 0.0 || t.y > 1.0) discard;',
+    '  gl_FragColor = texture2D(tex, t);',
+    '}'].join('\n');
+  function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+  var prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+  gl.useProgram(prog);
+  var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  var ap = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(ap); gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
+  var U = {}; ['tex', 'scr', 'R', 'Wp', 'ph', 'top', 'yaw', 'dy', 'mode', 'dpr'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);   // premultiplied "over"
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+  fetch('/?lab=' + Date.now()).then(function (r) { return r.text(); }).then(function (html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var page = doc.querySelectorAll('section.page')[N];
+    var src = page && page.querySelector('picture img').getAttribute('src');
+    var base = src && (src.match(/plates-vg\/([a-z0-9-]+)\.jpg/) || [])[1];
+    var pv = (src && src.match(/\?p=\d+/) || [''])[0];
+    if (!base || !page.dataset.layers) { msg.textContent = 'page ' + N + ' has no depth planes'; return; }
+    var names = page.dataset.layers.split(',');
+    names.forEach(function (t, i) {
+      var a = t.split('@'), name = a[0].trim();
+      var d = a[1] != null ? parseFloat(a[1]) : (DEPTH[name] != null ? DEPTH[name] : 0.5);
+      var pl = { name: name, rate: rate(d), tex: null };
+      planes.push(pl);
+      var im = new Image();
+      im.onload = function () {
+        pl.tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, pl.tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        dirty = true;
+      };
+      im.src = '/plates-vg/' + base + '-' + name + (i === 0 ? '.jpg' : '.webp') + pv;
+    });
+    msg.textContent = base + ' · tilt your phone left and right';
+  });
+
+  var W, H, dpr, ph, Wp, R, top, LMAX;
+  function size() {
+    dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    gl.viewport(0, 0, cv.width, cv.height);
+    ph = H * SC; Wp = ph * 1.6;                            // the plate, sized as the book sizes it (cover by height)
+    if (Wp < W * SC) { Wp = W * SC; ph = Wp / 1.6; }        // a wide screen: cover by width instead
+    R = Wp / SPAN;                                          // the plate's width wraps exactly half way round you
+    top = (H - ph) * CROP_Y;
+    // turn only until the plate's edge reaches the screen's edge
+    var edge = Math.atan((W / 2) / R);
+    LMAX = Math.max(0, SPAN / 2 - edge);
+    dirty = true;
+  }
+  size(); addEventListener('resize', size);
+
+  function draw() {
+    gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform2f(U.scr, cv.width, cv.height); gl.uniform1f(U.dpr, dpr);
+    gl.uniform1f(U.R, R); gl.uniform1f(U.Wp, Wp); gl.uniform1f(U.ph, ph); gl.uniform1f(U.top, top); gl.uniform1f(U.mode, MODE);
+    for (var i = 0; i < planes.length; i++) {
+      var pl = planes[i]; if (!pl.tex) continue;
+      // flat mode is today's book: a slide of up to the plate's overflow; 180° turns up to LMAX
+      var reach = MODE ? LMAX : Math.max(0, (Wp - W) / 2) / R;
+      gl.uniform1f(U.yaw, look * reach * pl.rate);         // near planes sweep past faster (the depth cue the book already has)
+      gl.uniform1f(U.dy, Math.max(-11, Math.min(11, lookY * (pl.rate - 1) * 24)));
+      gl.bindTexture(gl.TEXTURE_2D, pl.tex); gl.uniform1i(U.tex, 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+  }
+  function tick() {
+    var nl = look + (lookT - look) * 0.2, ny = lookY + (lookYT - lookY) * 0.16;
+    if (Math.abs(nl - look) > 1e-4 || Math.abs(ny - lookY) > 1e-4) dirty = true;
+    look = nl; lookY = ny;
+    if (dirty) { dirty = false; draw(); }
+    requestAnimationFrame(tick);
+  }
+  if (PIN != null) lookT = look = PIN;
+  requestAnimationFrame(tick);
+
+  // the phone's roll turns your head; pitch looks up and down (same gains as the book)
+  var betaN = null;
+  function onTilt(e) {
+    if (e.gamma == null || PIN != null) return;
+    if (betaN == null && e.beta != null) betaN = e.beta;
+    lookT = Math.max(-1, Math.min(1, e.gamma / 22));
+    lookYT = Math.max(-1, Math.min(1, (e.beta - betaN) / 24));
+  }
+  var bmo = document.getElementById('bmo');
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function' && /iP(hone|ad|od)/.test(navigator.userAgent)) {
+    bmo.hidden = false;
+    bmo.onclick = function () { DeviceOrientationEvent.requestPermission().then(function (s) { if (s === 'granted') { addEventListener('deviceorientation', onTilt, true); bmo.hidden = true; } }); };
+  } else addEventListener('deviceorientation', onTilt, true);
+  // no gyro (desktop): drag to look
+  var dragX = null;
+  addEventListener('pointerdown', function (e) { if (e.target.tagName !== 'BUTTON') dragX = e.clientX; });
+  addEventListener('pointermove', function (e) { if (dragX != null) { lookT = Math.max(-1, Math.min(1, lookT - (e.clientX - dragX) / (W * 0.5))); dragX = e.clientX; } });
+  addEventListener('pointerup', function () { dragX = null; });
+
+  function setMode(m) { MODE = m; document.getElementById('b180').classList.toggle('on', m === 1); document.getElementById('bflat').classList.toggle('on', m === 0); dirty = true; }
+  document.getElementById('b180').onclick = function () { setMode(1); };
+  document.getElementById('bflat').onclick = function () { setMode(0); };
+  setMode(MODE);
+})();
+</script>
+</body>
+</html>
