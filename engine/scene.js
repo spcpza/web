@@ -4315,7 +4315,7 @@
      ground plane here and the sprites take ITS rate, horizontal and vertical. */
   var SPRITE_GROUND = { 5: 'bg', 9: 'ground', 24: 'bg', 28: 'bg', 25: 'far' };   // 25 prayer: he kneels AT THE BED, so the child and his aura take the bed plane's rate — Fred: "bed and aura should stick to the floor"
   var camGround = 1, camLive = null;   // camLive: the cover's sparkle canvas (canvas.live) — it must pan with the mote shells it lights (Fred, Sep 16: "stars dont move with motion")
-  var camNyT = 0, camCurY = 0;                         // the VERTICAL look (up/down), -1..1 — the 2nd gyro axis, so the phone is a WINDOW you look through
+  var camNyT = 0, camCurY = 0, camVel = 0, camVelY = 0, camT0 = 0;                         // the VERTICAL look (up/down), -1..1 — the 2nd gyro axis, so the phone is a WINDOW you look through
   var DIO_SCALE = 1.06, DIO_VMAX = 11, DIO_EDGE = 6.5;   // DIO_EDGE mirrors the plane clamp, so camApply can follow the ground                 // planes zoom 6% (overscan headroom) so the up/down depth-parallax never reveals an edge (±11px, safe on short screens too)
   function camApply(dx) {                              // pure style writes, zero DOM reads/queries
     if (EP === 1 && camMaxPan <= 0) return;            // no-pan page (the 4K covers): never write object-position — animating it re-runs the CSS filter over 3840×2400 every frame → iOS memory crash
@@ -4422,8 +4422,13 @@
       ? camRest * (1 - Math.abs(_nx)) - _nx * camMaxPan
       : camRest - _nx * camMaxPan;
     tgt = Math.max(-camMaxPan, Math.min(camMaxPan, tgt));
-    camCur += (tgt - camCur) * 0.22;                  // ONE lerp: smooths gyro jitter AND eases the pan (responsive, not laggy)
-    camCurY += (camNyT - camCurY) * 0.16;             // ease the up/down look too
+    // a MASS ON A SPRING, not a lerp (Nov 14): stiffness K, damping a little under critical, so a lean starts slow,
+    // carries on a touch past where you stop and settles back — weight. Frame-rate independent (dt), and the spring
+    // still filters gyro tremor, which the lerp used to do.
+    var _now = performance.now(), _dt = camT0 ? Math.min(0.034, (_now - camT0) / 1000) : 1 / 60; camT0 = _now;
+    var CAM_K = 20, CAM_C = 2 * 0.78 * Math.sqrt(CAM_K);
+    camVel += ((tgt - camCur) * CAM_K - camVel * CAM_C) * _dt; camCur += camVel * _dt;
+    camVelY += ((camNyT - camCurY) * CAM_K - camVelY * CAM_C) * _dt; camCurY += camVelY * _dt;
     camApply(camCur);
     // ⚠ HYSTERESIS, or the cure becomes the disease. A real gyro never sits still: the
     // camera is always creeping by a fraction, so a bare threshold flips this state many
@@ -4437,7 +4442,7 @@
     // steady also PAUSES every ring, and I end up measuring a page I have just switched
     // off. That is exactly what happened twice: "the light does not shimmer" was my own
     // instrument suppressing it.
-    var _moving = !FORCEPAN && (Math.abs(tgt - camCur) > 0.25 || Math.abs(camNyT - camCurY) > 0.004);
+    var _moving = !FORCEPAN && (Math.abs(tgt - camCur) > 0.25 || Math.abs(camVel) > 2 || Math.abs(camNyT - camCurY) > 0.004 || Math.abs(camVelY) > 0.01);
     if (_moving) { _panQuiet = 0; if (_panTimer) { clearTimeout(_panTimer); _panTimer = 0; } } else _panQuiet++;
     var _wantPan = _moving || _panQuiet < 26;            // ~0.4s of stillness before it lifts
     if (_wantPan !== _wasPanning) {
@@ -4447,7 +4452,7 @@
     }
     if (_moving) camRAF = requestAnimationFrame(camLoop);
     else {
-      camCur = tgt; camCurY = camNyT; camApply(camCur);          // settled → stop the loop, main thread idle
+      camCur = tgt; camCurY = camNyT; camVel = camVelY = 0; camT0 = 0; camApply(camCur);          // settled → stop the loop, main thread idle
       // ⚠ AND RELEASE THE LATCH ON A TIMER, NOT ON THE NEXT FRAME. This loop STOPS when
       // the camera settles — that is the whole point of it, so the phone can idle — so a
       // counter that ticks inside it never finishes counting. The class stayed on for
@@ -4484,12 +4489,17 @@
     sNx = lastSNx = camNxT; sNy = lastSNy = camNyT; lookVel = 0; textHidden = false;
     clearTimeout(stillTimer); document.documentElement.style.setProperty('--read-fade', '1');
   }
-  function panTo(nx, ny) { camNxT = Math.max(-1, Math.min(1, nx)); if (ny != null) camNyT = Math.max(-1, Math.min(1, ny)); updateReadFade(); camKick(); }   // gyro/pointer: set target only, no DOM read
+  /* ⭐ THE LOOK HAS WEIGHT (Nov 14 — Fred: "parallax is like gravity. make scrolling to the side heavier and more dense").
+     Two things, both physical. DENSE: the further you lean to a side, the less each extra degree buys — the view pushes
+     back like a weight on a spring, and the painting's edge needs a deep lean, not 22°. HEAVY: the camera is a MASS on
+     that spring (camLoop): it starts slow, carries a little momentum, and settles — it no longer snaps after the hand. */
+  function dense(n) { var a = Math.abs(n), v = (1 - Math.exp(-1.8 * a)) / (1 - Math.exp(-2.52)); return (n < 0 ? -1 : 1) * Math.min(1, v); }
+  function panTo(nx, ny) { camNxT = dense(nx); if (ny != null) camNyT = Math.max(-1, Math.min(1, dense(ny))); updateReadFade(); camKick(); }   // gyro/pointer: set target only, no DOM read
   function restCenter() {                             // page change / build / resize: re-measure + snap to focal-centre
     var i = currentIdx(); var p = pages[i]; if (!p) return;
     var changed = (camIdx !== i);
     camIdx = i; camMeasure(p, i);
-    if (changed) { camNxT = 0; camCur = camRest; camNyT = 0; camCurY = 0; resetReadFade(); }   // new page → recentre both axes + show the poem
+    if (changed) { camNxT = 0; camCur = camRest; camNyT = 0; camCurY = 0; camVel = camVelY = 0; camT0 = 0; resetReadFade(); }   // new page → recentre both axes + show the poem
     else camCur = Math.max(-camMaxPan, Math.min(camMaxPan, camCur));   // resize can shrink the range under us
     camApply(camCur);
     camKick();   // rotation/resize re-measures on the SAME page → ease to the new rest instead of sticking
@@ -5022,7 +5032,7 @@
       // up/down through the glass. Both feed the depth-parallax camera.
       if (betaN == null && e.beta != null) betaN = e.beta;
       var ny = (e.beta != null && betaN != null) ? (e.beta - betaN) / 24 : 0;
-      panTo(-e.gamma / 22, ny);   // sign flipped on gamma: tilt LEFT reveals the LEFT edge
+      panTo(-e.gamma / 34, ny);   // sign flipped on gamma: tilt LEFT reveals the LEFT edge (÷34 + dense(): the edge wants a deep lean, ~48°)
     }
     function startTilt() { addEventListener('deviceorientation', onTilt, true); }
 
