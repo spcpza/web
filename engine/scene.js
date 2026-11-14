@@ -800,7 +800,7 @@
     12: [16, 14, 44, 0.32], 13: [255, 238, 205, 0.10], 14: [255, 242, 205, 0.09],
   };
   /* ---- FROZEN TABLEAU pages: no idle motion; every element animates only on tap ---- */
-  var PV = '?p=488';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
+  var PV = '?p=489';   // plate-asset version — STAMPED from version.json by gen/stamp-index.py (which bumps it when plates-vg/ changes); /plates-vg/* is cached immutable, so never hand-edit one copy
   /* ⭐ AVIF FOR THE COVER (Sep 25, "loads faster without sacrificing quality and beauty"). The cover's
      soft nebula sheets (word-n0..n2 + their frames) are 7.7 MB of every first visit as webp; the same
      pixels as AVIF q60 are 56% lighter with no visible change. Decode support is probed ONCE here with a
@@ -2027,6 +2027,7 @@
     function buildDioramaInner(page, idx, layer) {
       var defs = dioPlanes(page), base = DIO[idx];
       if (!defs || !defs.length || !base) return null;
+      page.__healed = 0;
       var skip = DIO_SKIP[idx] || [];
       defs = defs.filter(function (d) { return skip.indexOf(d.name) === -1; });   // drop planes drawn by a runtime actor
       var dio = document.createElement('div');
@@ -2047,6 +2048,7 @@
         // returning reader kept the old picture forever (and so did the simulator,
         // which is how this was found). Bump PV whenever a plate is rebuilt.
         im.src = '/plates-vg/' + base + '-' + d.name + ext + PV;
+        im.__src0 = im.getAttribute('src');   // healPlanes retries from here, never from a fallback
         im.onerror = function () {
           if (im.src.indexOf('.avif') !== -1) { im.src = im.src.replace('.avif', '.webp'); return; }   // AVIF refused → the webp
           if (di !== 0 && im.src.indexOf('.webp') !== -1) {        // one retry, as PNG
@@ -4728,6 +4730,30 @@
     if (page.__planesIn) return _idle(f);
     (page.__planesWait || (page.__planesWait = [])).push(f);
   }
+  /* ⚠ A PAGE THAT DID NOT LOAD MENDS ITSELF (Nov 14 — Fred: "the last page also have error. sometimes it does not load
+     but no problem when refreshed"). An iPhone short of memory does not throw: it leaves an image undecoded, and the
+     layer paints as nothing. A refresh fixes it because it starts with empty memory. So once a page's planes are in and
+     it is the page being read, each is asked to DECODE — the one call that reports a picture the phone could not hold
+     — and a plane that fails (or never arrived) is fetched again, at most twice per build. A plane that is fine costs
+     nothing: it is on screen, so it is decoded already. */
+  function healPlanes(page, imgs) {
+    imgs.forEach(function (im) {
+      if (!im || !im.getAttribute('src')) return;
+      var ok = im.complete && im.naturalWidth > 0;
+      var pr = ok ? (im.decode ? im.decode() : Promise.resolve()) : Promise.reject();
+      pr.catch(function () {
+        if ((page.__healed || 0) >= 2 || !page.__dio) return;
+        page.__healed = (page.__healed || 0) + 1;
+        if (DIAG) diag('page ' + pages.indexOf(page) + ': re-fetching ' + im.getAttribute('src'));
+        setTimeout(function () {
+          if (!im.getAttribute('src')) return;   // freed meanwhile
+          var src = (im.__src0 || im.getAttribute('src')).replace(/[?&]hl=\d+/, '');
+          im.style.display = '';                 // a plane its error handler hid comes back
+          im.src = src + (src.indexOf('?') !== -1 ? '&' : '?') + 'hl=' + page.__healed;
+        }, 400);
+      });
+    });
+  }
   function loadBoil(page) {
     if (!page || page.__boilGo) return;
     var planes = page.__dio, q = page.__boilQ;
@@ -4738,6 +4764,7 @@
     function planesUp() {
       if (--left > 0 || fired) { if (!fired) armStall(); return; }
       fired = true; clearTimeout(stallT);
+      if (pages[currentIdx()] === page) healPlanes(page, waits);
       page.__planesIn = true;
       (page.__planesWait || []).splice(0).forEach(function (f) { _idle(f); });   // see onPagePlanes
       setTimeout(function () {
@@ -4758,7 +4785,7 @@
         });
         if (_boilLive) stopBoil(_boilLive);
         if (todo.length) pumpBoil(_boilLive = { page: page, q: q, todo: todo, fl: [], t: 0 });
-      }, 120);   // let the planes paint first
+      }, (PHONE && (pages.indexOf(page) === 0 || pages.indexOf(page) === pages.length - 1)) ? 900 : 120);   // let the planes paint first — and on a phone's COVER, let the pages you just left be handed back first (its rings are the heaviest thing in the book)
     }
     // backstop: one STUCK plane must not keep the page still for ever — but a slow one is not stuck
     function armStall() {
@@ -5070,17 +5097,39 @@
     // interaction is deliberate (tap, tilt, swipe). So the pointer no longer drives the
     // camera; tilt still does on a phone, and a desktop reader sees the scene move by itself.
 
-    var tilting = false, betaN = null;
+    /* ⚠⚠ THE LOOK READS GRAVITY, NOT EULER ANGLES (Nov 14 — Fred: "the panning is a bit weird. sometimes it jumps
+       around"). deviceorientation hands over beta/gamma, and gamma is only defined over ±90°: as the phone comes up
+       toward upright (beta → 90°, exactly where you hold it to look UP into the art above the frame) it flips by up to
+       180° in one reading — the view slammed to the far edge and back. The same three angles also give gravity as the
+       phone feels it, a plain vector that turns smoothly through every pose:
+         g = (cos β·sin γ, −sin β, −cos β·cos γ)   (device frame, W3C Z-X'-Y'' order)
+       It is turned into the SCREEN's frame (landscape swaps the axes), and the look is read off it: side = how far
+       gravity leans across the screen, up/down = the pitch, measured from how you are holding it.
+       Also: iOS can open with an all-zero reading (that used to become "straight ahead" for good), so zeros are
+       skipped; and "straight ahead" now follows your grip slowly (~8s), so sitting up or lying down re-centres the
+       view instead of leaving it stuck looking up. A short low-pass takes the sensor's single-sample spikes out
+       before the spring sees them. */
+    var tilting = false, pitchN = null, tRoll = null, tPitch = null, tT = 0;
+    var D2R = Math.PI / 180;
     function onTilt(e) {
-      if (e.gamma == null) return;
+      if (e.gamma == null || e.beta == null) return;
+      if (!e.alpha && !e.beta && !e.gamma) return;          // iOS's empty first event
       tilting = true;
-      // The phone is a WINDOW you look through. Horizontal = roll (gamma). Vertical =
-      // pitch (beta), measured from the angle you're HOLDING it at (calibrated on the
-      // first reading = "looking straight in"), so tipping the top toward/away peeks
-      // up/down through the glass. Both feed the depth-parallax camera.
-      if (betaN == null && e.beta != null) betaN = e.beta;
-      var ny = (e.beta != null && betaN != null) ? (e.beta - betaN) / 24 : 0;
-      panTo(-e.gamma / 34, ny);   // sign flipped on gamma: tilt LEFT reveals the LEFT edge (÷34 + dense(): the edge wants a deep lean, ~48°)
+      var b = e.beta * D2R, g = e.gamma * D2R;
+      var gx = Math.cos(b) * Math.sin(g), gy = -Math.sin(b), gz = -Math.cos(b) * Math.cos(g);
+      var so = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : (window.orientation || 0);
+      var a = so * D2R, sx = gx * Math.cos(a) - gy * Math.sin(a), sy = gx * Math.sin(a) + gy * Math.cos(a);
+      var roll = Math.asin(Math.max(-1, Math.min(1, sx))) / D2R;      // + = leaning right
+      var pitch = Math.atan2(-sy, -gz) / D2R;                         // = beta when held straight
+      var now = performance.now(), dt = tT ? Math.min(0.5, (now - tT) / 1000) : 0; tT = now;
+      if (tRoll == null) { tRoll = roll; tPitch = pitch; }
+      var dp = pitch - tPitch; if (dp > 180) dp -= 360; else if (dp < -180) dp += 360;
+      var k = dt ? 1 - Math.exp(-dt / 0.06) : 1;                      // 60 ms low-pass
+      tRoll += (roll - tRoll) * k; tPitch += dp * k;
+      if (pitchN == null) pitchN = tPitch;
+      var dn = tPitch - pitchN; if (dn > 180) dn -= 360; else if (dn < -180) dn += 360;
+      pitchN += dn * (dt ? 1 - Math.exp(-dt / 8) : 0);                // straight-ahead follows your grip, slowly
+      panTo(-tRoll / 30, dn / 24);   // sign: lean LEFT reveals the LEFT edge (÷30 + dense(): the edge still wants a deep lean)
     }
     function startTilt() { addEventListener('deviceorientation', onTilt, true); }
 
