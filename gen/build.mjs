@@ -748,10 +748,17 @@ for (const m of modules) {
     const FARHAZE = new Set(['far', 'hills']);     // distance → airy aerial perspective
     // ART ABOVE THE FRAME (Nov 14): the depth planes get a band EXT plate-units tall above y = 0 (engine.setTopExt) —
     // the flat plate and portrait, built before this, keep the old frame, so the runtime's sprite geometry is unchanged.
-    // Covers (word) never pan, so they never get one.
-    const EXT = m.name === 'word' || m.name === 'word-cover' ? 0 : parseFloat(process.env.EXT || '0');
+    // ⚠ COVERS TOO, BUT ONLY THEIR FIELD (Nov 14 — Fred: "the first and last page does not have a vertical tilt"). The
+    // cover's ground (bg) and its three brushwork sheets (n0–n2) fill the frame to its top edge and get the band; the
+    // mote shells (s*) SPIN as whole images inside a 1600×1000 host and are empty near the top, and the Word (fg) sits
+    // at the centre — those keep the old frame (the runtime fits each plane by its OWN shape, so a page may mix them).
+    const EXT0 = parseFloat(process.env.EXT || '0');
+    const _isWord = m.name === 'word' || m.name === 'word-cover';
+    const extFor = (nm) => (_isWord && !/^(bg|n\d)$/.test(nm)) ? 0 : EXT0;
+    let EXT = EXT0;
     engine.setTopExt(EXT);
     const svgs = bands.map((L, i) => {
+      EXT = extFor(L.name); engine.setTopExt(EXT);
       const t = NB > 1 ? i / (NB - 1) : 0;               // 0 back → 1 front
       // THICK in back → really THIN up front, front-weighted (curve).
       const _skyBand = REALISM && !SKY_TUNED.has(m.name) && m.name !== 'word' && (/^sky/.test(L.name) || (i === 0 && /^(bg|bgA)$/.test(L.name)));   // many pages keep their sky in the backmost `bg`
@@ -828,6 +835,7 @@ for (const m of modules) {
       // breathes. Same trick, opposite result, depending on what it is seen next to.
       const _ring = (BOIL_RING_BANDS[m.name] || []).indexOf(L.name) !== -1;
       const _half = BOIL_FRAME && _ring;
+      EXT = extFor(L.name);   // this plane's own band (see extFor)
       const _hx = (500 + EXT) / 500;   // a taller plane: same scale, the band on top
       const png = rasterize(bn, svgs[i], _half ? 800 : 1600, Math.round((_half ? 500 : 1000) * _hx), 800, 0, m.focal, { raw: true, transparent: !opaque || EXT > 0 });
       // an opaque plane with a band is shot on transparent so the band can be underpainted from its own sky (see the script)

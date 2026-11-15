@@ -549,6 +549,7 @@
     // the same share UPWARD, so the painting keeps its scale and the old frame sits exactly where it was; the band
     // waits above the top edge until the reader looks up (camApply).
     + '.page .sc-dio.tall img{top:calc(var(--ext,0) * -100%);bottom:auto;height:calc((1 + var(--ext,0)) * 100%);}'
+    + '.page .sc-dio.tall .dio-spin img{top:0;height:100%;}'   // a spinning shell keeps its host's frame (the covers' shells have no band)
     // ---- ⚠ CLOUDS MOVE SIDEWAYS (Fred: "make the background move as if clouds moving in
     // the sky") ----
     // A cross-faded breath makes a sky shimmer in place; clouds TRAVEL. The swirl sheets
@@ -563,12 +564,7 @@
     // the plane's overscale on both sides.
     + '@keyframes dioCloud{0%{translate:calc(var(--sp,0px) * var(--pk,0.5) - var(--cd,26px) / 2) 0}50%{translate:calc(var(--sp,0px) * var(--pk,0.5) + var(--cd,26px) / 2) var(--cdy,0px)}100%{translate:calc(var(--sp,0px) * var(--pk,0.5) - var(--cd,26px) / 2) 0}}'
     + '.sc-dio img.dio-cloud{animation:dioCloud var(--cs,90s) ease-in-out infinite;scale:calc((1 + var(--spz,0) * var(--pk,0.5)) * var(--cz,1));}'
-    // ⚠ AND ITS BOX IS WIDER THAN THE FRAME BY THE DRIFT (Nov 14). object-fit:cover clips the picture to the img's
-    // own box, and on a phone that box overhangs the screen by only the 6% overscale — 12px — so any drift past
-    // ±12px walked the box's straight edge into the sky (`lost`: a hard-edged slab). camMeasure widens the box by
-    // --cm each side wherever that leaves the cover HEIGHT-limited (the picture keeps its exact scale), and
-    // camApply corrects the object-position so the painting stays exactly where the other planes put it.
-    + '.page .sc-dio img.dio-cloud{left:calc(var(--cm,0px) * -1);width:calc(100% + 2 * var(--cm,0px));}'
+    // (the cloud's box no longer needs widening for its drift: every plane's box is now its whole painting — fitPlane)
     // ⚠ THE THREE-HAND SHIMMER — Fred's own design, and it is better than the carousel I
     // kept building: "i want all 3 to be visible... a 50%, b 50%, c 100%; then a 50%, b
     // 100%, c 50%; then a 100%, b 50%, c 50%." A carousel SWAPS one drawing for another and
@@ -2310,7 +2306,7 @@
           if (dioF) { dioF.classList.add('tall'); dioF.style.setProperty('--ext', e.toFixed(4)); }
           var org = '50% ' + ((0.5 + e) / (1 + e) * 100).toFixed(2) + '%';   // scale about the OLD frame's centre, not the taller box's
           planes.forEach(function (q) { q.img.style.transformOrigin = org; });
-          if (pages[currentIdx()] === page) { camExt = e; camApply(camCur); }
+          if (pages[currentIdx()] === page) restCenter();   // re-fit the planes to the taller box
         };
         if (b0.complete && b0.naturalWidth) seat(); else b0.addEventListener('load', seat, { once: true });
       })(planes[0] && planes[0].img);
@@ -4361,7 +4357,7 @@
       if (camPlanes) {                                 // DIORAMA: parallax as DEVIATION from rest → rest is the pristine aligned painting
         var ov = camOV > 0 ? camOV : 1;
         var base = (dx / ov) * 100;                    // the flat pan (all planes share this)
-        if (camImg) camImg.style.objectPosition = Math.max(0, Math.min(100, 50 - base)).toFixed(2) + '% ' + (CROP_Y * 100) + '%';  // base plate tracks the ground so the plane takeover is seamless
+        if (camImg && !camPicHidden) camImg.style.objectPosition = Math.max(0, Math.min(100, 50 - base)).toFixed(2) + '% ' + (CROP_Y * 100) + '%';  // (a hidden flat plate is not repainted for nothing) base plate tracks the ground so the plane takeover is seamless
         var dev = ((dx - camRest) / ov) * 100;         // how far we've tilted OFF the resting frame
         for (var i = 0; i < camPlanes.length; i++) {
           var pl = camPlanes[i];
@@ -4370,16 +4366,16 @@
           // runs out (the road wasn't painted to the corner). The house sits at ~81%, so
           // this still reveals it; it just stops before the unfinished edge shows.
           var _Pc = Math.max(DIO_EDGE, Math.min(100 - DIO_EDGE, Pp));
-          var _Po = _Pc;
-          if (pl.cm) _Po = ((pl.bw - pl.cw) * _Pc / 100 + pl.cm) / (pl.bw + 2 * pl.cm - pl.cw) * 100;   // the widened cloud box (see .dio-cloud CSS): same painting position
-          pl.img.style.objectPosition = _Po.toFixed(2) + '% ' + (CROP_Y * 100) + '%';
-          /* ⚠ A SPINNING PLANE IGNORES object-position (Sep 17, Fred: "i tilted so that the stars go
-             away from the core"). The cover's mote shells live inside a `.dio-spin` host whose images
-             are object-fit:fill — they exactly fill the host, so there is nothing for object-position
-             to move, and the shells sat dead still while the core panned away from them. The HOST
-             is moved instead, by the same distance a panned image would travel. It rides the
-             `translate` property: the rotation animation owns `transform`, and translate composes
-             ahead of it, so the wheel turns about its moved centre. */
+          /* ⚠⚠ THE TILT MOVES THE BOX, NEVER THE PICTURE INSIDE IT (Nov 14 — Fred: "the more i tilt, it crashes").
+             This used to write object-position on every plane every frame. That moves the picture INSIDE its
+             box, so the phone has to repaint the whole image (and re-run its saturate/contrast filter) each
+             frame — on the covers, 26 full images (the base planes plus every ring drawing, visible or not),
+             60 times a second, while the reader leans. A fitted plane (fitPlane, in camMeasure) has a box
+             exactly the size of its painting, and the tilt is a transform on it: the compositor slides a
+             texture it already has, and nothing repaints. Same offset as before, to the pixel. */
+          var _fx = 0;
+          if (pl.fit) _fx = pl.ov * (50 - _Pc) / 100;
+          else if (!pl.spin) pl.img.style.objectPosition = _Pc.toFixed(2) + '% ' + (CROP_Y * 100) + '%';
           var _hp = pl.img.parentNode;
           if (_hp && _hp.className === 'dio-spin') _hp.style.translate = (ov * (50 - _Pc) / 100 * DIO_SCALE).toFixed(1) + 'px 0';
           // VERTICAL depth (the 2nd window axis): near planes rise/sink MORE than far
@@ -4387,7 +4383,7 @@
           // real 3-D scene behind glass. Rides inside the 6% overscan so no edge shows.
           var Yp = camCurY * (pl.rate - 1) * 24;
           Yp = Yp < -DIO_VMAX ? -DIO_VMAX : Yp > DIO_VMAX ? DIO_VMAX : Yp;
-          pl.img.style.transform = 'scale(' + DIO_SCALE + ') translateY(' + (Yp + camLift() / DIO_SCALE).toFixed(1) + 'px)';
+          pl.img.style.transform = 'scale(' + DIO_SCALE + ') translate(' + _fx.toFixed(1) + 'px,' + (Yp + camLift() / DIO_SCALE).toFixed(1) + 'px)';
         }
       } else if (camImg) {
         var P = camOV > 0 ? 50 - (dx / camOV) * 100 : 50;
@@ -4428,21 +4424,41 @@
       if (camLive) camLive.style.transform = 'translate3d(' + lx.toFixed(1) + 'px,' + ly.toFixed(1) + 'px,0)';
     }
   }
+  /* fitPlane — give a diorama plane a box exactly the size of its painting, placed where object-fit:cover with
+     object-position 50% / CROP_Y would have put it, so camApply can pan it with a transform (see the note there).
+     The scale origin is pinned to the frame's centre, where it always was. A spinning shell keeps its host (the
+     host is already moved by `translate`); a plane whose image has not arrived is fitted when it does. */
+  var camPicHidden = false;
+  function fitPlane(q, page, W, H) {
+    var im = q.img; q.fit = false;
+    if (!im || !W || !H) return;
+    var par = im.parentNode;
+    q.spin = !!(par && par.className === 'dio-spin');
+    if (q.spin) return;
+    var r = im.naturalWidth && im.naturalHeight ? im.naturalWidth / im.naturalHeight : 0;
+    if (!r) {
+      if (!im.__fitWait) { im.__fitWait = 1; im.addEventListener('load', function () { im.__fitWait = 0; if (pages[currentIdx()] === page) restCenter(); }, { once: true }); }
+      return;
+    }
+    var e = 1.6 / r - 1;   // the plane's OWN band: 1600×1160 → 0.16, 1600×1000 → 0 (a cover mixes both)
+    if (!(e > 0.02)) e = 0;
+    var by = -e * H, bh = (1 + e) * H, dw, dh;
+    if (W / bh > r) { dw = W; dh = W / r; } else { dh = bh; dw = bh * r; }
+    var L = (W - dw) / 2, T = by + (bh - dh) * CROP_Y;
+    var st = im.style;
+    st.left = L.toFixed(1) + 'px'; st.top = T.toFixed(1) + 'px'; st.right = 'auto'; st.bottom = 'auto';
+    st.width = dw.toFixed(1) + 'px'; st.height = dh.toFixed(1) + 'px';
+    st.objectPosition = '50% 50%';
+    st.transformOrigin = (W / 2 - L).toFixed(1) + 'px ' + (H / 2 - T).toFixed(1) + 'px';
+    q.fit = true; q.ov = dw - W;
+  }
   function camMeasure(page, idx) {                     // the ONLY place we touch layout / the DOM tree
     camImg = page.querySelector('picture img'); camLayer = page.__scLayer; camLive = page.querySelector('canvas.live');
     camPlanes = page.__dio || null;                    // diorama pages drive planes instead of the single composite
     camGround = 1;
     camExt = page.__ext || 0; camH = page.clientHeight || 0;
-    if (camPlanes) for (var ci = 0; ci < camPlanes.length; ci++) {
-      var cp = camPlanes[ci], cim = cp.img;
-      cp.cm = 0;
-      if (!cim || !cim.classList || !cim.classList.contains('dio-cloud')) continue;
-      var cd = Math.abs(parseFloat(cim.style.getPropertyValue('--cd')) || 0);
-      var bw = page.clientWidth, bh = cim.offsetHeight, nr = cim.naturalWidth && cim.naturalHeight ? cim.naturalWidth / cim.naturalHeight : 0;
-      var m = cd / 2 + 6;
-      if (cd && bh && nr && (bw + 2 * m) / bh < nr) { cp.cm = m; cp.bw = bw; cp.cw = bh * nr; cim.style.setProperty('--cm', m + 'px'); }
-      else cim.style.removeProperty('--cm');
-    }
+    camPicHidden = !!(camImg && camPlanes && camImg.closest && camImg.closest('picture') && camImg.closest('picture').style.opacity === '0');
+    if (camPlanes) for (var ci = 0; ci < camPlanes.length; ci++) fitPlane(camPlanes[ci], page, page.clientWidth, page.clientHeight);
     var _gn = SPRITE_GROUND[idx];
     if (_gn && camPlanes) for (var gi = 0; gi < camPlanes.length; gi++) if (camPlanes[gi].name === _gn) { camGround = camPlanes[gi].rate; break; }
     if (!camImg) { camMaxPan = 0; camRest = 0; camOV = 0; return; }
@@ -4524,7 +4540,12 @@
   // raises a "moving" flag; a settle timer brings the words back once you stop. The CSS
   // transition on .text/.scrim makes the hide/show itself glide.
   var sNx = 0, sNy = 0, lastSNx = 0, lastSNy = 0, lookVel = 0, stillTimer = 0, textHidden = false;
+  /* ⚠ THE CARD STAYS WHEN YOU TILT (Nov 14 — Fred: "now everytime i tilt my phone the text box disappear"). The poem
+     used to fade out while the phone moved. Reading the tilt from gravity made the look respond to every small lean,
+     so the card vanished at every touch of the hand. The story card is the reader's; it hides only when tapped. */
+  var READ_FADE_ON_TILT = false;
   function updateReadFade() {
+    if (!READ_FADE_ON_TILT) return;
     sNx = sNx * 0.86 + camNxT * 0.14; sNy = sNy * 0.86 + camNyT * 0.14;   // smoothed look (tremor filtered out)
     var d = Math.abs(sNx - lastSNx) + Math.abs(sNy - lastSNy);
     lastSNx = sNx; lastSNy = sNy;
